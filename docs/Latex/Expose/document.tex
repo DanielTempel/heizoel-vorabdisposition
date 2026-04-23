@@ -1,0 +1,113 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{parskip}
+
+\title{Exposé }
+\author{}
+\date{}
+
+\begin{document}
+	
+	\maketitle
+	
+	\section*{Arbeitstitel}
+	
+	\textbf{Workflow-basierte Vorabdisposition von Heizöl-Bestellungen mit BPMN und Camunda}
+	
+	\section{Aufgabenstellung und Zielsetzung}
+	
+	Ziel des Projekts ist die prototypische Entwicklung eines Systems zur Unterstützung der Vorabkoordination von Heizöl-Bestellungen.
+	
+	Ein Kunde soll über ein Web-Frontend eine Bestellung erfassen können. Dabei werden unter anderem folgende Informationen übermittelt:
+	
+	\begin{itemize}[leftmargin=1.5cm]
+		\item Bestellmenge
+		\item Lieferadresse
+		\item Kommunikationskanal
+		\item Name
+		\item Telefonnummer
+		\item E-Mail-Adresse
+		\item optionaler Kommentar
+	\end{itemize}
+	
+	Auf Basis definierter Regeln soll das System anschließend einen passenden Lieferanten sowie einen möglichen Liefertermin ermitteln.
+	
+	Dieser Terminvorschlag wird dem Kunden per E-Mail/SMS/WhatsApp übermittelt. Über einen Bestätigungs- oder Ablehnungslink kann der Kunde auf den Vorschlag reagieren.
+	
+	Bei Bestätigung wird der Auftrag an die Disposition weitergegeben und dort sichtbar gemacht. Gleichzeitig wird der Status des Auftrags im System aktualisiert.
+	
+	Bei Ablehnung kann ein alternativer Vorschlag erzeugt oder der Vorgang beendet werden.
+	
+	Erfolgt innerhalb eines definierten Zeitraums keine Rückmeldung, wird der Auftrag automatisch storniert.
+	
+	\section{Ist-Situation und Problemstellung im Unternehmenskontext}
+	
+	Die Projektidee basiert auf einem praktischen Anwendungsfall aus einem Unternehmen, in dem Heizöl-Bestellungen aktuell überwiegend manuell koordiniert werden.
+	
+	Die Terminfindung sowie die Abstimmung mit Kunden erfolgen derzeit nach Einschätzung des Unternehmens im Wesentlichen manuell. Ein automatisierter Vorprozess zur strukturierten Erfassung, Terminermittlung und Rückmeldung existiert derzeit nicht.
+	
+	Das Projekt soll deshalb als prototypische Lösung untersuchen, wie ein solcher Ablauf technisch unterstützt und in Form eines klar definierten Workflows abgebildet werden kann.
+	
+	Produktive Unternehmensdaten werden dabei nicht verwendet; die Umsetzung erfolgt ausschließlich mit synthetischen Testdaten.
+	
+	\section{Technische Einordnung / Infrastruktur}
+	
+	Die technische Umsetzung ist als eigenständiger Prototyp vorgesehen.
+	
+	Geplant ist die Verwendung folgender Technologien:
+	
+	\begin{itemize}[leftmargin=1.5cm]
+		\item Spring Boot als Backend-Basis
+		\item Camunda 7 zur Workflow-Ausführung
+		\item PostgreSQL zur Datenhaltung
+		\item einfaches Web-Frontend zur Benutzerinteraktion
+	\end{itemize}
+	
+	Die Lösung soll zunächst unabhängig von bestehender Unternehmenssoftware entwickelt werden.
+	
+	Technologische Vorgaben seitens des Unternehmens werden aktuell noch abgestimmt.
+	
+	\section{Geplante methodische Vorgehensweise und Ergebnistyp}
+	
+	Das Projekt wird schrittweise umgesetzt:
+	
+	\begin{enumerate}[leftmargin=1.5cm]
+		\item Analyse und fachliche Abgrenzung des Prozesses
+		\item Modellierung des Geschäftsprozesses in BPMN
+		\item Implementierung des Workflows mit Camunda
+		\item Entwicklung des Backends für Prozesslogik und Statusverwaltung
+		\item Entwicklung eines Frontends zur Eingabe und Rückmeldung
+		\item Test typischer Prozessszenarien
+	\end{enumerate}
+	
+	Das geplante Ergebnis ist ein prototypisches System, bestehend aus:
+	
+	\begin{itemize}[leftmargin=1.5cm]
+		\item einem ausführbaren BPMN-Prozess
+		\item einem Backend-Service
+		\item einem Frontend für Kundeninteraktion
+		\item einer einfachen Ansicht für die Disposition
+	\end{itemize}
+	
+	\section{Vorläufige Aufgabenverteilung im Projektteam}
+	
+	\subsection*{Daniel Tempel}
+	
+	Technische Projektkoordination, Backend-Architektur, REST-Schnittstellen, Integration von Camunda und Backend, Kommunikation mit dem Unternehmen sowie fachliche Betreuung.
+	
+	\subsection*{Buse}
+	
+	BPMN-Modellierung, Prozesslogik, Sonderfälle, Prozessvariablen, workflow-nahe Services und Testszenarien.
+	
+	\subsection*{Arsenii}
+	
+	Frontend, Benutzerinteraktion, Kunden- und Disponentenansicht, Dokumentationspflege sowie Testunterstützung.
+	
+	Zusätzlich erfolgen wöchentliche Teamabstimmungen jeweils freitags sowie Aufgabenverwaltung über GitHub (Issues, Branches, Pull Requests).
+	
+\end{document}

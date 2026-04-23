@@ -1,0 +1,109 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{lmodern}
+\usepackage{enumitem}
+
+\begin{document}
+	
+	\begin{center}
+		{\Large \textbf{Beschreibung der aktuellen Ist-Situation}}\\[0.3cm]
+		{\normalsize Lieferbestätigung im aktuellen Dispositionsprozess}
+	\end{center}
+	
+	\vspace{0.8cm}
+	
+	\section*{1. Ausgangssituation}
+	
+	Der eigentliche Prozess beginnt erst, nachdem ein Auftrag bereits im System vorhanden ist.
+	Die Bestellung erfolgt zuvor über bestehende Kanäle, zum Beispiel über Online-Plattformen wie HeizOel24.
+	
+	Für die interne Bearbeitung liegen anschließend bereits folgende Informationen vor:
+	
+	\begin{itemize}[leftmargin=1.2cm]
+		\item Kunde
+		\item Augtrag
+		\item Lieferadresse
+		\item Produkt
+		\item Bestellmenge
+	\end{itemize}
+	
+	\section*{2. Rolle der Disposition}
+	
+	Der Disponent erstellt auf dieser Grundlage die vorläufige Tourenplanung.
+	
+	Dabei werden manuell festgelegt:
+	
+	\begin{itemize}[leftmargin=1.2cm]
+		\item Liefertag
+		\item konkretes Lieferfenster
+	\end{itemize}
+	
+	Das Lieferfenster wird aktuell nicht vom Kunden gewählt, sondern zunächst intern vorgegeben.
+	
+	\section*{3. Telefonische Rückbestätigung}
+	
+	Spätestens zwei Tage vor dem geplanten Liefertermin erfolgt ein telefonischer Kontakt durch den Disponenten.
+	
+	Dem Kunden wird ein bereits geplanter Termin genannt.
+	
+	Ziel ist die Klärung, ob dieser Termin passt.
+	
+	\section*{4. Ablauf bei Nichterreichbarkeit}
+	
+	Wenn der Kunde beim ersten Anruf nicht erreichbar ist, erfolgt am selben Tag nach einigen Stunden ein zweiter Anruf.
+	
+	Falls auch der zweite Versuch erfolglos bleibt:
+	
+	\begin{itemize}[leftmargin=1.2cm]
+		\item wird der Auftrag nicht in die aktuelle Tour aufgenommen
+		\item und automatisch auf die nächste Tour verschoben
+	\end{itemize}
+	
+	Falls der Kunde beim zweiten Versuch erreicht wird:
+	
+	\begin{itemize}[leftmargin=1.2cm]
+		\item bleibt der Auftrag in der aktuellen Tour, sofern noch Kapazität vorhanden ist
+		\item andernfalls erfolgt ebenfalls eine Verschiebung auf die nächste Tour
+	\end{itemize}
+	
+	\section*{5. Ablauf bei Kundenreaktion}
+	
+	Wenn der Kunde den vorgeschlagenen Termin bestätigt, gilt dieser als verbindlich.
+	
+	Der Auftrag bleibt final in der geplanten Tour.
+	
+	Falls der Kunde zum bestätigten Termin nicht anwesend ist, entsteht eine Vertragsstrafe.
+	
+	\section*{6. Änderungswünsche des Kunden}
+	
+	Falls der Kunde den vorgeschlagenen Termin nicht akzeptiert, wird kein neuer Termin sofort vergeben.
+	
+	Typische Fälle sind:
+	
+	\begin{itemize}[leftmargin=1.2cm]
+		\item Lieferung früher gewünscht
+		\item Lieferung später gewünscht
+		\item Einschränkungen wie nur vormittags
+	\end{itemize}
+	
+	Diese Informationen werden im DISPO-System gespeichert und bei der nächsten Tourenplanung berücksichtigt.
+	
+	Eine direkte Neuplanung erfolgt erst später.
+	
+	\section*{7. Systemseitige Dokumentation}
+	
+	Alle Rückmeldungen werden im DISPO-System dokumentiert.
+	
+	Dort existieren Statusinformationen zum Bearbeitungsstand des Auftrags.
+	
+	\section*{8. Hauptcharakteristik des aktuellen Prozesses}
+	
+	Der aktuelle Prozess basiert vollständig auf manueller telefonischer Abstimmung durch die Disposition.
+	
+	Ein automatisierter digitaler Workflow für Rückbestätigung, Statusverarbeitung oder Folgeaktionen existiert derzeit nicht.
+
+\end{document}
