@@ -1,0 +1,303 @@
+\documentclass[a4paper,11pt]{article}
+
+% -------------------------------------------------
+% Sprache und Kodierung
+% -------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+
+% -------------------------------------------------
+% Layout und Typografie
+% -------------------------------------------------
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{setspace}
+\usepackage{parskip}
+
+% -------------------------------------------------
+% Listen und Überschriften
+% -------------------------------------------------
+\usepackage{enumitem}
+\usepackage{titlesec}
+
+% -------------------------------------------------
+% Farben und Boxen
+% -------------------------------------------------
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+
+% -------------------------------------------------
+% Kopf- und Fußzeile
+% -------------------------------------------------
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+% -------------------------------------------------
+% Hyperlinks
+% -------------------------------------------------
+\usepackage[hidelinks]{hyperref}
+
+% -------------------------------------------------
+% Einstellungen
+% -------------------------------------------------
+
+\setstretch{1.12}
+
+\definecolor{mainblue}{RGB}{35, 82, 124}
+\definecolor{lightblue}{RGB}{240, 246, 252}
+\definecolor{darkgray}{RGB}{70, 70, 70}
+
+\titleformat{\section}
+{\large\bfseries\color{mainblue}}
+{}
+{0pt}
+{}
+
+\titlespacing*{\section}
+{0pt}
+{1.2em}
+{0.5em}
+
+\setlist[itemize]{
+	leftmargin=1.2cm,
+	itemsep=0.25em,
+	topsep=0.4em
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small Beschreibung der Ist-Situation}
+\rhead{\small Lieferbestätigung}
+\cfoot{\small Seite \thepage\ von \pageref{LastPage}}
+
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\newtcolorbox{infobox}{
+	colback=lightblue,
+	colframe=mainblue,
+	arc=2mm,
+	boxrule=0.5pt,
+	left=8pt,
+	right=8pt,
+	top=7pt,
+	bottom=7pt
+}
+
+% -------------------------------------------------
+% Dokument
+% -------------------------------------------------
+
+\begin{document}
+	
+	% -------------------------------------------------
+	% Titelbereich
+	% -------------------------------------------------
+	
+	\begin{center}
+		\vspace*{0.5cm}
+		
+		{\LARGE\bfseries\color{mainblue}
+			Beschreibung der aktuellen Ist-Situation}
+		
+		\vspace{0.3cm}
+		
+		{\large Lieferbestätigung im aktuellen Dispositionsprozess}
+		
+		\vspace{0.5cm}
+		
+		\rule{0.75\textwidth}{0.5pt}
+		
+		\vspace{0.3cm}
+		
+		{\small Stand: \today}
+	\end{center}
+	
+	\vspace{0.8cm}
+	
+	\begin{infobox}
+		Dieses Dokument beschreibt den aktuellen manuellen Prozess zur telefonischen
+		Lieferbestätigung im Rahmen der Disposition. Der Fokus liegt auf der bestehenden
+		Ist-Situation, den beteiligten Rollen, den Entscheidungsfällen sowie der
+		systemseitigen Dokumentation.
+	\end{infobox}
+	
+	\vspace{0.8cm}
+	
+	% -------------------------------------------------
+	% Inhalt
+	% -------------------------------------------------
+	
+	\section*{1. Ausgangssituation}
+	
+	Der eigentliche Prozess beginnt erst, nachdem ein Auftrag bereits im System
+	vorhanden ist. Die Bestellung erfolgt zuvor über bestehende Kanäle,
+	beispielsweise über Online-Plattformen wie HeizOel24.
+	
+	Für die interne Bearbeitung liegen anschließend bereits folgende Informationen vor:
+	
+	\begin{itemize}
+		\item Kunde
+		\item Auftrag
+		\item Lieferadresse
+		\item Produkt
+		\item Bestellmenge
+	\end{itemize}
+	
+	Zusätzlich wurde zuvor vom Kunden bereits ein Lieferzeitraum angegeben,
+	zum Beispiel ein Zeitraum wie 01.04.--06.04. mit Einschränkungen wie
+	\glqq nicht nach 16 Uhr\grqq.
+	
+	\section*{2. Rolle der Disposition}
+	
+	Der Disponent erstellt auf dieser Grundlage die vorläufige Tourenplanung.
+	Eine Tour entspricht dabei dem Lieferweg eines einzelnen Fahrzeugs.
+	
+	Dabei plant der Disponent die Tour im Detail, erstellt eine Route und schlägt
+	innerhalb dieser Route optimale Lieferzeitpunkte vor.
+	
+	Manuell festgelegt werden insbesondere:
+	
+	\begin{itemize}
+		\item Liefertag
+		\item konkretes Lieferfenster
+	\end{itemize}
+	
+	Das Lieferfenster wird zunächst intern disponiert. Der vorgeschlagene
+	Lieferzeitpunkt muss anschließend telefonisch mit dem Kunden abgestimmt werden.
+	
+	\section*{3. Telefonische Rückbestätigung}
+	
+	Spätestens zwei Tage vor dem geplanten Liefertermin erfolgt ein telefonischer
+	Kontakt durch den Disponenten.
+	
+	Dem Kunden wird der Lieferauftrag mit den vereinbarten Informationen genannt,
+	insbesondere:
+	
+	\begin{itemize}
+		\item Preis pro 100 Liter
+		\item Lieferadresse
+		\item Lieferdatum
+		\item geplantes Lieferfenster
+	\end{itemize}
+	
+	Ziel ist die Klärung, ob der konkrete Liefertermin bestätigt werden kann.
+	
+	Ein Kontakt gilt nur dann als erfolgreich, wenn eine konkrete Uhrzeit
+	beziehungsweise ein eindeutiges Lieferfenster bestätigt wird. Aussagen wie
+	eine spätere Rückmeldung oder eine unklare Zusage gelten nicht als Bestätigung.
+	
+	\section*{4. Ablauf bei Nichterreichbarkeit}
+	
+	Wenn der Kunde beim ersten Anruf nicht erreichbar ist, erfolgt am selben Tag
+	nach einigen Stunden ein weiterer Anruf.
+	
+	Je nach Situation können zusätzlich ein dritter oder vierter Anruf erfolgen.
+	
+	Falls weiterhin kein Kontakt zustande kommt:
+	
+	\begin{itemize}
+		\item bleibt der Auftrag grundsätzlich weiterhin in der Planung,
+		\item da der Kunde bereits einen Lieferzeitraum angegeben hat,
+		\item und die Tour auf dieser Basis weiter disponiert wird.
+	\end{itemize}
+	
+	Falls der Kunde später selbst zurückruft, prüft der Disponent, ob innerhalb
+	der ursprünglichen Tour noch freie Kapazität vorhanden ist.
+	
+	Ist das Zeitfenster bereits vergeben, erfolgt eine Verschiebung auf die nächste
+	freie Tour.
+	
+	\section*{5. Ablauf bei Kundenreaktion}
+	
+	Wenn der Kunde den vorgeschlagenen Termin bestätigt, gilt dieser als verbindlich.
+	
+	Der Auftrag bleibt final in der geplanten Tour. In diesem Zustand gilt der
+	Auftrag als fest eingeplant und ist technisch für weitere Änderungen gesperrt.
+	
+	Dem Kunden kann in diesem Zusammenhang eine Anfahrtspauschale berechnet werden.
+	Falls der Kunde zum bestätigten Termin nicht anwesend ist, entsteht eine
+	Vertragsstrafe.
+	
+	Falls der Kunde einen bereits bestätigten Termin kurzfristig absagt, wird der
+	Auftrag aus der aktuellen Tour entfernt und auf eine spätere freie Tour
+	verschoben.
+	
+	Spontane Absagen nach Bestätigung können zusätzlich zu verrechneten
+	Anfahrtspauschalen oder Planungspauschalen führen.
+	
+	\section*{6. Änderungswünsche des Kunden}
+	
+	Falls der Kunde den vorgeschlagenen Termin nicht akzeptiert, wird geprüft,
+	ob innerhalb der aktuellen Tour ein alternatives Zeitfenster verfügbar ist.
+	
+	Typische Fälle sind:
+	
+	\begin{itemize}
+		\item Lieferung früher gewünscht
+		\item Lieferung später gewünscht
+		\item Einschränkungen wie nur vormittags oder erst nach 16 Uhr
+	\end{itemize}
+	
+	Teilweise wurden diese Einschränkungen bereits bei der Auftragserteilung vom
+	Kunden angegeben und an den Disponenten übergeben.
+	
+	Ist das gewünschte Zeitfenster innerhalb der aktuellen Tour verfügbar, wird der
+	Auftrag entsprechend angepasst.
+	
+	Führt die Änderung zu Konflikten im logistischen Ablauf der Tour, entscheidet
+	der Disponent im Einzelfall über Aufnahme oder Verschiebung des Auftrags.
+	
+	Eine formalisierte Entscheidungsregel existiert hierfür nicht.
+	
+	Ist keine Anpassung möglich, erfolgt eine Verschiebung auf eine andere freie Tour.
+	
+	\section*{7. Alternative Kontaktwege}
+	
+	In Ausnahmefällen erfolgt die Kontaktaufnahme manuell über alternative
+	Kommunikationskanäle.
+	
+	Verwendet werden dabei insbesondere:
+	
+	\begin{itemize}
+		\item Handynummer
+		\item Telefonnummer
+		\item E-Mail
+		\item WhatsApp
+	\end{itemize}
+	
+	Auch hierbei erfolgt die Bearbeitung vollständig durch den Disponenten.
+	
+	\section*{8. Systemseitige Dokumentation}
+	
+	Alle Rückmeldungen werden im DISPO-System dokumentiert.
+	
+	Dort existieren Statusinformationen zum Bearbeitungsstand des Auftrags.
+	
+	Nichterreichbarkeit ergibt sich dabei aus dem fehlenden bestätigten Rückkontakt.
+	
+	\section*{9. Hauptcharakteristik des aktuellen Prozesses}
+	
+	Der aktuelle Prozess basiert vollständig auf manueller Abstimmung durch die
+	Disposition.
+	
+	Zentrale Entscheidungen bei Terminbestätigung, Verschiebung und Sonderfällen
+	werden individuell durch den Disponenten getroffen.
+	
+	Ein automatisierter digitaler Workflow für Rückbestätigung, Statusverarbeitung
+	oder Folgeaktionen existiert derzeit nicht.
+	
+	Der Prozess endet, sobald der Liefertermin bestätigt, der Auftrag verschoben oder keine weitere Rückmeldung des Kunden vor dem geplanten Liefertermin möglich ist.
+	\vfill
+	
+	\begin{center}
+		\rule{0.6\textwidth}{0.4pt}
+		
+		\vspace{0.2cm}
+		
+		{\small Ende der Beschreibung der aktuellen Ist-Situation}
+	\end{center}
+	
+\end{document}
