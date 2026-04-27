@@ -1,0 +1,1248 @@
+\documentclass[12pt,a4paper]{article}
+
+% -------------------------------------------------
+% Pakete
+% -------------------------------------------------
+
+\usepackage{fontspec}
+\usepackage[ngerman]{babel}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+
+% -------------------------------------------------
+% Seitenlayout
+% -------------------------------------------------
+\geometry{
+	left=2.5cm,
+	right=2.5cm,
+	top=2.5cm,
+	bottom=2.5cm
+}
+
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+
+% -------------------------------------------------
+% Hyperlinks
+% -------------------------------------------------
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black,
+	urlcolor=blue,
+	pdftitle={Soll-Dokumentation},
+	pdfauthor={},
+	pdfsubject={Digitale Rückbestätigung geplanter Heizöl-Lieferungen}
+}
+
+% -------------------------------------------------
+% Überschriften
+% -------------------------------------------------
+\titleformat{\section}
+{\normalfont\Large\bfseries}
+{\thesection}{1em}{}
+
+\titleformat{\subsection}
+{\normalfont\large\bfseries}
+{\thesubsection}{1em}{}
+
+\titleformat{\subsubsection}
+{\normalfont\normalsize\bfseries}
+{\thesubsubsection}{1em}{}
+
+% -------------------------------------------------
+% Code-/Textblöcke
+% -------------------------------------------------
+\definecolor{codegray}{RGB}{245,245,245}
+\definecolor{bordergray}{RGB}{210,210,210}
+
+\lstdefinestyle{textblock}{
+	backgroundcolor=\color{codegray},
+	basicstyle=\ttfamily\small,
+	frame=single,
+	rulecolor=\color{bordergray},
+	breaklines=true,
+	columns=fullflexible,
+	keepspaces=true,
+	showstringspaces=false
+}
+
+\lstset{style=textblock}
+
+% -------------------------------------------------
+% Dokument
+% -------------------------------------------------
+\begin{document}
+	
+	% -------------------------------------------------
+	% Titelseite
+	% -------------------------------------------------
+	\begin{titlepage}
+		\centering
+		\vspace*{3cm}
+		
+		{\Huge\bfseries Soll-Dokumentation\par}
+		\vspace{1cm}
+		
+		{\LARGE Digitale Rückbestätigung geplanter Heizöl-Lieferungen\par}
+		\vspace{2cm}
+		
+		{\large Projektkonzept für eine digitale Unterstützung der Disposition\par}
+		
+		\vfill
+		
+		{\large \today\par}
+	\end{titlepage}
+	
+	\tableofcontents
+	\newpage
+	
+	% -------------------------------------------------
+	\section{Ziel der Soll-Lösung}
+	
+	Ziel der Soll-Lösung ist es, den manuellen Aufwand bei der Rückbestätigung geplanter Heizöl-Lieferungen zu reduzieren.
+	
+	Im aktuellen Prozess plant der Disponent eine Tour, legt Lieferfenster fest und kontaktiert Kunden anschließend manuell, um zu prüfen, ob der vorgeschlagene Liefertermin passt.
+	
+	Bei einer größeren Anzahl von Aufträgen entstehen dadurch mehrere Probleme:
+	
+	\begin{itemize}
+		\item viele manuelle Anrufversuche;
+		\item Kunden sind telefonisch schwer erreichbar;
+		\item Rückrufe verzögern die Planung;
+		\item mehrere Mitarbeiter können in die Klärung eingebunden sein;
+		\item der aktuelle Rückmeldestatus ist nicht immer sofort übersichtlich.
+	\end{itemize}
+	
+	Die Soll-Lösung ergänzt den bestehenden Dispositionsprozess um eine digitale Rückbestätigung.
+	
+	Wichtig ist:
+	
+	\begin{lstlisting}
+		Die Soll-Lösung ersetzt nicht die Disposition.
+		Sie unterstützt nur die strukturierte Rückbestätigung geplanter Lieferfenster.
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{Fachliche Abgrenzung}
+	
+	Die bestehende Tourplanung bleibt unverändert.
+	
+	Das System übernimmt keine automatische Disposition.
+	
+	Das System macht nicht:
+	
+	\begin{lstlisting}
+		keine automatische Tourenplanung
+		keine automatische Routenoptimierung
+		keine automatische Neuvergabe von Lieferfenstern
+		keine automatische Änderung der Tourreihenfolge
+		keine automatische Interpretation von Kundenkommentaren
+		keine automatische Verschiebung von Aufträgen
+	\end{lstlisting}
+	
+	Die fachliche Entscheidung bleibt beim Disponenten.
+	
+	Das System macht:
+	
+	\begin{lstlisting}
+		Anzeige bestehender Aufträge
+		Versand von Rückbestätigungsanfragen
+		Erfassung von Kundenantworten
+		Statusaktualisierung
+		Anzeige problematischer Fälle
+		Übersicht über Aufträge innerhalb einer Tour
+		Unterstützung bei der finalen Tourfreigabe
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{Zentrale Begriffe}
+	
+	\subsection{Auftrag}
+	
+	Ein Auftrag ist ein bestehender Datensatz im DISPO-System.
+	
+	Der Auftrag enthält die relevanten Informationen für eine Heizöl-Lieferung.
+	
+	Beispiele für Auftragsdaten:
+	
+	\begin{lstlisting}
+		Auftragsnummer
+		Kunde
+		Lieferadresse
+		Bestellmenge
+		geplanter Liefertag
+		geplantes Lieferfenster
+		zugeordnete Tour
+	\end{lstlisting}
+	
+	Das Rückbestätigungssystem erzeugt den Auftrag nicht selbst, sondern verwendet die bereits vorhandenen Auftragsdaten aus dem DISPO-System.
+	
+	\subsection{Tour}
+	
+	Eine Tour ist eine Gruppierung mehrerer Aufträge.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Tour 17
+		|-- Auftrag A-1021
+		|-- Auftrag A-1022
+		|-- Auftrag A-1023
+		`-- Auftrag A-1024
+	\end{lstlisting}
+	
+	Die Rückbestätigung wird fachlich auf Auftragsebene durchgeführt.
+	
+	Die Tour dient hauptsächlich als Übersicht, damit der Disponent nicht verschiedene Aufträge aus verschiedenen Touren durcheinanderbringt.
+	
+	\subsection{Rückbestätigung}
+	
+	Die Rückbestätigung ist die digitale Anfrage an den Kunden, ob das geplante Lieferfenster passt.
+	
+	Die Rückbestätigung bezieht sich immer auf:
+	
+	\begin{lstlisting}
+		einen konkreten Auftrag
+		ein konkretes Lieferfenster
+		eine konkrete Anfrage
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{Grundprinzip des Soll-Prozesses}
+	
+	Der Disponent plant eine Tour zunächst wie bisher vorläufig im DISPO-System.
+	
+	Danach kann der Disponent für einzelne Aufträge eine Rückbestätigungsanfrage auslösen.
+	
+	Die Anfrage wird also \textbf{pro Auftrag} versendet, nicht pauschal für die gesamte Tour.
+	
+	Die Tourübersicht hilft nur dabei, mehrere Aufträge innerhalb derselben Tour gemeinsam zu betrachten.
+	
+	Grundlogik:
+	
+	\begin{lstlisting}
+		Auftrag im DISPO-System vorhanden
+		↓
+		Auftrag ist einer vorläufigen Tour zugeordnet
+		↓
+		Disponent startet Rückbestätigung für diesen Auftrag
+		↓
+		System versendet Anfrage an Kunden
+		↓
+		Kunde bestätigt oder lehnt ab
+		↓
+		System aktualisiert Rückbestätigungsstatus
+		↓
+		Disponent sieht Ergebnis in Auftragssicht und Tourübersicht
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{Prozessablauf im Detail}
+	
+	\subsection{Schritt 1: Auftrag liegt im DISPO-System vor}
+	
+	Ein Heizölauftrag ist bereits im DISPO-System vorhanden.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Auftrag: A-1024
+		Kunde: Müller
+		Lieferadresse: Beispielstraße 12
+		Bestellmenge: 3000 Liter
+		Geplanter Liefertag: 12.06.2026
+		Lieferfenster: 10:00-11:00 Uhr
+		Tour: Tour 17
+	\end{lstlisting}
+	
+	Das Rückbestätigungssystem liest diese Informationen und zeigt sie dem Disponenten an.
+	
+	\subsection{Schritt 2: Disponent plant Tour vorläufig}
+	
+	Der Disponent plant die Lieferung wie bisher.
+	
+	Dabei legt er zum Beispiel fest:
+	
+	\begin{itemize}
+		\item Tour;
+		\item Liefertag;
+		\item Lieferfenster;
+		\item Reihenfolge;
+		\item Fahrzeug;
+		\item weitere dispositive Informationen.
+	\end{itemize}
+	
+	Diese Planung ist zunächst vorläufig.
+	
+	Die Rückbestätigung soll erst danach erfolgen.
+	
+	\subsection{Schritt 3: Disponent startet Rückbestätigung manuell}
+	
+	Die Anfrage wird nicht automatisch durch das System verschickt.
+	
+	Der Disponent entscheidet bewusst, wann eine Rückbestätigung gesendet wird.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Anfrage senden
+	\end{lstlisting}
+	
+	Fachlicher Grund:
+	
+	Die Tourplanung kann sich während der Bearbeitung noch ändern. Deshalb soll das System nicht automatisch Nachrichten an Kunden senden, solange der Disponent die Planung noch nicht für ausreichend stabil hält.
+	
+	\subsection{Schritt 4: System versendet Anfrage}
+	
+	Das System versendet die Anfrage an den Kunden.
+	
+	Primärer Kanal:
+	
+	\begin{lstlisting}
+		E-Mail
+	\end{lstlisting}
+	
+	Weitere Kanäle können im Projekt mock-artig dargestellt werden:
+	
+	\begin{lstlisting}
+		SMS
+		WhatsApp
+		Telefon / klassische Kontaktaufnahme
+	\end{lstlisting}
+	
+	Falls keine E-Mail-Adresse vorhanden ist, wird der Auftrag nicht automatisch per E-Mail angefragt. In diesem Fall erfolgt die Bearbeitung klassisch oder über andere Kommunikationskanäle.
+	
+	Diese weiteren Kanäle werden im Projekt nur als Mock beziehungsweise fachliche Erweiterung betrachtet.
+	
+	\subsection{Schritt 5: Anfrage gilt erst nach erfolgreichem Versand als versendet}
+	
+	Der Status \texttt{versendet} wird nicht schon gesetzt, wenn der Disponent auf „Senden“ klickt.
+	
+	Der Status \texttt{versendet} wird erst gesetzt, wenn der technische Versand erfolgreich war.
+	
+	Das bedeutet:
+	
+	\begin{lstlisting}
+		Button gedrückt ≠ versendet
+		technisch erfolgreich verschickt = versendet
+	\end{lstlisting}
+	
+	Wenn der E-Mail-Versand technisch fehlschlägt, darf der Auftrag nicht den Status \texttt{versendet} erhalten.
+	
+	In diesem Fall muss das System erneut versuchen, die Anfrage zu versenden oder den Fall dem Disponenten anzeigen.
+	
+	% -------------------------------------------------
+	\section{Inhalt der Nachricht an den Kunden}
+	
+	Die Nachricht enthält alle Informationen, die der Kunde zur Rückmeldung benötigt.
+	
+	Inhalt:
+	
+	\begin{itemize}
+		\item Lieferdatum;
+		\item Lieferfenster;
+		\item Bestellmenge;
+		\item Lieferadresse;
+		\item Möglichkeit zur Bestätigung;
+		\item Möglichkeit zur Ablehnung;
+		\item optionales Kommentarfeld.
+	\end{itemize}
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Sehr geehrte/r Kunde/in,
+		
+		für Ihre Heizöl-Lieferung ist folgendes Lieferfenster geplant:
+		
+		Datum: 12.06.2026
+		Uhrzeit: 10:00-11:00 Uhr
+		Menge: 3000 Liter
+		Adresse: Beispielstraße 12
+		
+		Bitte geben Sie an, ob dieses Lieferfenster für Sie passt.
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{Antwortmöglichkeiten des Kunden}
+	
+	Der Kunde hat zwei Hauptoptionen.
+	
+	\subsection{Option 1: Termin passt}
+	
+	Der Kunde bestätigt das vorgeschlagene Lieferfenster.
+	
+	Ergebnis:
+	
+	\begin{lstlisting}
+		Status: bestätigt
+	\end{lstlisting}
+	
+	\subsection{Option 2: Termin passt nicht}
+	
+	Der Kunde lehnt das vorgeschlagene Lieferfenster ab.
+	
+	Ergebnis:
+	
+	\begin{lstlisting}
+		Status: abgelehnt
+	\end{lstlisting}
+	
+	\subsection{Optionaler Kommentar}
+	
+	Zusätzlich kann der Kunde einen Kommentar angeben.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Bitte erst ab 15 Uhr.
+	\end{lstlisting}
+	
+	Der Kommentar ist optional.
+	
+	Begründung:
+	
+	\begin{lstlisting}
+		Der Kommentar ist optional, damit die Rückmeldung möglichst niedrigschwellig bleibt.
+	\end{lstlisting}
+	
+	Der Kunde soll auch ohne Kommentar schnell antworten können.
+	
+	Wichtig:
+	
+	Der Kommentar wird nicht automatisch interpretiert.
+	
+	Das System leitet daraus kein neues Lieferfenster ab.
+	
+	Der Kommentar dient nur als Hinweis für den Disponenten.
+	
+	% -------------------------------------------------
+	\section{Antwortfrist}
+	
+	Für jede Anfrage gilt eine Antwortfrist von:
+	
+	\begin{lstlisting}
+		24 Stunden
+	\end{lstlisting}
+	
+	Der Timer startet mit erfolgreichem Versand der Anfrage.
+	
+	Also:
+	
+	\begin{lstlisting}
+		Der Timer startet nicht beim Erstellen des Auftrags.
+		Der Timer startet nicht beim Öffnen der Nachricht.
+		Der Timer startet mit erfolgreichem Versand der Anfrage.
+	\end{lstlisting}
+	
+	Wenn der Kunde innerhalb von 24 Stunden antwortet, ist die Antwort gültig.
+	
+	Wenn innerhalb von 24 Stunden keine gültige Antwort eingeht, erhält der Auftrag den Status:
+	
+	\begin{lstlisting}
+		keine Rückmeldung
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{Gültigkeit einer Antwort}
+	
+	Eine Antwort ist nur gültig, wenn alle folgenden Bedingungen erfüllt sind:
+	
+	\begin{lstlisting}
+		1. Die Antwort gehört zur aktuellsten Anfrage.
+		2. Die Antwort erfolgt innerhalb der 24-Stunden-Frist.
+		3. Für diese Anfrage wurde noch keine gültige Antwort gespeichert.
+	\end{lstlisting}
+	
+	Pro Anfrage ist nur eine gültige Antwort möglich.
+	
+	Nach einer gültigen Antwort kann der Kunde dieselbe Anfrage nicht mehrfach wirksam beantworten.
+	
+	% -------------------------------------------------
+	\section{Späte Antwort des Kunden}
+	
+	Wenn der Kunde nach Ablauf der 24-Stunden-Frist antwortet, ist diese Antwort nicht mehr statuswirksam.
+	
+	Das bedeutet:
+	
+	\begin{lstlisting}
+		Der Status bleibt "keine Rückmeldung".
+		Die späte Antwort ändert den Auftrag nicht automatisch.
+	\end{lstlisting}
+	
+	Dem Kunden kann eine Meldung angezeigt werden:
+	
+	\begin{lstlisting}
+		Die Rückmeldefrist ist abgelaufen.
+		Bitte kontaktieren Sie den Kundenservice.
+	\end{lstlisting}
+	
+	Fachlicher Grund:
+	
+	Nach Ablauf der Frist kann der Disponent die Tour bereits weiterbearbeitet oder geändert haben. Eine verspätete Bestätigung darf deshalb nicht automatisch in die Planung eingreifen.
+	
+	% -------------------------------------------------
+	\section{Ältere oder überholte Anfragen}
+	
+	Ein Auftrag kann mehrere Rückbestätigungsanfragen erhalten.
+	
+	Das kann passieren, wenn:
+	
+	\begin{itemize}
+		\item das Lieferfenster geändert wird;
+		\item der Kunde ablehnt;
+		\item keine Rückmeldung eingeht;
+		\item der Disponent eine erneute Anfrage senden möchte;
+		\item der Auftrag auf eine andere Tour verschoben wird;
+		\item der Disponent ein neues Lieferfenster vorschlägt.
+	\end{itemize}
+	
+	Regel:
+	
+	\begin{lstlisting}
+		Antworten auf ältere oder abgelaufene Anfragen werden nicht mehr statuswirksam übernommen.
+	\end{lstlisting}
+	
+	Für den aktuellen Stand zählt immer die aktuellste gültige Anfrage.
+	
+	% -------------------------------------------------
+	\section{Änderung des Lieferfensters nach Versand}
+	
+	Wenn der Disponent nach dem Versand einer Anfrage das Lieferfenster ändert, wird die alte Anfrage fachlich überholt.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Alte Anfrage:
+		12.06.2026, 10:00-11:00 Uhr
+		
+		Neue Planung:
+		12.06.2026, 13:00-14:00 Uhr
+	\end{lstlisting}
+	
+	In diesem Fall gilt:
+	
+	\begin{lstlisting}
+		Die alte Anfrage bleibt historisch nachvollziehbar.
+		Sie ist aber nicht mehr statuswirksam.
+		Für das neue Lieferfenster muss eine neue Anfrage erzeugt werden.
+	\end{lstlisting}
+	
+	Wenn der Kunde auf die alte Anfrage antwortet, wird diese Antwort nicht mehr für den aktuellen Status übernommen.
+	
+	% -------------------------------------------------
+	\section{Wiederholte Anfrage und Reminder}
+	
+	\subsection{Manuelle Wiederholung}
+	
+	Der Disponent kann eine Anfrage erneut manuell senden.
+	
+	Dabei muss vermieden werden, dass Kunden unnötig viele Nachrichten erhalten.
+	
+	Deshalb gilt fachlich:
+	
+	\begin{lstlisting}
+		Eine erneute Anfrage sollte nur bewusst durch den Disponenten ausgelöst werden.
+	\end{lstlisting}
+	
+	\subsection{Automatischer Reminder}
+	
+	Es kann ein automatischer Reminder nach 12 Stunden vorgesehen werden.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Anfrage erfolgreich versendet
+		↓
+		12 Stunden keine Antwort
+		↓
+		automatischer Reminder
+		↓
+		weitere 12 Stunden warten
+		↓
+		nach insgesamt 24 Stunden: keine Rückmeldung
+	\end{lstlisting}
+	
+	Ob dieser Reminder im Projekt tatsächlich umgesetzt wird, ist noch offen.
+	
+	Daher kann er als optionale Erweiterung beschrieben werden:
+	
+	\begin{lstlisting}
+		Ein automatischer Reminder nach 12 Stunden ist fachlich vorgesehen, wird aber im Projektumfang optional betrachtet.
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{Rückbestätigungsstatus des Auftrags}
+	
+	Der Rückbestätigungsstatus beschreibt nur den Zustand der Kundenrückmeldung für einen Auftrag.
+	
+	Die Statuswerte sind:
+	
+	\begin{lstlisting}
+		offen
+		versendet
+		bestätigt
+		abgelehnt
+		keine Rückmeldung
+	\end{lstlisting}
+	
+	Diese Statuswerte gehören zum Auftrag, nicht zur gesamten Tour.
+	
+	% -------------------------------------------------
+	\section{Bedeutung der Rückbestätigungsstatus}
+	
+	\subsection{Offen}
+	
+	\texttt{offen} bedeutet:
+	
+	\begin{lstlisting}
+		Für diesen Auftrag wurde noch keine aktuelle Rückbestätigungsanfrage erfolgreich versendet.
+	\end{lstlisting}
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Auftrag ist im System vorhanden.
+		Lieferfenster ist geplant.
+		Kunde wurde aber noch nicht angefragt.
+		Status: offen
+	\end{lstlisting}
+	
+	Auch nach einem technischen Versandfehler kann der Auftrag weiterhin \texttt{offen} bleiben, weil keine gültige Anfrage erfolgreich versendet wurde.
+	
+	\subsection{Versendet}
+	
+	\texttt{versendet} bedeutet:
+	
+	\begin{lstlisting}
+		Die Rückbestätigungsanfrage wurde technisch erfolgreich versendet.
+		Das System wartet auf eine Kundenantwort.
+	\end{lstlisting}
+	
+	Der 24-Stunden-Timer läuft ab diesem Zeitpunkt.
+	
+	\subsection{Bestätigt}
+	
+	\texttt{bestätigt} bedeutet:
+	
+	\begin{lstlisting}
+		Der Kunde hat das vorgeschlagene Lieferfenster innerhalb der gültigen Frist bestätigt.
+	\end{lstlisting}
+	
+	Der Auftrag ist damit aus Sicht der Rückbestätigung positiv geklärt.
+	
+	Wichtig:
+	
+	\begin{lstlisting}
+		bestätigt bedeutet nicht automatisch, dass die gesamte Tour final geplant ist.
+	\end{lstlisting}
+	
+	\subsection{Abgelehnt}
+	
+	\texttt{abgelehnt} bedeutet:
+	
+	\begin{lstlisting}
+		Der Kunde hat das vorgeschlagene Lieferfenster innerhalb der gültigen Frist abgelehnt.
+	\end{lstlisting}
+	
+	Der Auftrag wird dadurch zu einem problematischen Fall für den Disponenten.
+	
+	Das System plant keine Alternative automatisch.
+	
+	\subsection{Keine Rückmeldung}
+	
+	\texttt{keine Rückmeldung} bedeutet:
+	
+	\begin{lstlisting}
+		Innerhalb von 24 Stunden wurde keine gültige Antwort empfangen.
+	\end{lstlisting}
+	
+	Der Auftrag muss danach vom Disponenten weiterbearbeitet werden.
+	
+	% -------------------------------------------------
+	\section{Statusübergänge}
+	
+	\subsection{Normalfall: Kunde bestätigt}
+	
+	\begin{lstlisting}
+		offen
+		↓ Anfrage erfolgreich versenden
+		versendet
+		↓ Kunde bestätigt innerhalb von 24 Stunden
+		bestätigt
+	\end{lstlisting}
+	
+	\subsection{Kunde lehnt ab}
+	
+	\begin{lstlisting}
+		offen
+		↓ Anfrage erfolgreich versenden
+		versendet
+		↓ Kunde lehnt innerhalb von 24 Stunden ab
+		abgelehnt
+	\end{lstlisting}
+	
+	\subsection{Kunde antwortet nicht}
+	
+	\begin{lstlisting}
+		offen
+		↓ Anfrage erfolgreich versenden
+		versendet
+		↓ 24 Stunden ohne gültige Antwort
+		keine Rückmeldung
+	\end{lstlisting}
+	
+	\subsection{Neues Lieferfenster nach Ablehnung oder keiner Rückmeldung}
+	
+	\begin{lstlisting}
+		abgelehnt / keine Rückmeldung
+		↓ Disponent legt neues Lieferfenster fest
+		offen
+		↓ neue Anfrage erfolgreich versenden
+		versendet
+	\end{lstlisting}
+	
+	Alternativ kann der Disponent direkt ein neues Lieferfenster festlegen und die neue Anfrage versenden.
+	
+	Dann wird der Status wieder:
+	
+	\begin{lstlisting}
+		versendet
+	\end{lstlisting}
+	
+	\subsection{Telefonische Klärung durch Disponent}
+	
+	Wenn der Kunde nicht digital antwortet oder ablehnt, kann der Disponent den Fall telefonisch klären.
+	
+	Wenn der Kunde telefonisch zustimmt, kann der Disponent den Status manuell auf \texttt{bestätigt} setzen.
+	
+	\begin{lstlisting}
+		abgelehnt / keine Rückmeldung
+		↓ telefonische Klärung durch Disponent
+		bestätigt
+	\end{lstlisting}
+	
+	Ein zusätzlicher Status wie \texttt{manuell bestätigt} wird im Projekt nicht eingeführt.
+	
+	\subsection{Verschiebung des Auftrags}
+	
+	Der Disponent kann entscheiden, dass ein Auftrag nicht mehr Teil der aktuellen Tour ist.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Kunde lehnt Lieferfenster ab.
+		Disponent verschiebt Auftrag auf spätere Tour.
+	\end{lstlisting}
+	
+	Dann gehört der Auftrag nicht mehr zur aktuellen Tourübersicht.
+	
+	Für die neue Tour kann später eine neue Rückbestätigung gestartet werden.
+	
+	% -------------------------------------------------
+	\section{Warum es keinen Status „manuelle Bearbeitung“ gibt}
+	
+	\texttt{manuelle Bearbeitung} wird nicht als eigener Rückbestätigungsstatus modelliert.
+	
+	Grund:
+	
+	\texttt{manuelle Bearbeitung} beschreibt keine Kundenantwort, sondern eine Arbeitssituation für den Disponenten.
+	
+	Die eigentlichen Rückbestätigungsstatus sind bereits eindeutig:
+	
+	\begin{lstlisting}
+		abgelehnt
+		keine Rückmeldung
+	\end{lstlisting}
+	
+	Diese beiden Status zeigen bereits, dass der Disponent tätig werden muss.
+	
+	Deshalb wird \texttt{manuelle Bearbeitung} besser als Arbeitsliste oder Filter in der Oberfläche dargestellt.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Manuell zu bearbeiten:
+		- Auftrag A-1023: abgelehnt
+		- Auftrag A-1024: keine Rückmeldung
+	\end{lstlisting}
+	
+	Das ist kein neuer Status, sondern eine UI-Ansicht.
+	
+	% -------------------------------------------------
+	\section{Warum „final geplant“ kein Rückbestätigungsstatus ist}
+	
+	\texttt{final geplant} beschreibt nicht die Antwort des Kunden.
+	
+	\texttt{final geplant} gehört zur Tourplanung.
+	
+	Ein Auftrag kann den Rückbestätigungsstatus \texttt{bestätigt} haben, aber die Tour kann trotzdem noch nicht final geplant sein.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Tour 17:
+		A-1021 bestätigt
+		A-1022 bestätigt
+		A-1023 keine Rückmeldung
+	\end{lstlisting}
+	
+	In diesem Fall sind zwei Aufträge bestätigt, aber die Tour ist noch nicht vollständig geklärt.
+	
+	Daher gilt:
+	
+	\begin{lstlisting}
+		bestätigt ≠ final geplant
+	\end{lstlisting}
+	
+	Die Rückbestätigung läuft auf Auftragsebene.
+	
+	Die finale Planung liegt auf Tourebene.
+	
+	% -------------------------------------------------
+	\section{Planungsstatus der Tour}
+	
+	Für die Tour können separate Planungsstatus verwendet werden.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		vorläufig geplant
+		freigabebereit
+		final geplant
+	\end{lstlisting}
+	
+	\subsection{Vorläufig geplant}
+	
+	Die Tour wurde vom Disponenten geplant, ist aber noch nicht vollständig geklärt.
+	
+	Es können noch offene Rückbestätigungen, Ablehnungen oder fehlende Rückmeldungen vorhanden sein.
+	
+	\subsection{Freigabebereit}
+	
+	Die Tour ist freigabebereit, wenn alle relevanten Aufträge geklärt sind.
+	
+	Geklärt bedeutet:
+	
+	\begin{lstlisting}
+		Auftrag ist bestätigt
+		oder Auftrag wurde telefonisch geklärt
+		oder Auftrag wurde auf eine andere Tour verschoben
+		oder der Disponent hat den Fall anderweitig entschieden
+	\end{lstlisting}
+	
+	Wichtig:
+	
+	\begin{lstlisting}
+		Alle Aufträge bestätigt → Tour ist freigabebereit.
+		Disponent setzt Tour final geplant.
+	\end{lstlisting}
+	
+	Das System kann also anzeigen, dass eine Tour freigabebereit ist.
+	
+	Die finale Entscheidung trifft aber weiterhin der Disponent.
+	
+	\subsection{Final geplant}
+	
+	\texttt{final geplant} bedeutet:
+	
+	\begin{lstlisting}
+		Der Disponent hat die Tour final freigegeben.
+	\end{lstlisting}
+	
+	Dieser Status wird nicht automatisch durch die Kundenantwort gesetzt.
+	
+	Er ist eine bewusste Entscheidung des Disponenten.
+	
+	% -------------------------------------------------
+	\section{Arbeitsliste für problematische Aufträge}
+	
+	Aufträge mit folgenden Statuswerten werden dem Disponenten besonders angezeigt:
+	
+	\begin{lstlisting}
+		abgelehnt
+		keine Rückmeldung
+	\end{lstlisting}
+	
+	Diese Aufträge erscheinen in einer Arbeitsliste, zum Beispiel:
+	
+	\begin{lstlisting}
+		Manuell zu bearbeiten
+	\end{lstlisting}
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Auftrag A-1023
+		Status: abgelehnt
+		Kommentar: "Bitte erst ab 15 Uhr"
+		
+		Auftrag A-1024
+		Status: keine Rückmeldung
+		Frist abgelaufen
+	\end{lstlisting}
+	
+	Der Disponent entscheidet dann manuell, wie mit dem Auftrag weiter verfahren wird.
+	
+	% -------------------------------------------------
+	\section{Handlungsmöglichkeiten des Disponenten bei Problemfällen}
+	
+	Wenn ein Auftrag den Status \texttt{abgelehnt} oder \texttt{keine Rückmeldung} hat, kann der Disponent mehrere Entscheidungen treffen.
+	
+	\subsection{Möglichkeit 1: Neues Lieferfenster senden}
+	
+	Der Disponent legt ein neues Lieferfenster fest und sendet eine neue Anfrage.
+	
+	\begin{lstlisting}
+		abgelehnt / keine Rückmeldung
+		↓ neues Lieferfenster
+		↓ neue Anfrage
+		versendet
+	\end{lstlisting}
+	
+	\subsection{Möglichkeit 2: Telefonisch klären}
+	
+	Der Disponent kontaktiert den Kunden telefonisch.
+	
+	Wenn der Kunde zustimmt, kann der Disponent den Status auf \texttt{bestätigt} setzen.
+	
+	\begin{lstlisting}
+		abgelehnt / keine Rückmeldung
+		↓ telefonische Klärung
+		bestätigt
+	\end{lstlisting}
+	
+	\subsection{Möglichkeit 3: Auftrag verschieben}
+	
+	Der Disponent verschiebt den Auftrag auf eine spätere Tour.
+	
+	Dann gehört der Auftrag nicht mehr zur aktuellen Tour.
+	
+	Für die neue Tour kann später eine neue Rückbestätigung gestartet werden.
+	
+	% -------------------------------------------------
+	\section{Umgang mit fehlender E-Mail-Adresse}
+	
+	Wenn für einen Auftrag keine E-Mail-Adresse vorhanden ist, kann die digitale Rückbestätigung über E-Mail nicht durchgeführt werden.
+	
+	In diesem Fall gibt es zwei Möglichkeiten:
+	
+	\begin{lstlisting}
+		klassische Bearbeitung wie bisher
+		oder Kontakt über andere Kommunikationskanäle
+	\end{lstlisting}
+	
+	Andere Kanäle wie SMS oder WhatsApp können im Projekt als Mock dargestellt werden.
+	
+	Die fachliche Regel lautet:
+	
+	\begin{lstlisting}
+		Ohne geeignete digitale Kontaktinformation kann keine automatische E-Mail-Rückbestätigung erfolgen.
+	\end{lstlisting}
+	
+	Der Disponent muss den Auftrag dann über alternative Kanäle oder klassisch bearbeiten.
+	
+	% -------------------------------------------------
+	\section{Technischer Versandfehler}
+	
+	Wenn der Versand technisch fehlschlägt, darf der Auftrag nicht als \texttt{versendet} gelten.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Disponent klickt auf "Anfrage senden"
+		↓
+		E-Mail-Versand schlägt technisch fehl
+		↓
+		Status bleibt offen
+		↓
+		System versucht erneut zu senden oder zeigt Fehler an
+	\end{lstlisting}
+	
+	Fachliche Regel:
+	
+	\begin{lstlisting}
+		Der Status "versendet" wird nur gesetzt, wenn die Anfrage technisch erfolgreich versendet wurde.
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{Fehlerhafte Kundeneingabe}
+	
+	Pro Anfrage ist nur eine gültige Antwort möglich.
+	
+	Wenn der Kunde versehentlich die falsche Option auswählt, kann er dies nicht automatisch mehrfach ändern.
+	
+	Er kann aber im Kommentarfeld darauf hinweisen, zum Beispiel:
+	
+	\begin{lstlisting}
+		Ich habe versehentlich falsch geklickt. Bitte erneut senden.
+	\end{lstlisting}
+	
+	Danach entscheidet der Disponent, ob eine neue Anfrage versendet wird oder ob der Fall telefonisch geklärt wird.
+	
+	% -------------------------------------------------
+	\section{Keine automatische Neuplanung}
+	
+	Bei Ablehnung oder keiner Rückmeldung erstellt das System keine neue Planung.
+	
+	Das System schlägt auch keine automatischen Ersatztermine vor.
+	
+	Begründung:
+	
+	Automatische Alternativvorschläge wären fachlich riskant, weil das System nicht alle realen Dispositionsfaktoren vollständig kennt.
+	
+	Dazu gehören zum Beispiel:
+	
+	\begin{itemize}
+		\item Tourreihenfolge;
+		\item Fahrzeugkapazität;
+		\item Fahrer- und Fahrzeugverfügbarkeit;
+		\item Entfernungen;
+		\item Prioritäten;
+		\item andere offene Rückmeldungen;
+		\item Besonderheiten einzelner Kunden;
+		\item kurzfristige Änderungen;
+		\item Erfahrungswissen des Disponenten.
+	\end{itemize}
+	
+	Deshalb gilt:
+	
+	\begin{lstlisting}
+		Neue Lieferfenster und Verschiebungen bleiben Aufgabe des Disponenten.
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{Sicht des Disponenten}
+	
+	Der Disponent sieht eine zentrale Oberfläche mit Aufträgen und Touren.
+	
+	Die Oberfläche soll nicht einzelne E-Mails in den Mittelpunkt stellen, sondern den fachlichen Status der Aufträge.
+	
+	\subsection{Auftragssicht}
+	
+	In der Auftragssicht sieht der Disponent einzelne Aufträge.
+	
+	Beispiel:
+	
+	\begin{longtable}{llll}
+		\toprule
+		\textbf{Auftrag} & \textbf{Kunde} & \textbf{Lieferfenster} & \textbf{Status} \\
+		\midrule
+		A-1021 & Müller  & 08:00--09:00 & bestätigt \\
+		A-1022 & Schmidt & 09:30--10:30 & versendet \\
+		A-1023 & Weber   & 11:00--12:00 & abgelehnt \\
+		A-1024 & Fischer & 13:00--14:00 & keine Rückmeldung \\
+		\bottomrule
+	\end{longtable}
+	
+	\subsection{Tourübersicht}
+	
+	In der Tourübersicht sieht der Disponent alle Aufträge, die zu einer Tour gehören.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Tour 17
+		
+		A-1021   08:00-09:00   bestätigt
+		A-1022   09:30-10:30   versendet
+		A-1023   11:00-12:00   abgelehnt
+		A-1024   13:00-14:00   keine Rückmeldung
+	\end{lstlisting}
+	
+	Die Tourübersicht verhindert, dass der Disponent Aufträge aus verschiedenen Touren vermischt.
+	
+	\subsection{Arbeitsliste}
+	
+	Problematische Fälle werden zusätzlich gesammelt dargestellt.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Manuell zu bearbeiten
+		
+		A-1023   Weber     abgelehnt          Kommentar: "Bitte erst ab 15 Uhr"
+		A-1024   Fischer   keine Rückmeldung  Frist abgelaufen
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{UI-Konzept mit LKW- und Tankvisualisierung}
+	
+	Für die Tourübersicht kann eine visuelle Darstellung verwendet werden.
+	
+	Die Tour wird als LKW mit Tankauflieger dargestellt.
+	
+	Der Tank ist in Abschnitte unterteilt.
+	
+	Jeder Abschnitt steht metaphorisch für einen Auftrag beziehungsweise ein Lieferfenster innerhalb der Tour.
+	
+	Beispiel:
+	
+	\begin{lstlisting}
+		Tour 17:
+		[bestätigt] [versendet] [abgelehnt] [keine Rückmeldung]
+	\end{lstlisting}
+	
+	Mögliche Darstellung:
+	
+	\begin{lstlisting}
+		gefüllt / grün     = bestätigt
+		leer / neutral     = offen oder versendet
+		rot / Warnung      = abgelehnt
+		grau               = keine Rückmeldung
+	\end{lstlisting}
+	
+	Wichtig:
+	
+	Diese Visualisierung zeigt nicht den realen Füllstand des Heizöltanks.
+	
+	Sie zeigt den Rückbestätigungsfortschritt innerhalb der Tour.
+	
+	Formulierung:
+	
+	\begin{lstlisting}
+		Die Tankvisualisierung zeigt nicht den realen Ölfüllstand,
+		sondern den Rückbestätigungsstatus der Aufträge innerhalb einer Tour.
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{Tourfreigabe}
+	
+	Eine Tour kann erst final geplant werden, wenn alle relevanten Aufträge geklärt sind.
+	
+	Geklärt bedeutet:
+	
+	\begin{lstlisting}
+		digital bestätigt
+		telefonisch durch Disponent bestätigt
+		auf andere Tour verschoben
+		anderweitig dispositiv entschieden
+	\end{lstlisting}
+	
+	Wenn alle Aufträge geklärt sind, kann das System anzeigen:
+	
+	\begin{lstlisting}
+		Tour ist freigabebereit
+	\end{lstlisting}
+	
+	Danach entscheidet der Disponent:
+	
+	\begin{lstlisting}
+		Tour final planen / freigeben
+	\end{lstlisting}
+	
+	Das Setzen von \texttt{final geplant} bleibt eine bewusste Aktion des Disponenten.
+	
+	% -------------------------------------------------
+	\section{Datenschutz und Informationsbegrenzung}
+	
+	Der Kunde soll nur die Informationen sehen, die für seine Rückmeldung notwendig sind.
+	
+	Angezeigt werden dürfen zum Beispiel:
+	
+	\begin{itemize}
+		\item Lieferdatum;
+		\item Lieferfenster;
+		\item Lieferadresse;
+		\item Bestellmenge.
+	\end{itemize}
+	
+	Nicht angezeigt werden sollen:
+	
+	\begin{itemize}
+		\item andere Kunden der Tour;
+		\item interne Tourinformationen;
+		\item interne Kommentare;
+		\item Fahrerinformationen;
+		\item Dispositionsnotizen;
+		\item Daten anderer Aufträge.
+	\end{itemize}
+	
+	Grundregel:
+	
+	\begin{lstlisting}
+		Der Kunde sieht ausschließlich die für seine Rückmeldung notwendigen Auftragsdaten.
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{Nachvollziehbarkeit}
+	
+	Für die fachliche Nachvollziehbarkeit sollte das System wichtige Ereignisse speichern.
+	
+	Beispiele:
+	
+	\begin{lstlisting}
+		wann eine Anfrage erstellt wurde
+		wann sie erfolgreich versendet wurde
+		für welches Lieferfenster sie galt
+		ob ein Reminder versendet wurde
+		wann der Kunde geantwortet hat
+		welche Antwort gegeben wurde
+		ob die Antwort gültig war
+		ob eine Anfrage durch eine neue Anfrage ersetzt wurde
+		ob der Disponent den Status manuell geändert hat
+	\end{lstlisting}
+	
+	Diese Historie hilft, spätere Rückfragen zu klären.
+	
+	% -------------------------------------------------
+	\section{Fachliche Regeln zusammengefasst}
+	
+	Die wichtigsten Regeln des Soll-Prozesses sind:
+	
+	\begin{enumerate}
+		\item Die Rückbestätigung wird pro Auftrag durchgeführt.
+		\item Die Tour dient als Übersicht und Gruppierung.
+		\item Eine Anfrage bezieht sich auf genau einen Auftrag und ein konkretes Lieferfenster.
+		\item Der Status \texttt{versendet} wird erst nach erfolgreichem technischen Versand gesetzt.
+		\item Der 24-Stunden-Timer startet mit erfolgreichem Versand.
+		\item Pro Anfrage ist nur eine gültige Antwort möglich.
+		\item Nur die aktuellste Anfrage ist statuswirksam.
+		\item Antworten auf alte oder abgelaufene Anfragen ändern den Status nicht.
+		\item Nach 24 Stunden ohne gültige Antwort wird der Status \texttt{keine Rückmeldung} gesetzt.
+		\item Kommentare des Kunden sind optional und werden nicht automatisch interpretiert.
+		\item Bei Ablehnung oder keiner Rückmeldung entscheidet der Disponent manuell.
+		\item Ein neues Lieferfenster erzeugt eine neue Anfrage.
+		\item Telefonisch geklärte Fälle können durch den Disponenten als bestätigt markiert werden.
+		\item Der Status \texttt{final geplant} gehört zur Tour, nicht zur Rückbestätigung.
+		\item Die finale Tourfreigabe bleibt Aufgabe des Disponenten.
+	\end{enumerate}
+	
+	% -------------------------------------------------
+	\section{Kurzbeschreibung für Präsentation}
+	
+	\begin{lstlisting}
+		In der Soll-Situation werden bestehende Heizölaufträge aus dem DISPO-System übernommen und dem Disponenten angezeigt. Die Rückbestätigung wird pro Auftrag durchgeführt. Nachdem der Disponent eine Tour vorläufig geplant hat, kann er für einzelne Aufträge eine digitale Anfrage an den Kunden senden.
+		
+		Die Anfrage enthält das geplante Lieferdatum, das Lieferfenster, die Lieferadresse und die Bestellmenge. Der Kunde kann bestätigen oder ablehnen. Die Antwortfrist beträgt 24 Stunden und startet mit erfolgreichem Versand der Anfrage.
+		
+		Wenn der Kunde bestätigt, erhält der Auftrag den Status "bestätigt". Wenn der Kunde ablehnt, erhält der Auftrag den Status "abgelehnt". Wenn keine gültige Antwort innerhalb der Frist eingeht, erhält der Auftrag den Status "keine Rückmeldung".
+		
+		Aufträge mit Ablehnung oder ohne Rückmeldung werden dem Disponenten als problematische Fälle angezeigt. Der Disponent entscheidet dann, ob er ein neues Lieferfenster sendet, telefonisch klärt oder den Auftrag auf eine andere Tour verschiebt.
+		
+		Das System plant keine Alternativen automatisch. Es unterstützt die Disposition durch strukturierte Kommunikation, Statusverfolgung und eine klare Tourübersicht.
+	\end{lstlisting}
+	
+	% -------------------------------------------------
+	\section{Sehr kurze Kernformulierung}
+	
+	\begin{lstlisting}
+		Die Lösung digitalisiert die Rückbestätigung geplanter Lieferfenster, ohne die Disposition selbst zu automatisieren.
+	\end{lstlisting}
+	
+	Oder ausführlicher:
+	
+	\begin{lstlisting}
+		Das System übernimmt nicht die Tourplanung, sondern unterstützt den Disponenten dabei, Kundenrückmeldungen zu geplanten Lieferfenstern strukturiert einzuholen, auszuwerten und in der Tourübersicht sichtbar zu machen.
+	\end{lstlisting}
+	
+\end{document}

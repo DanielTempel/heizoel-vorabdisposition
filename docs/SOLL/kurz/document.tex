@@ -1,0 +1,280 @@
+\documentclass[12pt,a4paper]{article}
+
+% -------------------------------------------------
+% Pakete
+% -------------------------------------------------
+\usepackage{fontspec}
+\usepackage[ngerman]{babel}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{array}
+\usepackage{booktabs}
+
+% -------------------------------------------------
+% Seitenlayout
+% -------------------------------------------------
+\geometry{
+	left=2.5cm,
+	right=2.5cm,
+	top=2.5cm,
+	bottom=2.5cm
+}
+
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+
+% -------------------------------------------------
+% Hyperlinks
+% -------------------------------------------------
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black,
+	urlcolor=blue,
+	pdftitle={Kurzfassung Soll-Konzept},
+	pdfauthor={},
+	pdfsubject={Digitale Rückbestätigung geplanter Heizöl-Lieferungen}
+}
+
+% -------------------------------------------------
+% Überschriften
+% -------------------------------------------------
+\titleformat{\section}
+{\normalfont\Large\bfseries}
+{\thesection}{1em}{}
+
+\titleformat{\subsection}
+{\normalfont\large\bfseries}
+{\thesubsection}{1em}{}
+
+% -------------------------------------------------
+% Listen
+% -------------------------------------------------
+\setlist[itemize]{
+	noitemsep,
+	topsep=0.3em
+}
+
+% -------------------------------------------------
+% Dokument
+% -------------------------------------------------
+\begin{document}
+	
+	% -------------------------------------------------
+	% Titelseite
+	% -------------------------------------------------
+	\begin{titlepage}
+		\centering
+		\vspace*{3cm}
+		
+		{\Huge\bfseries Kurzfassung Soll-Konzept\par}
+		\vspace{1cm}
+		
+		{\LARGE Digitale Rückbestätigung geplanter Heizöl-Lieferungen\par}
+		\vspace{2cm}
+		
+		{\large Dokument zur fachlichen Abstimmung\par}
+		
+		\vfill
+		
+		{\large \today\par}
+	\end{titlepage}
+	
+	\tableofcontents
+	\newpage
+	
+	% -------------------------------------------------
+	\section{Ziel der Lösung}
+	
+	Ziel der geplanten Lösung ist es, den manuellen Aufwand bei der Rückbestätigung geplanter Heizöl-Lieferungen zu reduzieren.
+	
+	Die bestehende Tourplanung bleibt dabei unverändert. Das System soll die Disposition nicht ersetzen, sondern den Disponenten bei der strukturierten Einholung, Erfassung und Auswertung von Kundenrückmeldungen unterstützen.
+	
+	Die Kernaussage lautet:
+	
+	\begin{quote}
+		Die Lösung digitalisiert die Rückbestätigung geplanter Lieferfenster, ohne die Disposition selbst zu automatisieren.
+	\end{quote}
+	
+	% -------------------------------------------------
+	\section{Ausgangssituation}
+	
+	Der Disponent plant eine Tour wie bisher im DISPO-System. Dabei werden Aufträge einer Tour zugeordnet und Lieferfenster festgelegt.
+	
+	Anschließend muss geprüft werden, ob die vorgeschlagenen Liefertermine für die Kunden passen. Dieser Schritt erfolgt aktuell überwiegend manuell, zum Beispiel telefonisch.
+	
+	Dadurch entstehen mehrere Probleme:
+	
+	\begin{itemize}
+		\item viele manuelle Anrufversuche;
+		\item Kunden sind telefonisch schwer erreichbar;
+		\item Rückrufe verzögern die Planung;
+		\item mehrere Mitarbeiter können in die Klärung eingebunden sein;
+		\item der aktuelle Rückmeldestatus ist nicht immer sofort übersichtlich.
+	\end{itemize}
+	
+	% -------------------------------------------------
+	\section{Soll-Prozess}
+	
+	Im Soll-Prozess werden bestehende Aufträge aus dem DISPO-System übernommen und dem Disponenten angezeigt.
+	
+	Das Rückbestätigungssystem erzeugt keine eigenen Aufträge und verändert die Tourplanung nicht automatisch.
+	
+	Nachdem eine Tour vorläufig geplant wurde, kann der Disponent für einzelne Aufträge eine Rückbestätigungsanfrage auslösen.
+	
+	Die Anfrage wird also nicht automatisch und nicht pauschal für die gesamte Tour versendet, sondern bewusst pro Auftrag.
+	
+	Eine Rückbestätigungsanfrage bezieht sich immer auf:
+	
+	\begin{itemize}
+		\item einen konkreten Auftrag;
+		\item ein konkretes Lieferfenster;
+		\item eine konkrete Anfrage.
+	\end{itemize}
+	
+	Der Kunde erhält eine Nachricht mit den für ihn relevanten Informationen:
+	
+	\begin{itemize}
+		\item Lieferdatum;
+		\item Lieferfenster;
+		\item Lieferadresse;
+		\item Bestellmenge.
+	\end{itemize}
+	
+	Der Kunde kann das vorgeschlagene Lieferfenster bestätigen oder ablehnen. Zusätzlich kann er optional einen Kommentar hinterlassen.
+	
+	Dieser Kommentar wird nicht automatisch interpretiert und führt nicht automatisch zu einer neuen Planung. Er dient nur als Hinweis für den Disponenten.
+	
+	% -------------------------------------------------
+	\section{Rückbestätigungsstatus}
+	
+	Für einen Auftrag sind folgende Rückbestätigungsstatus vorgesehen:
+	
+	\begin{itemize}
+		\item \textbf{offen}
+		\item \textbf{versendet}
+		\item \textbf{bestätigt}
+		\item \textbf{abgelehnt}
+		\item \textbf{keine Rückmeldung}
+	\end{itemize}
+	
+	\subsection{Offen}
+	
+	\textbf{Offen} bedeutet, dass für den Auftrag noch keine aktuelle Rückbestätigungsanfrage erfolgreich versendet wurde.
+	
+	\subsection{Versendet}
+	
+	\textbf{Versendet} bedeutet, dass die Anfrage technisch erfolgreich verschickt wurde und das System auf eine Kundenantwort wartet.
+	
+	\subsection{Bestätigt}
+	
+	\textbf{Bestätigt} bedeutet, dass der Kunde das Lieferfenster innerhalb der gültigen Frist bestätigt hat.
+	
+	\subsection{Abgelehnt}
+	
+	\textbf{Abgelehnt} bedeutet, dass der Kunde das Lieferfenster innerhalb der gültigen Frist abgelehnt hat.
+	
+	\subsection{Keine Rückmeldung}
+	
+	\textbf{Keine Rückmeldung} bedeutet, dass innerhalb von 24 Stunden keine gültige Antwort eingegangen ist.
+	
+	% -------------------------------------------------
+	\section{Wichtige fachliche Regeln}
+	
+	Für die Rückbestätigung gelten folgende fachliche Regeln:
+	
+	\begin{itemize}
+		\item Der Status \textbf{versendet} wird erst gesetzt, wenn der technische Versand erfolgreich war.
+		\item Ein Klick auf \glqq Senden\grqq{} reicht dafür nicht aus.
+		\item Die Antwortfrist beträgt 24 Stunden.
+		\item Die Frist startet mit erfolgreichem Versand der Anfrage.
+		\item Pro Anfrage ist nur eine gültige Antwort möglich.
+		\item Statuswirksam ist immer nur die aktuellste Anfrage.
+		\item Antworten auf alte, überholte oder abgelaufene Anfragen ändern den aktuellen Status nicht automatisch.
+		\item Wenn das Lieferfenster nach dem Versand geändert wird, muss für das neue Lieferfenster eine neue Anfrage erzeugt werden.
+		\item Bei Ablehnung oder fehlender Rückmeldung erstellt das System keine automatische Neuplanung.
+		\item Das System schlägt keine automatischen Ersatztermine vor.
+	\end{itemize}
+	
+	% -------------------------------------------------
+	\section{Problemfälle und manuelle Bearbeitung}
+	
+	Aufträge mit dem Status \textbf{abgelehnt} oder \textbf{keine Rückmeldung} werden dem Disponenten besonders angezeigt.
+	
+	Diese Aufträge erscheinen zum Beispiel in einer Arbeitsliste:
+	
+	\begin{quote}
+		Manuell zu bearbeiten
+	\end{quote}
+	
+	Der Disponent entscheidet dann selbst, wie weiter verfahren wird.
+	
+	Mögliche Optionen sind:
+	
+	\begin{itemize}
+		\item neues Lieferfenster festlegen und neue Anfrage senden;
+		\item Kunden telefonisch kontaktieren;
+		\item Auftrag auf eine andere Tour verschieben;
+		\item Fall anderweitig dispositiv entscheiden.
+	\end{itemize}
+	
+	Wenn ein Fall telefonisch geklärt wurde, kann der Disponent den Auftrag manuell auf \textbf{bestätigt} setzen.
+	
+	Ein zusätzlicher Status wie \textbf{manuell bestätigt} ist nicht vorgesehen, da dieser keine eigene Kundenantwort beschreibt, sondern nur die Art der Klärung.
+	
+	% -------------------------------------------------
+	\section{Tourstatus und Freigabe}
+	
+	Die Rückbestätigung erfolgt auf Auftragsebene.
+	
+	Die Tour dient als Übersicht und Gruppierung mehrerer Aufträge.
+	
+	Der Status \textbf{final geplant} gehört nicht zur Rückbestätigung, sondern zur Tourplanung.
+	
+	Ein Auftrag kann also bestätigt sein, ohne dass die gesamte Tour final geplant ist.
+	
+	Für Touren können separate Planungsstatus verwendet werden, zum Beispiel:
+	
+	\begin{itemize}
+		\item \textbf{vorläufig geplant}
+		\item \textbf{freigabebereit}
+		\item \textbf{final geplant}
+	\end{itemize}
+	
+	Eine Tour kann als \textbf{freigabebereit} angezeigt werden, wenn alle relevanten Aufträge geklärt sind.
+	
+	Geklärt bedeutet zum Beispiel:
+	
+	\begin{itemize}
+		\item der Auftrag wurde digital bestätigt;
+		\item der Auftrag wurde telefonisch durch den Disponenten geklärt;
+		\item der Auftrag wurde auf eine andere Tour verschoben;
+		\item der Fall wurde anderweitig dispositiv entschieden.
+	\end{itemize}
+	
+	Die finale Freigabe der Tour bleibt eine bewusste Entscheidung des Disponenten.
+	
+	% -------------------------------------------------
+	\section{Geplante Oberfläche}
+	
+	Die Oberfläche soll dem Disponenten eine zentrale Übersicht bieten.
+	
+	Vorgesehen sind:
+	
+	\begin{itemize}
+		\item eine Auftragssicht mit allen relevanten Aufträgen;
+		\item eine Tourübersicht mit allen Aufträgen einer Tour;
+		\item eine Arbeitsliste für problematische Fälle;
+		\item Detailinformationen zu einzelnen Aufträgen;
+		\item Aktionen wie \glqq Anfrage senden\grqq, \glqq Neue Anfrage senden\grqq, \glqq Telefonisch geklärt\grqq{} oder \glqq Auftrag verschieben\grqq.
+	\end{itemize}
+	
+	Die Oberfläche soll nicht einzelne E-Mails in den Mittelpunkt stellen, sondern den fachlichen Status der Aufträge.
+
+
+	
+\end{document}

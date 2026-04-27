@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_Rueckbestaetigung_Heizoel" targetNamespace="http://example.com/rueckbestaetigung-heizoel" exporter="Camunda Modeler" exporterVersion="5.45.0">
+  <bpmn:message id="Message_CustomerAnswer" name="Kundenantwort eingegangen" />
+  <bpmn:process id="Process_Rueckbestaetigung_Heizoel" name="Digitale Rückbestätigung geplanter Heizöl-Lieferungen" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Main">
+      <bpmn:lane id="Lane_Disponent" name="Disponent" />
+      <bpmn:lane id="Lane_System" name="Rückbestätigungssystem" />
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_OrderAvailable" name="Auftrag im DISPO-System vorhanden">
+      <bpmn:outgoing>Flow_Start_To_PlanTour</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_PlanTour" name="Tour vorläufig planen">
+      <bpmn:incoming>Flow_Start_To_PlanTour</bpmn:incoming>
+      <bpmn:outgoing>Flow_PlanTour_To_TriggerRequest</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SelectOrderAndTriggerRequest" name="Rückbestätigung für Auftrag manuell starten">
+      <bpmn:incoming>Flow_PlanTour_To_TriggerRequest</bpmn:incoming>
+      <bpmn:incoming>Flow_NewWindow_To_TriggerRequest</bpmn:incoming>
+      <bpmn:outgoing>Flow_TriggerRequest_To_SendRequest</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_SendRequest" name="Anfrage an Kunden senden">
+      <bpmn:incoming>Flow_TriggerRequest_To_SendRequest</bpmn:incoming>
+      <bpmn:outgoing>Flow_14yy040</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_SetStatusSentStartTimer" name="Status versendet setzen und 24h-Frist starten">
+      <bpmn:incoming>Flow_14yy040</bpmn:incoming>
+      <bpmn:outgoing>Flow_StatusSent_To_Wait</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:eventBasedGateway id="Gateway_WaitForResponseOrTimeout" name="Warten auf Antwort oder Fristablauf">
+      <bpmn:incoming>Flow_StatusSent_To_Wait</bpmn:incoming>
+      <bpmn:outgoing>Flow_Wait_To_CustomerAnswer</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Wait_To_TimerExpired</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="Event_CustomerAnswerReceived" name="Kundenantwort eingegangen">
+      <bpmn:incoming>Flow_Wait_To_CustomerAnswer</bpmn:incoming>
+      <bpmn:outgoing>Flow_CustomerAnswer_To_Validate</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_CustomerAnswer" messageRef="Message_CustomerAnswer" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="Event_Timer24hExpired" name="24 Stunden ohne gültige Antwort">
+      <bpmn:incoming>Flow_Wait_To_TimerExpired</bpmn:incoming>
+      <bpmn:outgoing>Flow_TimerExpired_To_NoResponse</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_24h">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT24H</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:exclusiveGateway id="Gateway_ResponseValid" name="Antwort gültig? Aktuellste Anfrage, innerhalb Frist, keine frühere gültige Antwort">
+      <bpmn:incoming>Flow_CustomerAnswer_To_Validate</bpmn:incoming>
+      <bpmn:outgoing>Flow_ResponseValid_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ResponseValid_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_IgnoreInvalidAnswer" name="Antwort ignorieren, Status nicht ändern">
+      <bpmn:incoming>Flow_ResponseValid_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_IgnoreInvalid_To_EndNoStatusChange</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_CustomerDecision" name="Kundenentscheidung">
+      <bpmn:incoming>Flow_ResponseValid_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Decision_Confirmed</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Decision_Rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_SetStatusConfirmed" name="Status bestätigt setzen">
+      <bpmn:incoming>Flow_Decision_Confirmed</bpmn:incoming>
+      <bpmn:outgoing>Flow_Confirmed_To_CheckTour</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_SetStatusRejected" name="Status abgelehnt setzen">
+      <bpmn:incoming>Flow_Decision_Rejected</bpmn:incoming>
+      <bpmn:outgoing>Flow_Rejected_To_ManualHandling</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_SetStatusNoResponse" name="Status keine Rückmeldung setzen">
+      <bpmn:incoming>Flow_TimerExpired_To_NoResponse</bpmn:incoming>
+      <bpmn:outgoing>Flow_NoResponse_To_ManualHandling</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_ManualHandling" name="Problemfall manuell bearbeiten">
+      <bpmn:incoming>Flow_Rejected_To_ManualHandling</bpmn:incoming>
+      <bpmn:incoming>Flow_NoResponse_To_ManualHandling</bpmn:incoming>
+      <bpmn:outgoing>Flow_ManualHandling_To_Decision</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_ManualDecision" name="Entscheidung des Disponenten">
+      <bpmn:incoming>Flow_ManualHandling_To_Decision</bpmn:incoming>
+      <bpmn:outgoing>Flow_Manual_NewWindow</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Manual_Phone</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Manual_MoveOrder</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_NewDeliveryWindow" name="Neues Lieferfenster festlegen">
+      <bpmn:incoming>Flow_Manual_NewWindow</bpmn:incoming>
+      <bpmn:outgoing>Flow_NewWindow_To_TriggerRequest</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_PhoneClarification" name="Telefonisch klären">
+      <bpmn:incoming>Flow_Manual_Phone</bpmn:incoming>
+      <bpmn:outgoing>Flow_Phone_To_MarkConfirmedManual</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_MarkConfirmedManual" name="Status bestätigt manuell setzen">
+      <bpmn:incoming>Flow_Phone_To_MarkConfirmedManual</bpmn:incoming>
+      <bpmn:outgoing>Flow_ManualConfirmed_To_CheckTour</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_MoveOrder" name="Auftrag auf andere Tour verschieben">
+      <bpmn:incoming>Flow_Manual_MoveOrder</bpmn:incoming>
+      <bpmn:outgoing>Flow_MoveOrder_To_RemoveFromTour</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_RemoveFromCurrentTour" name="Auftrag aus aktueller Tour entfernen">
+      <bpmn:incoming>Flow_MoveOrder_To_RemoveFromTour</bpmn:incoming>
+      <bpmn:outgoing>Flow_Removed_To_CheckTour</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_AllRelevantOrdersClarified" name="Alle relevanten Aufträge der Tour geklärt?">
+      <bpmn:incoming>Flow_Confirmed_To_CheckTour</bpmn:incoming>
+      <bpmn:incoming>Flow_ManualConfirmed_To_CheckTour</bpmn:incoming>
+      <bpmn:incoming>Flow_Removed_To_CheckTour</bpmn:incoming>
+      <bpmn:outgoing>Flow_AllClarified_Yes</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_MarkTourReady" name="Tour als freigabebereit anzeigen">
+      <bpmn:incoming>Flow_AllClarified_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_TourReady_To_FinalRelease</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_FinalReleaseTour" name="Tour final freigeben">
+      <bpmn:incoming>Flow_TourReady_To_FinalRelease</bpmn:incoming>
+      <bpmn:outgoing>Flow_FinalRelease_To_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_ProcessFinished" name="Prozess abgeschlossen">
+      <bpmn:incoming>Flow_FinalRelease_To_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_NoStatusChange" name="Keine Statusänderung">
+      <bpmn:incoming>Flow_IgnoreInvalid_To_EndNoStatusChange</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_To_PlanTour" sourceRef="StartEvent_OrderAvailable" targetRef="Task_PlanTour" />
+    <bpmn:sequenceFlow id="Flow_PlanTour_To_TriggerRequest" sourceRef="Task_PlanTour" targetRef="Task_SelectOrderAndTriggerRequest" />
+    <bpmn:sequenceFlow id="Flow_TriggerRequest_To_SendRequest" sourceRef="Task_SelectOrderAndTriggerRequest" targetRef="Task_SendRequest" />
+    <bpmn:sequenceFlow id="Flow_StatusSent_To_Wait" sourceRef="Task_SetStatusSentStartTimer" targetRef="Gateway_WaitForResponseOrTimeout" />
+    <bpmn:sequenceFlow id="Flow_Wait_To_CustomerAnswer" sourceRef="Gateway_WaitForResponseOrTimeout" targetRef="Event_CustomerAnswerReceived" />
+    <bpmn:sequenceFlow id="Flow_Wait_To_TimerExpired" sourceRef="Gateway_WaitForResponseOrTimeout" targetRef="Event_Timer24hExpired" />
+    <bpmn:sequenceFlow id="Flow_CustomerAnswer_To_Validate" sourceRef="Event_CustomerAnswerReceived" targetRef="Gateway_ResponseValid" />
+    <bpmn:sequenceFlow id="Flow_ResponseValid_Yes" name="Ja" sourceRef="Gateway_ResponseValid" targetRef="Gateway_CustomerDecision" />
+    <bpmn:sequenceFlow id="Flow_ResponseValid_No" name="Nein" sourceRef="Gateway_ResponseValid" targetRef="Task_IgnoreInvalidAnswer" />
+    <bpmn:sequenceFlow id="Flow_IgnoreInvalid_To_EndNoStatusChange" sourceRef="Task_IgnoreInvalidAnswer" targetRef="EndEvent_NoStatusChange" />
+    <bpmn:sequenceFlow id="Flow_Decision_Confirmed" name="bestätigt" sourceRef="Gateway_CustomerDecision" targetRef="Task_SetStatusConfirmed" />
+    <bpmn:sequenceFlow id="Flow_Decision_Rejected" name="abgelehnt" sourceRef="Gateway_CustomerDecision" targetRef="Task_SetStatusRejected" />
+    <bpmn:sequenceFlow id="Flow_TimerExpired_To_NoResponse" sourceRef="Event_Timer24hExpired" targetRef="Task_SetStatusNoResponse" />
+    <bpmn:sequenceFlow id="Flow_Confirmed_To_CheckTour" sourceRef="Task_SetStatusConfirmed" targetRef="Gateway_AllRelevantOrdersClarified" />
+    <bpmn:sequenceFlow id="Flow_Rejected_To_ManualHandling" sourceRef="Task_SetStatusRejected" targetRef="Task_ManualHandling" />
+    <bpmn:sequenceFlow id="Flow_NoResponse_To_ManualHandling" sourceRef="Task_SetStatusNoResponse" targetRef="Task_ManualHandling" />
+    <bpmn:sequenceFlow id="Flow_ManualHandling_To_Decision" sourceRef="Task_ManualHandling" targetRef="Gateway_ManualDecision" />
+    <bpmn:sequenceFlow id="Flow_Manual_NewWindow" name="neues Lieferfenster" sourceRef="Gateway_ManualDecision" targetRef="Task_NewDeliveryWindow" />
+    <bpmn:sequenceFlow id="Flow_Manual_Phone" name="telefonisch klären" sourceRef="Gateway_ManualDecision" targetRef="Task_PhoneClarification" />
+    <bpmn:sequenceFlow id="Flow_Manual_MoveOrder" name="verschieben" sourceRef="Gateway_ManualDecision" targetRef="Task_MoveOrder" />
+    <bpmn:sequenceFlow id="Flow_NewWindow_To_TriggerRequest" sourceRef="Task_NewDeliveryWindow" targetRef="Task_SelectOrderAndTriggerRequest" />
+    <bpmn:sequenceFlow id="Flow_Phone_To_MarkConfirmedManual" sourceRef="Task_PhoneClarification" targetRef="Task_MarkConfirmedManual" />
+    <bpmn:sequenceFlow id="Flow_ManualConfirmed_To_CheckTour" sourceRef="Task_MarkConfirmedManual" targetRef="Gateway_AllRelevantOrdersClarified" />
+    <bpmn:sequenceFlow id="Flow_MoveOrder_To_RemoveFromTour" sourceRef="Task_MoveOrder" targetRef="Task_RemoveFromCurrentTour" />
+    <bpmn:sequenceFlow id="Flow_Removed_To_CheckTour" sourceRef="Task_RemoveFromCurrentTour" targetRef="Gateway_AllRelevantOrdersClarified" />
+    <bpmn:sequenceFlow id="Flow_AllClarified_Yes" name="Ja" sourceRef="Gateway_AllRelevantOrdersClarified" targetRef="Task_MarkTourReady" />
+    <bpmn:sequenceFlow id="Flow_TourReady_To_FinalRelease" sourceRef="Task_MarkTourReady" targetRef="Task_FinalReleaseTour" />
+    <bpmn:sequenceFlow id="Flow_FinalRelease_To_End" sourceRef="Task_FinalReleaseTour" targetRef="EndEvent_ProcessFinished" />
+    <bpmn:sequenceFlow id="Flow_14yy040" sourceRef="Task_SendRequest" targetRef="Task_SetStatusSentStartTimer" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Rueckbestaetigung">
+    <bpmndi:BPMNPlane id="BPMNPlane_Rueckbestaetigung" bpmnElement="Process_Rueckbestaetigung_Heizoel">
+      <bpmndi:BPMNShape id="Shape_StartEvent_OrderAvailable" bpmnElement="StartEvent_OrderAvailable">
+        <dc:Bounds x="180" y="320" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="160" y="356" width="76" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_PlanTour" bpmnElement="Task_PlanTour">
+        <dc:Bounds x="270" y="298" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SelectOrderAndTriggerRequest" bpmnElement="Task_SelectOrderAndTriggerRequest">
+        <dc:Bounds x="490" y="298" width="210" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SendRequest" bpmnElement="Task_SendRequest">
+        <dc:Bounds x="760" y="298" width="170" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Event_Timer24hExpired" bpmnElement="Event_Timer24hExpired">
+        <dc:Bounds x="1500" y="390" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1476" y="426" width="85" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_MarkConfirmedManual" bpmnElement="Task_MarkConfirmedManual">
+        <dc:Bounds x="2690" y="390" width="210" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_MarkTourReady" bpmnElement="Task_MarkTourReady">
+        <dc:Bounds x="3100" y="270" width="200" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_FinalReleaseTour" bpmnElement="Task_FinalReleaseTour">
+        <dc:Bounds x="3360" y="270" width="180" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndEvent_ProcessFinished" bpmnElement="EndEvent_ProcessFinished">
+        <dc:Bounds x="3610" y="292" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3591" y="328" width="74" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_IgnoreInvalidAnswer" bpmnElement="Task_IgnoreInvalidAnswer">
+        <dc:Bounds x="1700" y="110" width="190" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndEvent_NoStatusChange" bpmnElement="EndEvent_NoStatusChange">
+        <dc:Bounds x="2102" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2081" y="94.5" width="78" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_CustomerDecision" bpmnElement="Gateway_CustomerDecision" isMarkerVisible="true">
+        <dc:Bounds x="1735" y="283" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1717" y="245.5" width="86" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SetStatusConfirmed" bpmnElement="Task_SetStatusConfirmed">
+        <dc:Bounds x="1895" y="230" width="170" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SetStatusRejected" bpmnElement="Task_SetStatusRejected">
+        <dc:Bounds x="1895" y="380" width="170" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SetStatusNoResponse" bpmnElement="Task_SetStatusNoResponse">
+        <dc:Bounds x="1595" y="530" width="210" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_NewDeliveryWindow" bpmnElement="Task_NewDeliveryWindow">
+        <dc:Bounds x="2440" y="277" width="200" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_PhoneClarification" bpmnElement="Task_PhoneClarification">
+        <dc:Bounds x="2440" y="390" width="200" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ManualHandling" bpmnElement="Task_ManualHandling">
+        <dc:Bounds x="1950" y="530" width="200" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_ManualDecision" bpmnElement="Gateway_ManualDecision" isMarkerVisible="true">
+        <dc:Bounds x="2215" y="405" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2117" y="416" width="88" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_MoveOrder" bpmnElement="Task_MoveOrder">
+        <dc:Bounds x="2450" y="560" width="200" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_RemoveFromCurrentTour" bpmnElement="Task_RemoveFromCurrentTour">
+        <dc:Bounds x="2720" y="560" width="220" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_AllRelevantOrdersClarified" bpmnElement="Gateway_AllRelevantOrdersClarified" isMarkerVisible="true">
+        <dc:Bounds x="3005" y="405" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2917" y="363" width="86" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SetStatusSentStartTimer" bpmnElement="Task_SetStatusSentStartTimer">
+        <dc:Bounds x="1050" y="298" width="220" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_WaitForResponseOrTimeout" bpmnElement="Gateway_WaitForResponseOrTimeout">
+        <dc:Bounds x="1355" y="313" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1349" y="363" width="63" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Event_CustomerAnswerReceived" bpmnElement="Event_CustomerAnswerReceived">
+        <dc:Bounds x="1500" y="242" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1481" y="278" width="75" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_ResponseValid" bpmnElement="Gateway_ResponseValid" isMarkerVisible="true">
+        <dc:Bounds x="1600" y="235" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1580" y="285" width="90" height="80" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_Start_To_PlanTour" bpmnElement="Flow_Start_To_PlanTour">
+        <di:waypoint x="216" y="338" />
+        <di:waypoint x="270" y="338" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_PlanTour_To_TriggerRequest" bpmnElement="Flow_PlanTour_To_TriggerRequest">
+        <di:waypoint x="430" y="338" />
+        <di:waypoint x="490" y="338" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_TriggerRequest_To_SendRequest" bpmnElement="Flow_TriggerRequest_To_SendRequest">
+        <di:waypoint x="700" y="338" />
+        <di:waypoint x="760" y="338" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_StatusSent_To_Wait" bpmnElement="Flow_StatusSent_To_Wait">
+        <di:waypoint x="1270" y="338" />
+        <di:waypoint x="1355" y="338" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Wait_To_CustomerAnswer" bpmnElement="Flow_Wait_To_CustomerAnswer">
+        <di:waypoint x="1405" y="338" />
+        <di:waypoint x="1465" y="260" />
+        <di:waypoint x="1500" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Wait_To_TimerExpired" bpmnElement="Flow_Wait_To_TimerExpired">
+        <di:waypoint x="1405" y="338" />
+        <di:waypoint x="1465" y="408" />
+        <di:waypoint x="1500" y="408" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_CustomerAnswer_To_Validate" bpmnElement="Flow_CustomerAnswer_To_Validate">
+        <di:waypoint x="1536" y="260" />
+        <di:waypoint x="1600" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ResponseValid_Yes" bpmnElement="Flow_ResponseValid_Yes">
+        <di:waypoint x="1641" y="251" />
+        <di:waypoint x="1693" y="251" />
+        <di:waypoint x="1693" y="317" />
+        <di:waypoint x="1744" y="317" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1708" y="293" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ResponseValid_No" bpmnElement="Flow_ResponseValid_No">
+        <di:waypoint x="1625" y="235" />
+        <di:waypoint x="1625" y="150" />
+        <di:waypoint x="1700" y="150" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1629" y="181" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_IgnoreInvalid_To_EndNoStatusChange" bpmnElement="Flow_IgnoreInvalid_To_EndNoStatusChange">
+        <di:waypoint x="1890" y="150" />
+        <di:waypoint x="2102" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Decision_Confirmed" bpmnElement="Flow_Decision_Confirmed">
+        <di:waypoint x="1784" y="307" />
+        <di:waypoint x="1840" y="307" />
+        <di:waypoint x="1840" y="273" />
+        <di:waypoint x="1895" y="273" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1844" y="248" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Decision_Rejected" bpmnElement="Flow_Decision_Rejected">
+        <di:waypoint x="1760" y="333" />
+        <di:waypoint x="1760" y="420" />
+        <di:waypoint x="1895" y="420" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1750" y="367" width="50" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_TimerExpired_To_NoResponse" bpmnElement="Flow_TimerExpired_To_NoResponse">
+        <di:waypoint x="1535" y="402" />
+        <di:waypoint x="1561" y="402" />
+        <di:waypoint x="1561" y="606" />
+        <di:waypoint x="1597" y="606" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Confirmed_To_CheckTour" bpmnElement="Flow_Confirmed_To_CheckTour">
+        <di:waypoint x="2065" y="266" />
+        <di:waypoint x="3030" y="266" />
+        <di:waypoint x="3030" y="405" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Rejected_To_ManualHandling" bpmnElement="Flow_Rejected_To_ManualHandling">
+        <di:waypoint x="1980" y="460" />
+        <di:waypoint x="1980" y="495" />
+        <di:waypoint x="2050" y="495" />
+        <di:waypoint x="2050" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_NoResponse_To_ManualHandling" bpmnElement="Flow_NoResponse_To_ManualHandling">
+        <di:waypoint x="1805" y="570" />
+        <di:waypoint x="1950" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ManualHandling_To_Decision" bpmnElement="Flow_ManualHandling_To_Decision">
+        <di:waypoint x="2150" y="570" />
+        <di:waypoint x="2240" y="570" />
+        <di:waypoint x="2240" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Manual_NewWindow" bpmnElement="Flow_Manual_NewWindow">
+        <di:waypoint x="2240" y="405" />
+        <di:waypoint x="2240" y="317" />
+        <di:waypoint x="2440" y="317" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2243" y="343" width="63" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Manual_Phone" bpmnElement="Flow_Manual_Phone">
+        <di:waypoint x="2265" y="430" />
+        <di:waypoint x="2440" y="430" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2310" y="405" width="86" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Manual_MoveOrder" bpmnElement="Flow_Manual_MoveOrder">
+        <di:waypoint x="2253" y="442" />
+        <di:waypoint x="2430" y="600" />
+        <di:waypoint x="2450" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2350" y="503" width="59" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_NewWindow_To_TriggerRequest" bpmnElement="Flow_NewWindow_To_TriggerRequest">
+        <di:waypoint x="2600" y="277" />
+        <di:waypoint x="2600" y="80" />
+        <di:waypoint x="595" y="80" />
+        <di:waypoint x="595" y="298" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Phone_To_MarkConfirmedManual" bpmnElement="Flow_Phone_To_MarkConfirmedManual">
+        <di:waypoint x="2640" y="430" />
+        <di:waypoint x="2690" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ManualConfirmed_To_CheckTour" bpmnElement="Flow_ManualConfirmed_To_CheckTour">
+        <di:waypoint x="2900" y="430" />
+        <di:waypoint x="2953" y="430" />
+        <di:waypoint x="2953" y="411" />
+        <di:waypoint x="3024" y="411" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_MoveOrder_To_RemoveFromTour" bpmnElement="Flow_MoveOrder_To_RemoveFromTour">
+        <di:waypoint x="2650" y="600" />
+        <di:waypoint x="2720" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Removed_To_CheckTour" bpmnElement="Flow_Removed_To_CheckTour">
+        <di:waypoint x="2940" y="600" />
+        <di:waypoint x="3030" y="600" />
+        <di:waypoint x="3030" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_AllClarified_Yes" bpmnElement="Flow_AllClarified_Yes">
+        <di:waypoint x="3030" y="405" />
+        <di:waypoint x="3030" y="310" />
+        <di:waypoint x="3100" y="310" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3064" y="281" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_TourReady_To_FinalRelease" bpmnElement="Flow_TourReady_To_FinalRelease">
+        <di:waypoint x="3300" y="310" />
+        <di:waypoint x="3360" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_FinalRelease_To_End" bpmnElement="Flow_FinalRelease_To_End">
+        <di:waypoint x="3540" y="310" />
+        <di:waypoint x="3610" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14yy040_di" bpmnElement="Flow_14yy040">
+        <di:waypoint x="930" y="338" />
+        <di:waypoint x="1050" y="338" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

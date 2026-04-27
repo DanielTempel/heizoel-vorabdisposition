@@ -1,0 +1,67 @@
+\babel@toc {ngerman}{}\relax 
+\contentsline {section}{\numberline {1}Ziel der Soll-Lösung}{4}{section.1}%
+\contentsline {section}{\numberline {2}Fachliche Abgrenzung}{4}{section.2}%
+\contentsline {section}{\numberline {3}Zentrale Begriffe}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Auftrag}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Tour}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Rückbestätigung}{6}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Grundprinzip des Soll-Prozesses}{6}{section.4}%
+\contentsline {section}{\numberline {5}Prozessablauf im Detail}{7}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Schritt 1: Auftrag liegt im DISPO-System vor}{7}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Schritt 2: Disponent plant Tour vorläufig}{7}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Schritt 3: Disponent startet Rückbestätigung manuell}{8}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Schritt 4: System versendet Anfrage}{8}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Schritt 5: Anfrage gilt erst nach erfolgreichem Versand als versendet}{9}{subsection.5.5}%
+\contentsline {section}{\numberline {6}Inhalt der Nachricht an den Kunden}{9}{section.6}%
+\contentsline {section}{\numberline {7}Antwortmöglichkeiten des Kunden}{10}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Option 1: Termin passt}{10}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Option 2: Termin passt nicht}{10}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Optionaler Kommentar}{10}{subsection.7.3}%
+\contentsline {section}{\numberline {8}Antwortfrist}{11}{section.8}%
+\contentsline {section}{\numberline {9}Gültigkeit einer Antwort}{11}{section.9}%
+\contentsline {section}{\numberline {10}Späte Antwort des Kunden}{12}{section.10}%
+\contentsline {section}{\numberline {11}Ältere oder überholte Anfragen}{12}{section.11}%
+\contentsline {section}{\numberline {12}Änderung des Lieferfensters nach Versand}{13}{section.12}%
+\contentsline {section}{\numberline {13}Wiederholte Anfrage und Reminder}{14}{section.13}%
+\contentsline {subsection}{\numberline {13.1}Manuelle Wiederholung}{14}{subsection.13.1}%
+\contentsline {subsection}{\numberline {13.2}Automatischer Reminder}{14}{subsection.13.2}%
+\contentsline {section}{\numberline {14}Rückbestätigungsstatus des Auftrags}{15}{section.14}%
+\contentsline {section}{\numberline {15}Bedeutung der Rückbestätigungsstatus}{15}{section.15}%
+\contentsline {subsection}{\numberline {15.1}Offen}{15}{subsection.15.1}%
+\contentsline {subsection}{\numberline {15.2}Versendet}{15}{subsection.15.2}%
+\contentsline {subsection}{\numberline {15.3}Bestätigt}{16}{subsection.15.3}%
+\contentsline {subsection}{\numberline {15.4}Abgelehnt}{16}{subsection.15.4}%
+\contentsline {subsection}{\numberline {15.5}Keine Rückmeldung}{16}{subsection.15.5}%
+\contentsline {section}{\numberline {16}Statusübergänge}{17}{section.16}%
+\contentsline {subsection}{\numberline {16.1}Normalfall: Kunde bestätigt}{17}{subsection.16.1}%
+\contentsline {subsection}{\numberline {16.2}Kunde lehnt ab}{17}{subsection.16.2}%
+\contentsline {subsection}{\numberline {16.3}Kunde antwortet nicht}{17}{subsection.16.3}%
+\contentsline {subsection}{\numberline {16.4}Neues Lieferfenster nach Ablehnung oder keiner Rückmeldung}{17}{subsection.16.4}%
+\contentsline {subsection}{\numberline {16.5}Telefonische Klärung durch Disponent}{18}{subsection.16.5}%
+\contentsline {subsection}{\numberline {16.6}Verschiebung des Auftrags}{18}{subsection.16.6}%
+\contentsline {section}{\numberline {17}Warum es keinen Status „manuelle Bearbeitung“ gibt}{19}{section.17}%
+\contentsline {section}{\numberline {18}Warum „final geplant“ kein Rückbestätigungsstatus ist}{19}{section.18}%
+\contentsline {section}{\numberline {19}Planungsstatus der Tour}{20}{section.19}%
+\contentsline {subsection}{\numberline {19.1}Vorläufig geplant}{20}{subsection.19.1}%
+\contentsline {subsection}{\numberline {19.2}Freigabebereit}{20}{subsection.19.2}%
+\contentsline {subsection}{\numberline {19.3}Final geplant}{21}{subsection.19.3}%
+\contentsline {section}{\numberline {20}Arbeitsliste für problematische Aufträge}{21}{section.20}%
+\contentsline {section}{\numberline {21}Handlungsmöglichkeiten des Disponenten bei Problemfällen}{22}{section.21}%
+\contentsline {subsection}{\numberline {21.1}Möglichkeit 1: Neues Lieferfenster senden}{22}{subsection.21.1}%
+\contentsline {subsection}{\numberline {21.2}Möglichkeit 2: Telefonisch klären}{22}{subsection.21.2}%
+\contentsline {subsection}{\numberline {21.3}Möglichkeit 3: Auftrag verschieben}{22}{subsection.21.3}%
+\contentsline {section}{\numberline {22}Umgang mit fehlender E-Mail-Adresse}{23}{section.22}%
+\contentsline {section}{\numberline {23}Technischer Versandfehler}{23}{section.23}%
+\contentsline {section}{\numberline {24}Fehlerhafte Kundeneingabe}{24}{section.24}%
+\contentsline {section}{\numberline {25}Keine automatische Neuplanung}{24}{section.25}%
+\contentsline {section}{\numberline {26}Sicht des Disponenten}{25}{section.26}%
+\contentsline {subsection}{\numberline {26.1}Auftragssicht}{25}{subsection.26.1}%
+\contentsline {subsection}{\numberline {26.2}Tourübersicht}{25}{subsection.26.2}%
+\contentsline {subsection}{\numberline {26.3}Arbeitsliste}{26}{subsection.26.3}%
+\contentsline {section}{\numberline {27}UI-Konzept mit LKW- und Tankvisualisierung}{26}{section.27}%
+\contentsline {section}{\numberline {28}Tourfreigabe}{27}{section.28}%
+\contentsline {section}{\numberline {29}Datenschutz und Informationsbegrenzung}{27}{section.29}%
+\contentsline {section}{\numberline {30}Nachvollziehbarkeit}{28}{section.30}%
+\contentsline {section}{\numberline {31}Fachliche Regeln zusammengefasst}{28}{section.31}%
+\contentsline {section}{\numberline {32}Kurzbeschreibung für Präsentation}{29}{section.32}%
+\contentsline {section}{\numberline {33}Sehr kurze Kernformulierung}{30}{section.33}%

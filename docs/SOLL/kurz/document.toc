@@ -1,0 +1,14 @@
+\babel@toc {ngerman}{}\relax 
+\contentsline {section}{\numberline {1}Ziel der Lösung}{2}{section.1}%
+\contentsline {section}{\numberline {2}Ausgangssituation}{2}{section.2}%
+\contentsline {section}{\numberline {3}Soll-Prozess}{2}{section.3}%
+\contentsline {section}{\numberline {4}Rückbestätigungsstatus}{3}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Offen}{3}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Versendet}{4}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Bestätigt}{4}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Abgelehnt}{4}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Keine Rückmeldung}{4}{subsection.4.5}%
+\contentsline {section}{\numberline {5}Wichtige fachliche Regeln}{4}{section.5}%
+\contentsline {section}{\numberline {6}Problemfälle und manuelle Bearbeitung}{5}{section.6}%
+\contentsline {section}{\numberline {7}Tourstatus und Freigabe}{5}{section.7}%
+\contentsline {section}{\numberline {8}Geplante Oberfläche}{6}{section.8}%
