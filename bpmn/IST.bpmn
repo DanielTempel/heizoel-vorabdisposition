@@ -33,8 +33,8 @@
       <bpmn:lane id="Lane_Kunde" name="Kunde">
         <bpmn:flowNodeRef>Task_KundeReagiert</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_KundeBestaetigtTermin</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_KundeLehntTerminAb</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_TerminBestaetigt</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_KundeLehntTerminAb</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
     <bpmn:startEvent id="StartEvent_AuftragVorhanden" name="Auftrag ist im System vorhanden">
@@ -205,6 +205,7 @@
     <bpmndi:BPMNPlane id="BPMNPlane_Ist_Lieferbestaetigung" bpmnElement="Process_Ist_Lieferbestaetigung">
       <bpmndi:BPMNShape id="Lane_Kunde_di" bpmnElement="Lane_Kunde" isHorizontal="true">
         <dc:Bounds x="160" y="600" width="2380" height="300" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_Disposition_di" bpmnElement="Lane_Disposition" isHorizontal="true">
         <dc:Bounds x="160" y="80" width="2380" height="520" />
@@ -215,6 +216,36 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Task_AuftragsdatenPruefen_di" bpmnElement="Task_AuftragsdatenPruefen">
         <dc:Bounds x="290" y="278" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TourVorlaeufigPlanen_di" bpmnElement="Task_TourVorlaeufigPlanen">
+        <dc:Bounds x="465" y="278" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_LieferfensterFestlegen_di" bpmnElement="Task_LieferfensterFestlegen">
+        <dc:Bounds x="635" y="278" width="170" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_KundeAnrufen_di" bpmnElement="Task_KundeAnrufen">
+        <dc:Bounds x="835" y="278" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_KundeErreicht_di" bpmnElement="Gateway_KundeErreicht" isMarkerVisible="true">
+        <dc:Bounds x="1055" y="293" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1041" y="269" width="78" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ErgebnisDokumentieren_NichtErreicht_di" bpmnElement="Task_ErgebnisDokumentieren_NichtErreicht">
+        <dc:Bounds x="1005" y="405" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WeitereAnrufeSinnvoll_di" bpmnElement="Gateway_WeitereAnrufeSinnvoll" isMarkerVisible="true">
+        <dc:Bounds x="1215" y="420" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1204" y="382.5" width="71" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IntermediateTimer_ErneuterAnruf_di" bpmnElement="IntermediateTimer_ErneuterAnruf">
+        <dc:Bounds x="1237" y="522" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1217" y="566" width="75" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Task_AuftragWeiterInPlanung_di" bpmnElement="Task_AuftragWeiterInPlanung">
         <dc:Bounds x="1350" y="405" width="210" height="80" />
@@ -252,38 +283,17 @@
       <bpmndi:BPMNShape id="Task_AlternativesZeitfensterPruefen_di" bpmnElement="Task_AlternativesZeitfensterPruefen">
         <dc:Bounds x="1845" y="150" width="210" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_AuftragVerschoben_di" bpmnElement="EndEvent_AuftragVerschoben">
-        <dc:Bounds x="2370" y="427" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_TourVorlaeufigPlanen_di" bpmnElement="Task_TourVorlaeufigPlanen">
-        <dc:Bounds x="465" y="278" width="150" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_LieferfensterFestlegen_di" bpmnElement="Task_LieferfensterFestlegen">
-        <dc:Bounds x="635" y="278" width="170" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_KundeAnrufen_di" bpmnElement="Task_KundeAnrufen">
-        <dc:Bounds x="835" y="278" width="150" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_KundeErreicht_di" bpmnElement="Gateway_KundeErreicht" isMarkerVisible="true">
-        <dc:Bounds x="1055" y="293" width="50" height="50" />
+      <bpmndi:BPMNShape id="Gateway_AlternativeMoeglich_di" bpmnElement="Gateway_AlternativeMoeglich" isMarkerVisible="true">
+        <dc:Bounds x="2105" y="135" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1041" y="269" width="78" height="14" />
+          <dc:Bounds x="2096" y="185" width="68" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_ErgebnisDokumentieren_NichtErreicht_di" bpmnElement="Task_ErgebnisDokumentieren_NichtErreicht">
-        <dc:Bounds x="1005" y="405" width="160" height="80" />
+      <bpmndi:BPMNShape id="Task_AuftragInnerhalbTourAnpassen_di" bpmnElement="Task_AuftragInnerhalbTourAnpassen">
+        <dc:Bounds x="2275" y="190" width="190" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_WeitereAnrufeSinnvoll_di" bpmnElement="Gateway_WeitereAnrufeSinnvoll" isMarkerVisible="true">
-        <dc:Bounds x="1215" y="420" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1204" y="382.5" width="71" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="IntermediateTimer_ErneuterAnruf_di" bpmnElement="IntermediateTimer_ErneuterAnruf">
-        <dc:Bounds x="1237" y="522" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1217" y="566" width="75" height="27" />
-        </bpmndi:BPMNLabel>
+      <bpmndi:BPMNShape id="Task_DisponentEntscheidetEinzelfall_di" bpmnElement="Task_DisponentEntscheidetEinzelfall">
+        <dc:Bounds x="2265" y="90" width="190" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_InTourAufnehmbar_di" bpmnElement="Gateway_InTourAufnehmbar" isMarkerVisible="true">
         <dc:Bounds x="2470" y="145" width="50" height="50" />
@@ -291,35 +301,26 @@
           <dc:Bounds x="2451" y="107.5" width="87" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_AuftragInnerhalbTourAnpassen_di" bpmnElement="Task_AuftragInnerhalbTourAnpassen">
-        <dc:Bounds x="2275" y="190" width="190" height="80" />
+      <bpmndi:BPMNShape id="Task_AlternativeKontaktwegeNutzen_di" bpmnElement="Task_AlternativeKontaktwegeNutzen">
+        <dc:Bounds x="1725" y="505" width="180" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_AuftragVerschoben_di" bpmnElement="EndEvent_AuftragVerschoben">
+        <dc:Bounds x="2370" y="427" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Task_KundeReagiert_di" bpmnElement="Task_KundeReagiert">
-        <dc:Bounds x="1005" y="770" width="210" height="80" />
+        <dc:Bounds x="1225" y="760" width="210" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Task_KundeBestaetigtTermin_di" bpmnElement="Task_KundeBestaetigtTermin">
-        <dc:Bounds x="1425" y="660" width="190" height="80" />
+        <dc:Bounds x="1495" y="660" width="190" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TerminBestaetigt_di" bpmnElement="Gateway_TerminBestaetigt" isMarkerVisible="true">
+        <dc:Bounds x="1505" y="785" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1490" y="845" width="81" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Task_KundeLehntTerminAb_di" bpmnElement="Task_KundeLehntTerminAb">
         <dc:Bounds x="1610" y="800" width="190" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_TerminBestaetigt_di" bpmnElement="Gateway_TerminBestaetigt" isMarkerVisible="true">
-        <dc:Bounds x="1455" y="785" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1440" y="845" width="80" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_AlternativeMoeglich_di" bpmnElement="Gateway_AlternativeMoeglich" isMarkerVisible="true">
-        <dc:Bounds x="2105" y="135" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="2096" y="185" width="68" height="40" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_DisponentEntscheidetEinzelfall_di" bpmnElement="Task_DisponentEntscheidetEinzelfall">
-        <dc:Bounds x="2265" y="90" width="190" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_AlternativeKontaktwegeNutzen_di" bpmnElement="Task_AlternativeKontaktwegeNutzen">
-        <dc:Bounds x="1725" y="505" width="180" height="70" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_01_di" bpmnElement="Flow_01">
         <di:waypoint x="246" y="318" />
@@ -408,24 +409,25 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_18_di" bpmnElement="Flow_18">
         <di:waypoint x="1330" y="358" />
-        <di:waypoint x="1330" y="660" />
-        <di:waypoint x="1169" y="770" />
+        <di:waypoint x="1330" y="760" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_19_di" bpmnElement="Flow_19">
-        <di:waypoint x="1215" y="810" />
-        <di:waypoint x="1455" y="810" />
+        <di:waypoint x="1435" y="800" />
+        <di:waypoint x="1470" y="800" />
+        <di:waypoint x="1470" y="810" />
+        <di:waypoint x="1505" y="810" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_20_di" bpmnElement="Flow_20">
-        <di:waypoint x="1480" y="785" />
-        <di:waypoint x="1480" y="763" />
-        <di:waypoint x="1520" y="763" />
-        <di:waypoint x="1520" y="740" />
+        <di:waypoint x="1530" y="785" />
+        <di:waypoint x="1530" y="763" />
+        <di:waypoint x="1590" y="763" />
+        <di:waypoint x="1590" y="740" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1489" y="765" width="12" height="14" />
+          <dc:Bounds x="1546" y="765" width="12" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_21_di" bpmnElement="Flow_21">
-        <di:waypoint x="1615" y="700" />
+        <di:waypoint x="1685" y="700" />
         <di:waypoint x="1935" y="700" />
         <di:waypoint x="1935" y="358" />
       </bpmndi:BPMNEdge>
@@ -438,12 +440,12 @@
         <di:waypoint x="2360" y="318" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_24_di" bpmnElement="Flow_24">
-        <di:waypoint x="1505" y="810" />
-        <di:waypoint x="1558" y="810" />
-        <di:waypoint x="1558" y="840" />
+        <di:waypoint x="1555" y="810" />
+        <di:waypoint x="1583" y="810" />
+        <di:waypoint x="1583" y="840" />
         <di:waypoint x="1610" y="840" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1577" y="818" width="23" height="14" />
+          <dc:Bounds x="1587" y="818" width="23" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_25_di" bpmnElement="Flow_25">
@@ -510,7 +512,7 @@
         <di:waypoint x="1645" y="540" />
         <di:waypoint x="1725" y="540" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1626" y="495" width="68" height="27" />
+          <dc:Bounds x="1565" y="506" width="68" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_41_di" bpmnElement="Flow_41">
