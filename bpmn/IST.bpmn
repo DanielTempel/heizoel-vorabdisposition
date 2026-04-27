@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_Ist_Lieferbestaetigung" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.45.0">
+  <bpmn:process id="Process_Ist_Lieferbestaetigung" name="IST-Prozess: Lieferbestätigung in der Disposition" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Ist_Prozess">
+      <bpmn:lane id="Lane_Disposition" name="Disposition">
+        <bpmn:flowNodeRef>StartEvent_AuftragVorhanden</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuftragsdatenPruefen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuftragWeiterInPlanung</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_KundeRuftSpaeterZurueck</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_KapazitaetPruefen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_KapazitaetVorhanden</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuftragInNaechsteFreieTourVerschieben</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuftragsdatenNennen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TerminDokumentieren</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuftragFinalInTourSperren</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_AuftragFinalGeplant</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AenderungswunschAufnehmen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AlternativesZeitfensterPruefen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_AuftragVerschoben</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TourVorlaeufigPlanen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LieferfensterFestlegen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_KundeAnrufen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_KundeErreicht</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ErgebnisDokumentieren_NichtErreicht</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_WeitereAnrufeSinnvoll</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>IntermediateTimer_ErneuterAnruf</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_InTourAufnehmbar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuftragInnerhalbTourAnpassen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_AlternativeMoeglich</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DisponentEntscheidetEinzelfall</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AlternativeKontaktwegeNutzen</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Kunde" name="Kunde">
+        <bpmn:flowNodeRef>Task_KundeReagiert</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_KundeBestaetigtTermin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_KundeLehntTerminAb</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TerminBestaetigt</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_AuftragVorhanden" name="Auftrag ist im System vorhanden">
+      <bpmn:outgoing>Flow_01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_AuftragsdatenPruefen" name="Auftragsdaten und Lieferzeitraum prüfen">
+      <bpmn:incoming>Flow_01</bpmn:incoming>
+      <bpmn:outgoing>Flow_02</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_TourVorlaeufigPlanen" name="Vorläufige Tour planen">
+      <bpmn:incoming>Flow_02</bpmn:incoming>
+      <bpmn:outgoing>Flow_03</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_LieferfensterFestlegen" name="Liefertag und konkretes Lieferfenster festlegen">
+      <bpmn:incoming>Flow_03</bpmn:incoming>
+      <bpmn:outgoing>Flow_04</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_KundeAnrufen" name="Kunden telefonisch kontaktieren">
+      <bpmn:incoming>Flow_04</bpmn:incoming>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_05</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_KundeErreicht" name="Kunde erreicht?">
+      <bpmn:incoming>Flow_05</bpmn:incoming>
+      <bpmn:outgoing>Flow_06</bpmn:outgoing>
+      <bpmn:outgoing>Flow_07</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_ErgebnisDokumentieren_NichtErreicht" name="Nichterreichbarkeit dokumentieren">
+      <bpmn:incoming>Flow_07</bpmn:incoming>
+      <bpmn:outgoing>Flow_08</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_WeitereAnrufeSinnvoll" name="Weiterer Anruf sinnvoll?">
+      <bpmn:incoming>Flow_08</bpmn:incoming>
+      <bpmn:outgoing>Flow_09</bpmn:outgoing>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateCatchEvent id="IntermediateTimer_ErneuterAnruf" name="Einige Stunden warten">
+      <bpmn:incoming>Flow_09</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_ErneuterAnruf" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:task id="Task_AuftragWeiterInPlanung" name="Auftrag bleibt auf Basis des angegebenen Lieferzeitraums in Planung">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_KundeRuftSpaeterZurueck" name="Kunde ruft später zurück?">
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+      <bpmn:outgoing>Flow_40</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_KapazitaetPruefen" name="Freie Kapazität in ursprünglicher Tour prüfen">
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_KapazitaetVorhanden" name="Kapazität vorhanden?">
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+      <bpmn:outgoing>Flow_16</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_AuftragInNaechsteFreieTourVerschieben" name="Auftrag auf nächste freie Tour verschieben">
+      <bpmn:incoming>Flow_16</bpmn:incoming>
+      <bpmn:incoming>Flow_33</bpmn:incoming>
+      <bpmn:outgoing>Flow_17</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_AuftragsdatenNennen" name="Preis, Lieferadresse, Lieferdatum und Lieferfenster nennen">
+      <bpmn:incoming>Flow_06</bpmn:incoming>
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:outgoing>Flow_18</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_KundeReagiert" name="Kunde reagiert auf Terminvorschlag">
+      <bpmn:incoming>Flow_18</bpmn:incoming>
+      <bpmn:outgoing>Flow_19</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_TerminBestaetigt" name="Termin eindeutig bestätigt?">
+      <bpmn:incoming>Flow_19</bpmn:incoming>
+      <bpmn:outgoing>Flow_20</bpmn:outgoing>
+      <bpmn:outgoing>Flow_24</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_KundeBestaetigtTermin" name="Kunde bestätigt konkretes Lieferfenster">
+      <bpmn:incoming>Flow_20</bpmn:incoming>
+      <bpmn:outgoing>Flow_21</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_TerminDokumentieren" name="Bestätigung im DISPO-System dokumentieren">
+      <bpmn:incoming>Flow_21</bpmn:incoming>
+      <bpmn:outgoing>Flow_22</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_AuftragFinalInTourSperren" name="Auftrag final in Tour einplanen und für Änderungen sperren">
+      <bpmn:incoming>Flow_22</bpmn:incoming>
+      <bpmn:outgoing>Flow_23</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_AuftragFinalGeplant" name="Auftrag final geplant">
+      <bpmn:incoming>Flow_23</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_KundeLehntTerminAb" name="Kunde lehnt Termin ab oder äußert Änderungswunsch">
+      <bpmn:incoming>Flow_24</bpmn:incoming>
+      <bpmn:outgoing>Flow_25</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_AenderungswunschAufnehmen" name="Änderungswunsch aufnehmen">
+      <bpmn:incoming>Flow_25</bpmn:incoming>
+      <bpmn:outgoing>Flow_26</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_AlternativesZeitfensterPruefen" name="Alternatives Zeitfenster innerhalb der aktuellen Tour prüfen">
+      <bpmn:incoming>Flow_26</bpmn:incoming>
+      <bpmn:outgoing>Flow_27</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_AlternativeMoeglich" name="Alternative innerhalb der Tour möglich?">
+      <bpmn:incoming>Flow_27</bpmn:incoming>
+      <bpmn:outgoing>Flow_28</bpmn:outgoing>
+      <bpmn:outgoing>Flow_30</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_AuftragInnerhalbTourAnpassen" name="Auftrag innerhalb der Tour anpassen">
+      <bpmn:incoming>Flow_28</bpmn:incoming>
+      <bpmn:outgoing>Flow_29</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_DisponentEntscheidetEinzelfall" name="Disponent entscheidet im Einzelfall bei Konflikten">
+      <bpmn:incoming>Flow_30</bpmn:incoming>
+      <bpmn:outgoing>Flow_32</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_InTourAufnehmbar" name="Aufnahme in Tour möglich?">
+      <bpmn:incoming>Flow_32</bpmn:incoming>
+      <bpmn:outgoing>Flow_34</bpmn:outgoing>
+      <bpmn:outgoing>Flow_33</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_AlternativeKontaktwegeNutzen" name="Alternative Kontaktwege manuell nutzen">
+      <bpmn:incoming>Flow_40</bpmn:incoming>
+      <bpmn:outgoing>Flow_41</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_AuftragVerschoben" name="Auftrag verschoben">
+      <bpmn:incoming>Flow_17</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_01" sourceRef="StartEvent_AuftragVorhanden" targetRef="Task_AuftragsdatenPruefen" />
+    <bpmn:sequenceFlow id="Flow_02" sourceRef="Task_AuftragsdatenPruefen" targetRef="Task_TourVorlaeufigPlanen" />
+    <bpmn:sequenceFlow id="Flow_03" sourceRef="Task_TourVorlaeufigPlanen" targetRef="Task_LieferfensterFestlegen" />
+    <bpmn:sequenceFlow id="Flow_04" sourceRef="Task_LieferfensterFestlegen" targetRef="Task_KundeAnrufen" />
+    <bpmn:sequenceFlow id="Flow_05" sourceRef="Task_KundeAnrufen" targetRef="Gateway_KundeErreicht" />
+    <bpmn:sequenceFlow id="Flow_06" name="Ja" sourceRef="Gateway_KundeErreicht" targetRef="Task_AuftragsdatenNennen" />
+    <bpmn:sequenceFlow id="Flow_07" name="Nein" sourceRef="Gateway_KundeErreicht" targetRef="Task_ErgebnisDokumentieren_NichtErreicht" />
+    <bpmn:sequenceFlow id="Flow_08" sourceRef="Task_ErgebnisDokumentieren_NichtErreicht" targetRef="Gateway_WeitereAnrufeSinnvoll" />
+    <bpmn:sequenceFlow id="Flow_09" name="Ja" sourceRef="Gateway_WeitereAnrufeSinnvoll" targetRef="IntermediateTimer_ErneuterAnruf" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="IntermediateTimer_ErneuterAnruf" targetRef="Task_KundeAnrufen" />
+    <bpmn:sequenceFlow id="Flow_11" name="Nein" sourceRef="Gateway_WeitereAnrufeSinnvoll" targetRef="Task_AuftragWeiterInPlanung" />
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="Task_AuftragWeiterInPlanung" targetRef="Gateway_KundeRuftSpaeterZurueck" />
+    <bpmn:sequenceFlow id="Flow_13" name="Ja" sourceRef="Gateway_KundeRuftSpaeterZurueck" targetRef="Task_KapazitaetPruefen" />
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="Task_KapazitaetPruefen" targetRef="Gateway_KapazitaetVorhanden" />
+    <bpmn:sequenceFlow id="Flow_15" name="Ja" sourceRef="Gateway_KapazitaetVorhanden" targetRef="Task_AuftragsdatenNennen" />
+    <bpmn:sequenceFlow id="Flow_16" name="Nein" sourceRef="Gateway_KapazitaetVorhanden" targetRef="Task_AuftragInNaechsteFreieTourVerschieben" />
+    <bpmn:sequenceFlow id="Flow_17" sourceRef="Task_AuftragInNaechsteFreieTourVerschieben" targetRef="EndEvent_AuftragVerschoben" />
+    <bpmn:sequenceFlow id="Flow_18" sourceRef="Task_AuftragsdatenNennen" targetRef="Task_KundeReagiert" />
+    <bpmn:sequenceFlow id="Flow_19" sourceRef="Task_KundeReagiert" targetRef="Gateway_TerminBestaetigt" />
+    <bpmn:sequenceFlow id="Flow_20" name="Ja" sourceRef="Gateway_TerminBestaetigt" targetRef="Task_KundeBestaetigtTermin" />
+    <bpmn:sequenceFlow id="Flow_21" sourceRef="Task_KundeBestaetigtTermin" targetRef="Task_TerminDokumentieren" />
+    <bpmn:sequenceFlow id="Flow_22" sourceRef="Task_TerminDokumentieren" targetRef="Task_AuftragFinalInTourSperren" />
+    <bpmn:sequenceFlow id="Flow_23" sourceRef="Task_AuftragFinalInTourSperren" targetRef="EndEvent_AuftragFinalGeplant" />
+    <bpmn:sequenceFlow id="Flow_24" name="Nein" sourceRef="Gateway_TerminBestaetigt" targetRef="Task_KundeLehntTerminAb" />
+    <bpmn:sequenceFlow id="Flow_25" sourceRef="Task_KundeLehntTerminAb" targetRef="Task_AenderungswunschAufnehmen" />
+    <bpmn:sequenceFlow id="Flow_26" sourceRef="Task_AenderungswunschAufnehmen" targetRef="Task_AlternativesZeitfensterPruefen" />
+    <bpmn:sequenceFlow id="Flow_27" sourceRef="Task_AlternativesZeitfensterPruefen" targetRef="Gateway_AlternativeMoeglich" />
+    <bpmn:sequenceFlow id="Flow_28" name="Ja" sourceRef="Gateway_AlternativeMoeglich" targetRef="Task_AuftragInnerhalbTourAnpassen" />
+    <bpmn:sequenceFlow id="Flow_29" sourceRef="Task_AuftragInnerhalbTourAnpassen" targetRef="Task_TerminDokumentieren" />
+    <bpmn:sequenceFlow id="Flow_30" name="Nein / Konflikt" sourceRef="Gateway_AlternativeMoeglich" targetRef="Task_DisponentEntscheidetEinzelfall" />
+    <bpmn:sequenceFlow id="Flow_32" sourceRef="Task_DisponentEntscheidetEinzelfall" targetRef="Gateway_InTourAufnehmbar" />
+    <bpmn:sequenceFlow id="Flow_33" name="Nein" sourceRef="Gateway_InTourAufnehmbar" targetRef="Task_AuftragInNaechsteFreieTourVerschieben" />
+    <bpmn:sequenceFlow id="Flow_34" name="Ja" sourceRef="Gateway_InTourAufnehmbar" targetRef="Task_AuftragInnerhalbTourAnpassen" />
+    <bpmn:sequenceFlow id="Flow_40" name="Nein / keine Rückmeldung" sourceRef="Gateway_KundeRuftSpaeterZurueck" targetRef="Task_AlternativeKontaktwegeNutzen" />
+    <bpmn:sequenceFlow id="Flow_41" sourceRef="Task_AlternativeKontaktwegeNutzen" targetRef="Task_AuftragWeiterInPlanung" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Ist_Lieferbestaetigung">
+    <bpmndi:BPMNPlane id="BPMNPlane_Ist_Lieferbestaetigung" bpmnElement="Process_Ist_Lieferbestaetigung">
+      <bpmndi:BPMNShape id="Lane_Kunde_di" bpmnElement="Lane_Kunde" isHorizontal="true">
+        <dc:Bounds x="160" y="600" width="2380" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Disposition_di" bpmnElement="Lane_Disposition" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2380" height="520" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_AuftragVorhanden_di" bpmnElement="StartEvent_AuftragVorhanden">
+        <dc:Bounds x="210" y="300" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AuftragsdatenPruefen_di" bpmnElement="Task_AuftragsdatenPruefen">
+        <dc:Bounds x="290" y="278" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AuftragWeiterInPlanung_di" bpmnElement="Task_AuftragWeiterInPlanung">
+        <dc:Bounds x="1350" y="405" width="210" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_KundeRuftSpaeterZurueck_di" bpmnElement="Gateway_KundeRuftSpaeterZurueck" isMarkerVisible="true">
+        <dc:Bounds x="1620" y="420" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1602" y="382.5" width="86" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_KapazitaetPruefen_di" bpmnElement="Task_KapazitaetPruefen">
+        <dc:Bounds x="1725" y="405" width="180" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_KapazitaetVorhanden_di" bpmnElement="Gateway_KapazitaetVorhanden" isMarkerVisible="true">
+        <dc:Bounds x="1960" y="420" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AuftragInNaechsteFreieTourVerschieben_di" bpmnElement="Task_AuftragInNaechsteFreieTourVerschieben">
+        <dc:Bounds x="2100" y="405" width="200" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AuftragsdatenNennen_di" bpmnElement="Task_AuftragsdatenNennen">
+        <dc:Bounds x="1225" y="278" width="210" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TerminDokumentieren_di" bpmnElement="Task_TerminDokumentieren">
+        <dc:Bounds x="1845" y="278" width="180" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AuftragFinalInTourSperren_di" bpmnElement="Task_AuftragFinalInTourSperren">
+        <dc:Bounds x="2070" y="278" width="210" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_AuftragFinalGeplant_di" bpmnElement="EndEvent_AuftragFinalGeplant">
+        <dc:Bounds x="2360" y="300" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AenderungswunschAufnehmen_di" bpmnElement="Task_AenderungswunschAufnehmen">
+        <dc:Bounds x="1610" y="150" width="190" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AlternativesZeitfensterPruefen_di" bpmnElement="Task_AlternativesZeitfensterPruefen">
+        <dc:Bounds x="1845" y="150" width="210" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_AuftragVerschoben_di" bpmnElement="EndEvent_AuftragVerschoben">
+        <dc:Bounds x="2370" y="427" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TourVorlaeufigPlanen_di" bpmnElement="Task_TourVorlaeufigPlanen">
+        <dc:Bounds x="465" y="278" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_LieferfensterFestlegen_di" bpmnElement="Task_LieferfensterFestlegen">
+        <dc:Bounds x="635" y="278" width="170" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_KundeAnrufen_di" bpmnElement="Task_KundeAnrufen">
+        <dc:Bounds x="835" y="278" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_KundeErreicht_di" bpmnElement="Gateway_KundeErreicht" isMarkerVisible="true">
+        <dc:Bounds x="1055" y="293" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1041" y="269" width="78" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ErgebnisDokumentieren_NichtErreicht_di" bpmnElement="Task_ErgebnisDokumentieren_NichtErreicht">
+        <dc:Bounds x="1005" y="405" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WeitereAnrufeSinnvoll_di" bpmnElement="Gateway_WeitereAnrufeSinnvoll" isMarkerVisible="true">
+        <dc:Bounds x="1215" y="420" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1204" y="382.5" width="71" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IntermediateTimer_ErneuterAnruf_di" bpmnElement="IntermediateTimer_ErneuterAnruf">
+        <dc:Bounds x="1237" y="522" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1217" y="566" width="75" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_InTourAufnehmbar_di" bpmnElement="Gateway_InTourAufnehmbar" isMarkerVisible="true">
+        <dc:Bounds x="2470" y="145" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2451" y="107.5" width="87" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AuftragInnerhalbTourAnpassen_di" bpmnElement="Task_AuftragInnerhalbTourAnpassen">
+        <dc:Bounds x="2275" y="190" width="190" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_KundeReagiert_di" bpmnElement="Task_KundeReagiert">
+        <dc:Bounds x="1005" y="770" width="210" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_KundeBestaetigtTermin_di" bpmnElement="Task_KundeBestaetigtTermin">
+        <dc:Bounds x="1425" y="660" width="190" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_KundeLehntTerminAb_di" bpmnElement="Task_KundeLehntTerminAb">
+        <dc:Bounds x="1610" y="800" width="190" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TerminBestaetigt_di" bpmnElement="Gateway_TerminBestaetigt" isMarkerVisible="true">
+        <dc:Bounds x="1455" y="785" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1440" y="845" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_AlternativeMoeglich_di" bpmnElement="Gateway_AlternativeMoeglich" isMarkerVisible="true">
+        <dc:Bounds x="2105" y="135" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2096" y="185" width="68" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DisponentEntscheidetEinzelfall_di" bpmnElement="Task_DisponentEntscheidetEinzelfall">
+        <dc:Bounds x="2265" y="90" width="190" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AlternativeKontaktwegeNutzen_di" bpmnElement="Task_AlternativeKontaktwegeNutzen">
+        <dc:Bounds x="1725" y="505" width="180" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_01_di" bpmnElement="Flow_01">
+        <di:waypoint x="246" y="318" />
+        <di:waypoint x="290" y="318" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02_di" bpmnElement="Flow_02">
+        <di:waypoint x="440" y="318" />
+        <di:waypoint x="465" y="318" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_03_di" bpmnElement="Flow_03">
+        <di:waypoint x="615" y="318" />
+        <di:waypoint x="635" y="318" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04_di" bpmnElement="Flow_04">
+        <di:waypoint x="805" y="318" />
+        <di:waypoint x="835" y="318" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05_di" bpmnElement="Flow_05">
+        <di:waypoint x="985" y="318" />
+        <di:waypoint x="1055" y="318" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06_di" bpmnElement="Flow_06">
+        <di:waypoint x="1105" y="318" />
+        <di:waypoint x="1225" y="318" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1160" y="293" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_07_di" bpmnElement="Flow_07">
+        <di:waypoint x="1080" y="343" />
+        <di:waypoint x="1080" y="405" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1084" y="364" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_08_di" bpmnElement="Flow_08">
+        <di:waypoint x="1165" y="445" />
+        <di:waypoint x="1215" y="445" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09_di" bpmnElement="Flow_09">
+        <di:waypoint x="1240" y="470" />
+        <di:waypoint x="1240" y="530" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1249" y="491" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="1237" y="540" />
+        <di:waypoint x="910" y="540" />
+        <di:waypoint x="910" y="358" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="1265" y="445" />
+        <di:waypoint x="1350" y="445" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1297" y="420" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12">
+        <di:waypoint x="1560" y="445" />
+        <di:waypoint x="1620" y="445" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13">
+        <di:waypoint x="1670" y="445" />
+        <di:waypoint x="1725" y="445" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14_di" bpmnElement="Flow_14">
+        <di:waypoint x="1905" y="445" />
+        <di:waypoint x="1960" y="445" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15_di" bpmnElement="Flow_15">
+        <di:waypoint x="1970" y="435" />
+        <di:waypoint x="1780" y="318" />
+        <di:waypoint x="1435" y="318" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1856" y="379" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16_di" bpmnElement="Flow_16">
+        <di:waypoint x="2010" y="445" />
+        <di:waypoint x="2100" y="445" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_17_di" bpmnElement="Flow_17">
+        <di:waypoint x="2300" y="445" />
+        <di:waypoint x="2370" y="445" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18_di" bpmnElement="Flow_18">
+        <di:waypoint x="1330" y="358" />
+        <di:waypoint x="1330" y="660" />
+        <di:waypoint x="1169" y="770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19_di" bpmnElement="Flow_19">
+        <di:waypoint x="1215" y="810" />
+        <di:waypoint x="1455" y="810" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_20_di" bpmnElement="Flow_20">
+        <di:waypoint x="1480" y="785" />
+        <di:waypoint x="1480" y="763" />
+        <di:waypoint x="1520" y="763" />
+        <di:waypoint x="1520" y="740" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1489" y="765" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_21_di" bpmnElement="Flow_21">
+        <di:waypoint x="1615" y="700" />
+        <di:waypoint x="1935" y="700" />
+        <di:waypoint x="1935" y="358" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_22_di" bpmnElement="Flow_22">
+        <di:waypoint x="2025" y="318" />
+        <di:waypoint x="2070" y="318" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_23_di" bpmnElement="Flow_23">
+        <di:waypoint x="2280" y="318" />
+        <di:waypoint x="2360" y="318" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_24_di" bpmnElement="Flow_24">
+        <di:waypoint x="1505" y="810" />
+        <di:waypoint x="1558" y="810" />
+        <di:waypoint x="1558" y="840" />
+        <di:waypoint x="1610" y="840" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1577" y="818" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_25_di" bpmnElement="Flow_25">
+        <di:waypoint x="1705" y="800" />
+        <di:waypoint x="1705" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_26_di" bpmnElement="Flow_26">
+        <di:waypoint x="1800" y="190" />
+        <di:waypoint x="1845" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_27_di" bpmnElement="Flow_27">
+        <di:waypoint x="2055" y="190" />
+        <di:waypoint x="2080" y="190" />
+        <di:waypoint x="2080" y="160" />
+        <di:waypoint x="2105" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_28_di" bpmnElement="Flow_28">
+        <di:waypoint x="2155" y="160" />
+        <di:waypoint x="2190" y="160" />
+        <di:waypoint x="2190" y="230" />
+        <di:waypoint x="2275" y="230" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2199" y="209" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_29_di" bpmnElement="Flow_29">
+        <di:waypoint x="2275" y="230" />
+        <di:waypoint x="1935" y="230" />
+        <di:waypoint x="1935" y="278" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_30_di" bpmnElement="Flow_30">
+        <di:waypoint x="2135" y="140" />
+        <di:waypoint x="2188" y="140" />
+        <di:waypoint x="2188" y="130" />
+        <di:waypoint x="2265" y="130" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2165" y="114" width="69" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_32_di" bpmnElement="Flow_32">
+        <di:waypoint x="2455" y="130" />
+        <di:waypoint x="2463" y="130" />
+        <di:waypoint x="2463" y="170" />
+        <di:waypoint x="2470" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_33_di" bpmnElement="Flow_33">
+        <di:waypoint x="2495" y="195" />
+        <di:waypoint x="2495" y="445" />
+        <di:waypoint x="2300" y="445" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2499" y="311" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_34_di" bpmnElement="Flow_34">
+        <di:waypoint x="2495" y="195" />
+        <di:waypoint x="2495" y="230" />
+        <di:waypoint x="2465" y="230" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2480" y="197" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_40_di" bpmnElement="Flow_40">
+        <di:waypoint x="1645" y="470" />
+        <di:waypoint x="1645" y="540" />
+        <di:waypoint x="1725" y="540" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1626" y="495" width="68" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_41_di" bpmnElement="Flow_41">
+        <di:waypoint x="1725" y="540" />
+        <di:waypoint x="1455" y="540" />
+        <di:waypoint x="1455" y="485" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
