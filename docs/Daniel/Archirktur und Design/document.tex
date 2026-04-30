@@ -1,0 +1,433 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{enumitem}
+
+\geometry{margin=2.5cm}
+
+\lstset{
+	basicstyle=\ttfamily\small,
+	breaklines=true,
+	frame=single,
+	backgroundcolor=\color{gray!5}
+}
+
+\title{Interface DISPO \texorpdfstring{$\leftrightarrow$}{↔} Backend}
+\author{}
+\date{}
+
+\begin{document}
+	
+	\maketitle
+	
+	\section{Purpose}
+	
+	This document defines the REST API contract between the external DISPO system and the Rückbestätigungs-Backend.
+	
+	The DISPO system remains the leading system for order data and delivery planning.  
+	The backend does not create business orders independently. It receives confirmation-relevant order data, stores a local snapshot, creates confirmation requests, sends customer notifications and manages confirmation status.
+	
+	\section{System Boundary}
+	
+	\subsection{DISPO System Responsibilities}
+	
+	\begin{itemize}
+		\item managing existing orders
+		\item delivery planning
+		\item assigning delivery dates and delivery windows
+		\item dispatcher workflow
+		\item manual start of confirmation process
+	\end{itemize}
+	
+	\subsection{Backend Responsibilities}
+	
+	\begin{itemize}
+		\item receiving confirmation requests
+		\item validating incoming order data
+		\item storing local order snapshots
+		\item creating confirmation requests
+		\item generating token-based action URLs
+		\item sending customer notification e-mails
+		\item managing confirmation status
+		\item storing customer responses
+		\item handling expiration after 24 hours
+	\end{itemize}
+	
+	\section{Process Start}
+	
+	The dispatcher manually starts the process inside DISPO:
+	
+	\begin{lstlisting}
+		Ruckbestatigung senden
+	\end{lstlisting}
+	
+	DISPO then calls the backend via REST API.
+	
+	\section{REST Endpoint}
+	
+	\subsection{Create Confirmation Request}
+	
+	\begin{lstlisting}
+		POST /api/dispo/confirmation-requests
+	\end{lstlisting}
+	
+	This endpoint creates a confirmation request and triggers synchronous e-mail sending.
+	
+	\section{Request DTO}
+	
+	\subsection{Request JSON}
+	
+	\begin{lstlisting}
+		{
+			"externalOrderId": "A-1024",
+			"customerName": "Max Muller",
+			"customerEmail": "daniel@example.com",
+			"deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
+			"product": "Heizol",
+			"quantityLiters": 3000,
+			"deliveryDate": "2026-06-12",
+			"deliveryWindowStart": "10:00",
+			"deliveryWindowEnd": "11:00"
+		}
+	\end{lstlisting}
+	
+	\subsection{Field Description}
+	
+	\begin{longtable}{p{4cm}p{2cm}p{2cm}p{6cm}}
+		\toprule
+		Field & Type & Required & Description \\
+		\midrule
+		externalOrderId & string & yes & Order identifier from DISPO \\
+		customerName & string & yes & Customer name \\
+		customerEmail & string & yes & E-mail address for confirmation \\
+		deliveryAddress & string & yes & Full delivery address \\
+		product & string & yes & Product to deliver \\
+		quantityLiters & integer & yes & Ordered quantity in liters \\
+		deliveryDate & date & yes & ISO date YYYY-MM-DD \\
+		deliveryWindowStart & time & yes & HH:mm \\
+		deliveryWindowEnd & time & yes & HH:mm \\
+		\bottomrule
+	\end{longtable}
+	
+	\subsection{Fields intentionally excluded in v1}
+	
+	\begin{itemize}
+		\item externalTourId
+		\item customerNumber
+		\item pricePer100Liters
+		\item dispatcherId
+		\item dispatcherName
+	\end{itemize}
+	
+\section{Success Response}
+
+\subsection{201 Created}
+
+Returned only if:
+
+\begin{itemize}
+	\item request validation succeeded
+	\item confirmation request was created internally
+	\item token URLs were generated internally
+	\item e-mail was sent successfully
+	\item status was set to SENT
+\end{itemize}
+
+\begin{lstlisting}
+	{
+		"externalOrderId": "A-1024",
+		"confirmationStatus": "SENT"
+	}
+\end{lstlisting}
+
+\subsection{Response Fields}
+
+\begin{longtable}{p{4cm}p{2cm}p{8cm}}
+	\toprule
+	Field & Type & Description \\
+	\midrule
+	externalOrderId & string & DISPO order identifier used for correlation \\
+	confirmationStatus & string & Current confirmation status, normally SENT \\
+	\bottomrule
+\end{longtable}
+
+\subsection{Internal Fields not exposed in v1}
+
+The backend internally creates and stores confirmation requests. However, the internal confirmation request id is not exposed to DISPO in API v1.
+
+Internally generated but not returned:
+
+\begin{itemize}
+	\item confirmationRequestId
+	\item confirmActionUrl
+	\item rejectActionUrl
+	\item sentAt
+	\item expiresAt
+\end{itemize}
+	
+	\section{Confirmation Status Values}
+	
+	\begin{longtable}{p{3cm}p{3cm}p{8cm}}
+		\toprule
+		API Value & German Label & Meaning \\
+		\midrule
+		SENT & versendet & Waiting for customer response \\
+		CONFIRMED & bestätigt & Customer accepted delivery window \\
+		REJECTED & abgelehnt & Customer rejected delivery window \\
+		NO\_RESPONSE & keine Rückmeldung & No valid response within 24h \\
+		\bottomrule
+	\end{longtable}
+	
+\subsection{Design Decision: No confirmationRequestId in DISPO API v1}
+
+The DISPO-facing API communicates on order level.
+
+DISPO identifies the order through externalOrderId. Individual confirmation requests, token handling, active request tracking, old request invalidation and expiration handling are managed internally by the backend.
+
+Therefore, confirmationRequestId is not exposed to DISPO in API v1.
+
+This avoids coupling DISPO to the internal data model of the confirmation backend.
+
+The backend is responsible for ensuring that only the latest active confirmation request can update the current confirmation status of an order.
+	
+\section{Validation Rules}
+
+\begin{longtable}{p{2cm}p{4cm}p{8cm}}
+	\toprule
+	Rule ID & Field & Rule \\
+	\midrule
+	VAL-001 & externalOrderId & must not be blank \\
+	VAL-002 & customerName & must not be blank \\
+	VAL-003 & customerEmail & must not be blank and must be a valid e-mail address \\
+	VAL-004 & deliveryAddress & must not be blank \\
+	VAL-005 & product & must not be blank \\
+	VAL-006 & quantityLiters & must be greater than 0 \\
+	VAL-007 & deliveryDate & must be a valid date in ISO format YYYY-MM-DD \\
+	VAL-008 & deliveryWindowStart & must be a valid time in format HH:mm \\
+	VAL-009 & deliveryWindowEnd & must be a valid time in format HH:mm \\
+	VAL-010 & deliveryWindow & deliveryWindowStart must be before deliveryWindowEnd \\
+	\bottomrule
+\end{longtable}
+	
+\section{Error Responses}
+
+All error responses use the same structure.
+
+\begin{lstlisting}
+	{
+		"code": "VALIDATION_ERROR",
+		"message": "Human-readable error message",
+		"status": 400,
+		"path": "/api/dispo/confirmation-requests",
+		"timestamp": "2026-06-12T08:15:00Z"
+	}
+\end{lstlisting}
+
+\subsection{Fields}
+
+\begin{longtable}{p{3cm}p{2cm}p{8cm}}
+	\toprule
+	Field & Type & Description \\
+	\midrule
+	code & string & Stable machine-readable error code \\
+	message & string & Human-readable error description \\
+	status & integer & HTTP status code \\
+	path & string & Request path where the error occurred \\
+	timestamp & datetime & Time when the error occurred \\
+	\bottomrule
+\end{longtable}
+
+\subsection{400 Validation Error}
+
+Returned when the request contains invalid or missing data.
+
+\begin{lstlisting}
+	400 Bad Request
+\end{lstlisting}
+
+\begin{lstlisting}
+	{
+		"code": "VALIDATION_ERROR",
+		"message": "Customer e-mail is required for digital confirmation.",
+		"status": 400,
+		"path": "/api/dispo/confirmation-requests",
+		"timestamp": "2026-06-12T08:15:00Z"
+	}
+\end{lstlisting}
+
+\subsection{502 E-Mail Sending Failed}
+
+Returned when the confirmation e-mail could not be sent.
+
+\begin{lstlisting}
+	502 Bad Gateway
+\end{lstlisting}
+
+\begin{lstlisting}
+	{
+		"code": "EMAIL_SENDING_FAILED",
+		"message": "The confirmation e-mail could not be sent.",
+		"status": 502,
+		"path": "/api/dispo/confirmation-requests",
+		"timestamp": "2026-06-12T08:15:00Z"
+	}
+\end{lstlisting}
+
+\subsection{500 Internal Error}
+
+Returned when an unexpected technical error occurs.
+
+\begin{lstlisting}
+	500 Internal Server Error
+\end{lstlisting}
+
+\begin{lstlisting}
+	{
+		"code": "INTERNAL_ERROR",
+		"message": "An unexpected technical error occurred.",
+		"status": 500,
+		"path": "/api/dispo/confirmation-requests",
+		"timestamp": "2026-06-12T08:15:00Z"
+	}
+\end{lstlisting}
+
+\section{Business Rules}
+
+\begin{longtable}{p{2cm}p{11cm}}
+	\toprule
+	Rule ID & Rule \\
+	\midrule
+	BR-001 & The order already exists in DISPO before the confirmation process starts. \\
+	BR-002 & DISPO is the leading system for order data and delivery planning. \\
+	BR-003 & The backend stores a local snapshot only when DISPO starts a confirmation request. \\
+	BR-004 & The confirmation process is started manually by the dispatcher in DISPO. \\
+	BR-005 & DISPO calls the backend directly via REST API. \\
+	BR-006 & A confirmation request always refers to exactly one order and one concrete delivery window. \\
+	BR-007 & Tour data is not part of API v1. \\
+	BR-008 & The first successful confirmation status returned by the backend is SENT. \\
+	BR-009 & SENT is set only after successful technical e-mail sending. \\
+	BR-010 & The 24-hour response timer starts only after successful technical e-mail sending. \\
+	BR-011 & If e-mail sending fails, the API returns an error and no successful confirmation status is created. \\
+	BR-012 & The e-mail contains token-based action buttons. \\
+	BR-013 & Action links open a minimal customer confirmation page. \\
+	BR-014 & Opening an action link does not directly change the confirmation status. \\
+	BR-015 & The confirmation status is changed only after a final submit on the customer page. \\
+	BR-016 & Only one valid customer response is allowed per confirmation request. \\
+	BR-017 & Only the latest active request can update the current confirmation status. \\
+	BR-018 & Old, inactive or replaced links must not update the current order status. \\
+	BR-019 & Customer comments are optional. \\
+	BR-020 & Customer comments are stored but not automatically interpreted. \\
+	BR-021 & The system does not perform automatic tour planning, route optimization or replanning. \\
+	BR-022 & If the customer rejects or does not respond, the dispatcher decides manually how to proceed. \\
+	BR-023 & When the status changes to CONFIRMED, REJECTED or NO\_RESPONSE, the backend sends a callback to DISPO. \\
+	BR-024 & If DISPO sends the same request for the same externalOrderId with unchanged confirmation-relevant data, the backend treats it as duplicate and does not send a second e-mail. \\
+	BR-025 & If DISPO sends a request for the same externalOrderId with changed confirmation-relevant data, the backend invalidates previous active requests and creates a new confirmation request. \\
+	\bottomrule
+\end{longtable}
+	
+	\section{Duplicate Handling}
+	
+	DISPO may send more than one request for the same externalOrderId.
+	
+	The backend distinguishes between duplicate requests with unchanged confirmation data and new requests with changed confirmation-relevant data.
+	
+	\subsection{Duplicate with unchanged data}
+	
+	If DISPO sends the same request again and the confirmation-relevant data has not changed, the backend treats the request as duplicate.
+	
+	Confirmation-relevant data includes:
+	
+	\begin{itemize}
+		\item customerEmail
+		\item deliveryAddress
+		\item product
+		\item quantityLiters
+		\item deliveryDate
+		\item deliveryWindowStart
+		\item deliveryWindowEnd
+	\end{itemize}
+	
+	In this case:
+	
+	\begin{itemize}
+		\item no new confirmation request is created
+		\item no second e-mail is sent
+		\item the existing active confirmation request is returned
+	\end{itemize}
+	
+	\begin{lstlisting}
+		200 OK
+	\end{lstlisting}
+	
+	\begin{lstlisting}
+		{
+			"externalOrderId": "A-1024",
+			"confirmationStatus": "SENT"
+		}
+	\end{lstlisting}
+	
+	\subsection{Changed confirmation-relevant data}
+	
+	If DISPO sends a request for the same externalOrderId but confirmation-relevant data has changed, the backend treats it as a new confirmation request.
+	
+	In this case:
+	
+	\begin{itemize}
+		\item previous active requests are invalidated internally
+		\item a new confirmation request is created
+		\item a new e-mail is sent
+		\item the new confirmation request is returned
+	\end{itemize}
+	
+	\begin{lstlisting}
+		201 Created
+	\end{lstlisting}
+	
+	\begin{lstlisting}
+		{
+			"externalOrderId": "A-1024",
+			"confirmationStatus": "SENT"
+		}
+	\end{lstlisting}
+	
+	The API v1 does not return 409 Conflict for duplicate active requests.
+	
+	\section{Sequence Overview}
+	
+	\subsection{Successful Flow}
+	
+	\begin{lstlisting}
+		DISPO -> Backend -> Notification Service -> Backend -> DISPO
+	\end{lstlisting}
+	
+	\subsection{Failed E-Mail Flow}
+	
+	\begin{lstlisting}
+		DISPO -> Backend -> Notification Service (fail) -> Backend -> 502
+	\end{lstlisting}
+	
+	\section{Assumptions}
+	
+	\begin{itemize}
+		\item DISPO can call backend via REST
+		\item e-mail is MVP channel
+		\item sending is synchronous
+		\item expiration is 24h
+	\end{itemize}
+	
+	\section{Open Questions}
+	
+	\begin{itemize}
+		\item Which exact fields does real DISPO provide?
+		\item Should callback retries be implemented?
+		\item Should reminder logic be added?
+	\end{itemize}
+	
+\end{document}
