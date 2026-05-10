@@ -11,13 +11,38 @@
 \geometry{a4paper, margin=1in}
 
 % Title Page
-\title{Lastenheft \\ \large Projektname}
-\author{Auftraggeber / Dein Name}
+\title{Lastenheft \\ \large Workflow-basierte Rückbestätigung von Lieferterminen}
+\author{Auftraggeber}
 \date{\today}
 
 \begin{document}
 
-\maketitle
+% ------------------------------------------------
+% Deckblatt
+% ------------------------------------------------
+\begin{titlepage}
+    \centering
+
+    \vspace*{3cm}
+
+    {\Huge \textbf{LASTENHEFT}}\\[1.5cm]
+
+    {\LARGE Workflow-basierte Rückbestätigung}\\[0.3cm]
+    {\LARGE von Lieferterminen}\\[3cm]
+
+    {\Large Projektarbeit}\\[2cm]
+
+    {\large
+    MINOVA / THWS
+    }\\[1cm]
+
+    {\large
+    \today
+    }
+
+    \vfill
+
+\end{titlepage}
 \tableofcontents
 \newpage
 
@@ -57,14 +82,6 @@ Probleme:
 \begin{itemize}
     \item Integration zusätzlicher Kommunikationskanäle
     \item Erweiterte Monitoring- und Reporting-Funktionen
-    \item Optimierung der Tourenplanung durch intelligente Algorithmen
-\end{itemize}
-
-\subsection{Abgrenzungskriterien}
-\begin{itemize}
-    \item Keine vollständige Integration in bestehende ERP-Systeme
-    \item Keine Entwicklung eines produktiven Systems (nur Prototyp)
-    \item Keine komplexe Routenoptimierung
 \end{itemize}
 
 %--------------------------------------------------
@@ -82,7 +99,7 @@ Das System wird im Bereich der Disposition zur Planung und Bestätigung von Lief
 \begin{itemize}
     \item Webbasierte Anwendung
     \item Zugriff über Desktop und mobile Endgeräte
-    \item Online-Betrieb erforderlich
+    \item Für den Betrieb des Systems ist eine aktive Internetverbindung erforderlich.
 \end{itemize}
 
 %--------------------------------------------------
@@ -99,7 +116,6 @@ F5 & Bei Bestätigung wird der Auftrag fix in die Tour eingeplant \\
 F6 & Bei Ablehnung werden alternative Zeitfenster geprüft \\
 F7 & Falls keine Alternative vorhanden ist, wird eine neue Tour geprüft \\
 F8 & System speichert alle Statusänderungen \\
-F9 & Benutzer können Prozesse starten und überwachen (Frontend) \\
 \hline
 \end{longtable}
 
@@ -121,9 +137,6 @@ F9 & Benutzer können Prozesse starten und überwachen (Frontend) \\
     \item Liefertermine und Zeitfenster
     \item Statusinformationen
 \end{itemize}
-
-\subsection{Datenschutz}
-Alle personenbezogenen Daten müssen gemäß DSGVO verarbeitet und gespeichert werden.
 
 %--------------------------------------------------
 \section{Systemgrenzen}
@@ -148,7 +161,5 @@ Das System interagiert mit einem DISPO-System, übernimmt jedoch nicht dessen vo
 \end{itemize}
 
 %--------------------------------------------------
-\section{Anhang}
-Weitere Informationen.
 
 \end{document}
