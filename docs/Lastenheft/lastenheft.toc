@@ -1,0 +1,22 @@
+\babel@toc {german}{}\relax 
+\contentsline {section}{\numberline {1}Einleitung}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Ziel des Dokuments}{2}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Projektübersicht}{2}{subsection.1.2}%
+\contentsline {section}{\numberline {2}Ist-Zustand}{2}{section.2}%
+\contentsline {section}{\numberline {3}Zielbestimmung}{2}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Muss-Ziele}{2}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Kann-Ziele}{2}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Abgrenzungskriterien}{3}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Produkt-Einsatz}{3}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Anwendungsbereiche}{3}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Zielgruppen}{3}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Betriebsbedingungen}{3}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Funktionale Anforderungen}{3}{section.5}%
+\contentsline {section}{\numberline {6}Nicht-funktionale Anforderungen}{4}{section.6}%
+\contentsline {section}{\numberline {7}Daten}{4}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Zu speichernde Daten}{4}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Datenschutz}{4}{subsection.7.2}%
+\contentsline {section}{\numberline {8}Systemgrenzen}{4}{section.8}%
+\contentsline {section}{\numberline {9}Randbedingungen}{4}{section.9}%
+\contentsline {section}{\numberline {10}Akzeptanzkriterien}{4}{section.10}%
+\contentsline {section}{\numberline {11}Anhang}{5}{section.11}%
