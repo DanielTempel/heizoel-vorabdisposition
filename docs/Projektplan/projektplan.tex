@@ -26,6 +26,7 @@
 \fancyhf{}
 \lhead{Projektplan}
 \rhead{\thepage}
+\geometry{a4paper, margin=1in}
 
 % ------------------------------------------------
 % Document
@@ -33,26 +34,30 @@
 \begin{document}
 
 % ------------------------------------------------
-% Title Page
+% Deckblatt
 % ------------------------------------------------
 \begin{titlepage}
     \centering
 
-    \vspace*{2cm}
+    \vspace*{3cm}
 
-    {\Huge \textbf{Projektplan}}\\[0.5cm]
+    {\Huge \textbf{PROJEKTPLAN}}\\[1.5cm]
 
-    {\LARGE Automatisierte Lieferterminplanung}\\[2cm]
+    {\LARGE Workflowbasierte Rückbestätigung}\\[0.3cm]
+    {\LARGE von Lieferterminen}\\[3cm]
 
-    \begin{tabular}{rl}
-        Projekt: & Workflowbasierte Lieferterminplanung \\
-        Name: & Dein Name \\
-        Unternehmen/Schule: & Unternehmen oder Schule \\
-        Betreuer: & Name des Betreuers \\
-        Datum: & \today \\
-    \end{tabular}
+    {\Large Projektarbeit}\\[2cm]
+
+    {\large
+    MINOVA / THWS
+    }\\[1cm]
+
+    {\large
+    \today
+    }
 
     \vfill
+
 \end{titlepage}
 
 % ------------------------------------------------
@@ -62,10 +67,12 @@
 % ------------------------------------------------
 \section{Einleitung}
 
-Im aktuellen DISPO-Prozess werden Liefertermine manuell telefonisch mit Kunden abgestimmt. 
-Dieser Ablauf ist zeitintensiv, fehleranfällig und schwer skalierbar.
+Im aktuellen DISPO-Prozess werden Liefertermine bzw. Lieferoptionen manuell mit Kunden abgestimmt. 
+Dieser Ablauf ist zeitintensiv, fehleranfällig und bei steigender Auftragszahl schwer skalierbar.
 
-Ziel des Projekts ist die Entwicklung eines digitalen Systems zur automatisierten Planung und Bestätigung von Lieferterminen. 
+Ziel des Projekts ist die Entwicklung eines prototypischen Systems zur workflowbasierten Rückbestätigung von Lieferterminen. 
+Das System unterstützt die Disposition bei der strukturierten Einholung und Verarbeitung von Kundenrückmeldungen zu vorgeschlagenen Lieferoptionen.
+
 Die Prozesslogik wird mithilfe von BPMN 2.0 modelliert und durch die Workflow-Engine Camunda ausgeführt.
 
 % ------------------------------------------------
@@ -74,51 +81,89 @@ Die Prozesslogik wird mithilfe von BPMN 2.0 modelliert und durch die Workflow-En
 Das Projekt verfolgt folgende Ziele:
 
 \begin{itemize}
-    \item Automatisierung der Lieferterminplanung
-    \item Digitale Kundenkommunikation
-    \item Verarbeitung von Kundenreaktionen
-    \item Workflowgesteuerte Prozessausführung
-    \item Verbesserung der Transparenz und Effizienz
+    \item Erfassung und Anzeige relevanter Bestell- und Auftragsdaten
+    \item Darstellung von durch die Disposition vorgeschlagenen Lieferoptionen
+    \item Digitale Kommunikation mit Kunden
+    \item Verarbeitung von Kundenreaktionen wie Bestätigung, Ablehnung oder ausbleibende Antwort
+    \item Workflowgesteuerte Prozessausführung mit Camunda
+    \item Übergabe bestätigter Aufträge an die Disposition
+    \item Verbesserung der Transparenz und Nachverfolgbarkeit
 \end{itemize}
 
 % ------------------------------------------------
-\section{Projektumfang}
+\section{Projektphasen und Meilensteine}
 
-\subsection{Im Projekt enthalten}
-
-\begin{itemize}
-    \item BPMN-Modellierung des Prozesses
-    \item Implementierung eines Camunda-Workflows
-    \item Entwicklung eines Backends
-    \item Entwicklung eines Frontends
-    \item REST-API Kommunikation
-    \item Speicherung von Auftrags- und Statusdaten
-    \item Test des Gesamtsystems
-\end{itemize}
-
-% ------------------------------------------------
-\section{Projektphasen}
-
-\begin{longtable}{p{4cm} p{8cm} p{3cm}}
+\begin{longtable}{p{4.5cm} p{6cm} p{3cm} p{2cm}}
 \toprule
-\textbf{Phase} & \textbf{Beschreibung} & \textbf{Dauer} \\
+\textbf{Phase} & \textbf{Beschreibung} & \textbf{Zeitraum} & \textbf{Meilenstein} \\
 \midrule
 
-Analyse & Analyse des Lastenhefts und Pflichtenhefts & 3 Tage \\
+P1: Projektdefinition und Analyse 
+& Projektidee abstimmen, Anforderungen analysieren und Projektumfang definieren 
+& 28.04--04.05 
+& M1 \\
 
-Konzeption & BPMN-Modellierung und Systemarchitektur & 4 Tage \\
+P2: Planung und Grundstruktur des Systems 
+& Lastenheft, Pflichtenheft und Projektplan erstellen sowie erste Backend- und Frontendstruktur aufsetzen 
+& 05.05--11.05 
+& M2 \\
 
-Backend-Entwicklung & Implementierung der Geschäftslogik und APIs & 2 Wochen \\
+P3: Architektur und Schnittstellen 
+& Systemarchitektur, DISPO-Schnittstelle, Datenmodell und Backend-Grundstruktur definieren 
+& 12.05--25.05 
+& M3 \\
 
-Workflow-Entwicklung & Implementierung der Prozesse in Camunda & 1 Woche \\
+P4: Weiterentwicklung von Backend und Workflow 
+& Backend, Frontend und Camunda-Workflow funktional erweitern 
+& 26.05--22.06 
+& M4 \\
 
-Frontend-Entwicklung & Entwicklung der Benutzeroberfläche & 1 Woche \\
+P5: End-to-End-Prozess 
+& Durchgängigen Prozess von Auftrag über Kundenrückmeldung bis Statusänderung umsetzen 
+& 23.06--06.07 
+& M5 \\
 
-Datenbank & Erstellung des Datenmodells und Tabellen & 3 Tage \\
+P6: Testphase und Fehlerbehebung 
+& Systemtests durchführen, Fehler identifizieren und beheben 
+& 07.07--20.07 
+& M6 \\
 
-Testing & Unit-, Integrations- und Prozesstests & 4 Tage \\
+P7: Finalisierung des Prototyps 
+& Prototyp stabilisieren, Demo vorbereiten und finale Anpassungen durchführen 
+& 21.07--03.08 
+& M7 \\
 
-Dokumentation & Erstellung technischer Dokumentation & 3 Tage \\
+P8: Dokumentation und Präsentation 
+& Projektdokumentation und Abschlusspräsentation erstellen 
+& 04.08--16.09 
+& M8 \\
+
+\bottomrule
+\end{longtable}
+
+% ------------------------------------------------
+\section{Meilensteine}
+
+\begin{longtable}{p{3cm} p{11cm}}
+\toprule
+\textbf{Meilenstein} & \textbf{Beschreibung} \\
+\midrule
+
+M1 & Projekt bestätigt und Projektumfang definiert \\
+
+M2 & Lastenheft, Pflichtenheft und Projektplan abgeschlossen; erste Version von Backend und Frontend erstellt \\
+
+M3 & Systemarchitektur und DISPO-Schnittstelle definiert; Backend-Grundstruktur implementiert \\
+
+M4 & Backend, Frontend und Workflow erweitert \\
+
+M5 & End-to-End-Prozess funktionsfähig \\
+
+M6 & Tests abgeschlossen und Fehler behoben \\
+
+M7 & Prototyp abgeschlossen \\
+
+M8 & Dokumentation und Abschlusspräsentation abgeschlossen \\
 
 \bottomrule
 \end{longtable}
@@ -126,29 +171,15 @@ Dokumentation & Erstellung technischer Dokumentation & 3 Tage \\
 % ------------------------------------------------
 \section{Zeitplan}
 
-\begin{longtable}{p{4cm} p{8cm}}
-\toprule
-\textbf{Woche} & \textbf{Aufgabe} \\
-\midrule
+Der Projektzeitplan orientiert sich an den definierten Projektphasen und Meilensteinen. 
+Die einzelnen Phasen bauen aufeinander auf und führen schrittweise zur Fertigstellung des Prototyps sowie zur Abschlusspräsentation.
 
-Woche 1 & Analyse und Anforderungsdefinition \\
-
-Woche 2 & BPMN-Modellierung und Architekturdesign \\
-
-Woche 3--4 & Backend-Entwicklung und REST APIs \\
-
-Woche 5 & Camunda Workflow Implementierung \\
-
-Woche 6 & Frontend-Entwicklung \\
-
-Woche 7 & Datenbank und Integration \\
-
-Woche 8 & Tests und Fehlerbehebung \\
-
-Woche 9 & Dokumentation und Abschluss \\
-
-\bottomrule
-\end{longtable}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{assets/projectplan.png}
+    \caption{Projektphasen und Meilensteine}
+    \label{fig:projektplan}
+\end{figure}
 
 % ------------------------------------------------
 \section{Systemarchitektur}
@@ -160,7 +191,7 @@ Das System besteht aus folgenden Komponenten:
     \item Backend-Service
     \item Camunda Workflow Engine
     \item PostgreSQL Datenbank
-    \item Externe Kommunikationsschnittstellen
+    \item E-Mail Kommunikationsschnittstelle
 \end{itemize}
 
 % ------------------------------------------------
@@ -190,11 +221,11 @@ Das System besteht aus folgenden Komponenten:
 Zur Sicherstellung der Qualität werden folgende Maßnahmen durchgeführt:
 
 \begin{itemize}
-    \item Unit-Tests
+    \item Funktionstests
     \item Integrationstests
     \item Prozesssimulationen
-    \item Code Reviews
     \item Validierung der BPMN-Prozesse
+    \item Fehleranalyse und Fehlerbehebung
 \end{itemize}
 
 % ------------------------------------------------
@@ -203,17 +234,19 @@ Zur Sicherstellung der Qualität werden folgende Maßnahmen durchgeführt:
 Das Projekt gilt als erfolgreich abgeschlossen, wenn:
 
 \begin{itemize}
-    \item Liefertermine automatisch verarbeitet werden
     \item Kundenreaktionen korrekt verarbeitet werden
+    \item Statusänderungen nachvollziehbar gespeichert werden
+    \item der End-to-End-Prozess funktionsfähig ist
     \item BPMN-Prozesse in Camunda erfolgreich ausgeführt werden
     \item Frontend und Backend korrekt kommunizieren
-    \item Alle definierten Muss-Ziele erfüllt sind
 \end{itemize}
 
 % ------------------------------------------------
 \section{Erwartetes Ergebnis}
 
-Am Ende des Projekts soll ein funktionierender Prototyp eines workflowbasierten Systems zur automatisierten Lieferterminplanung vorliegen.
+Am Ende des Projekts soll ein funktionsfähiger Prototyp eines workflowbasierten Systems zur Rückbestätigung von Lieferterminen vorliegen. 
+
+Das System soll Kundenrückmeldungen strukturiert verarbeiten und bestätigte Aufträge transparent für die Disposition bereitstellen.
 
 % ------------------------------------------------
 \end{document}
