@@ -54,7 +54,7 @@ Dieses Lastenheft beschreibt die fachlichen Anforderungen an ein System zur auto
 \subsection{Projektübersicht}
 Im aktuellen Prozess werden Liefertermine telefonisch durch Disponenten mit Kunden abgestimmt. Dieser Ansatz ist zeitaufwendig, fehleranfällig und nicht skalierbar.
 
-Ziel des Projekts ist die Entwicklung eines prototypischen Systems, das diesen Prozess automatisiert. Das System soll Liefertermine planen, dem Kunden vorschlagen und dessen Rückmeldung automatisch verarbeiten.
+Ziel des Projekts ist die Entwicklung eines prototypischen Systems, das diesen Prozess automatisiert. Das System unterstützt die Disposition bei der strukturierten Einholung und Verarbeitung von Kundenrückmeldungen zu vorgeschlagenen Lieferterminen.
 %--------------------------------------------------
 \section{Ist-Zustand}
 Der aktuelle Prozess basiert auf manueller Kommunikation per Telefon zwischen Disponenten und Kunden.
@@ -71,10 +71,8 @@ Probleme:
 \section{Zielbestimmung}
 \subsection{Muss-Ziele}
 \begin{itemize}
-    \item Automatische Planung von Lieferterminen
     \item Digitale Benachrichtigung von Kunden (E-Mail, WhatsApp oder Weblink)
     \item Verarbeitung von Kundenreaktionen (Bestätigung, Ablehnung, keine Antwort)
-    \item Automatische Anpassung der Planung bei Ablehnung oder fehlender Rückmeldung
     \item Speicherung aller Statusänderungen im System
 \end{itemize}
 
@@ -108,14 +106,16 @@ Das System wird im Bereich der Disposition zur Planung und Bestätigung von Lief
 \hline
 ID & Beschreibung \\
 \hline
-F1 & System plant automatisch einen Liefertermin basierend auf verfügbaren Zeitfenstern \\
-F2 & System sendet Terminvorschläge an Kunden (E-Mail, WhatsApp oder Weblink) \\
-F3 & Kunde kann Termin bestätigen, ablehnen oder nicht reagieren \\
-F4 & System verarbeitet Kundenreaktionen automatisch \\
-F5 & Bei Bestätigung wird der Auftrag fix in die Tour eingeplant \\
-F6 & Bei Ablehnung werden alternative Zeitfenster geprüft \\
-F7 & Falls keine Alternative vorhanden ist, wird eine neue Tour geprüft \\
-F8 & System speichert alle Statusänderungen \\
+F1 & Das System zeigt bestehende Aufträge mit geplantem Lieferdatum, geplantem Lieferfenster und zugeordneter Tour an \\
+F2 & Der Disponent kann für einen ausgewählten Auftrag manuell eine Rückbestätigungsanfrage starten \\
+F3 & Das System versendet die Rückbestätigungsanfrage primär per E-Mail \\
+F4 & Der Kunde kann das vorgeschlagene Lieferfenster bestätigen oder ablehnen \\
+F5 & Das System speichert die Kundenantwort und aktualisiert den Rückbestätigungsstatus des Auftrags \\
+F6 & Wenn innerhalb der definierten Frist keine gültige Antwort eingeht, setzt das System den Status auf "keine Rückmeldung" \\
+F7 & Abgelehnte Aufträge und Aufträge ohne Rückmeldung werden dem Disponenten als problemastische Fälle angezeigt \\
+F8 & Der Disponent kann problemastische Fälle manuell weiterbearbeiten, z.B telefonisch klären, neues Lieferfenster festlegen oder Auftrag verschieben \\
+F9 & Das System stellt eine Tourübersicht bereit, in der die Rückbestätigungsstatus der Aufträge sichtbar sind \\
+F10 & Das System stellt sicher, dass pro Anfrage nur eine gültige Antwort statuswirksam gespeichert wird \\
 \hline
 \end{longtable}
 
@@ -154,7 +154,6 @@ Das System interagiert mit einem DISPO-System, übernimmt jedoch nicht dessen vo
 %--------------------------------------------------
 \section{Akzeptanzkriterien}
 \begin{itemize}
-    \item Automatischer Ablauf des Prozesses ohne manuelle Eingriffe
     \item Korrekte Verarbeitung aller Kundenreaktionen
     \item Erfolgreiche Modellierung und Ausführung in Camunda
     \item Funktionierendes Frontend zur Prozesssteuerung
