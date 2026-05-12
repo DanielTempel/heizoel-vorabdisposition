@@ -22,36 +22,17 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-  mail:
-    host: localhost
-    port: 1025
-    username:
-    password:
-    properties:
-      mail:
-        smtp:
-          auth: false
-          starttls:
-            enable: false
-          connectiontimeout: 5000
-          timeout: 3000
-          writetimeout: 5000
-
 server:
   port: 8080
+
 camunda:
   bpm:
     auto-deployment-enabled: true
     deployment-resource-pattern:
       - classpath*:processes/*.bpmn
 
-heizoel:
-  confirmation:
-    response-deadline: PT30M
-    frontend-base-url: http://localhost:3000
-
-  mail:
-    from: no-reply@heizoel.local
+confirmation:
+  response-deadline: PT24H
 
 logging:
   level:

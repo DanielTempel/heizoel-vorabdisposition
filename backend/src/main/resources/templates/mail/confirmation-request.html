@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body style="font-family: Arial, sans-serif;">
+<h2>Rückbestätigung Ihres Liefertermins</h2>
+
+<p>
+    Sehr geehrte/r <span th:text="${customerName}">Max Müller</span>,
+</p>
+
+<p>
+    bitte bestätigen Sie den geplanten Liefertermin für Ihre Heizöl-Lieferung.
+</p>
+
+<ul>
+    <li><strong>Adresse:</strong> <span th:text="${deliveryAddress}">Beispielstraße 12</span></li>
+    <li><strong>Produkt:</strong> <span th:text="${product}">Heizöl</span></li>
+    <li><strong>Menge:</strong> <span th:text="${quantityLiters}">3000</span> Liter</li>
+    <li><strong>Datum:</strong> <span th:text="${deliveryDate}">2026-06-12</span></li>
+    <li>
+        <strong>Zeitfenster:</strong>
+        <span th:text="${deliveryWindowStart}">10:00</span> -
+        <span th:text="${deliveryWindowEnd}">11:00</span> Uhr
+    </li>
+</ul>
+
+<p>
+    <a th:href="${confirmationUrl}"
+       href="http://localhost:3000/confirmation/example-token"
+       style="display:inline-block;padding:12px 18px;background:#1f6feb;color:white;text-decoration:none;border-radius:6px;">
+        Liefertermin beantworten
+    </a>
+</p>
+
+<p>Diese Anfrage ist zeitlich begrenzt.</p>
+
+<p>
+    Mit freundlichen Grüßen<br/>
+    Ihr Heizöl-Team
+</p>
+</body>
+</html>

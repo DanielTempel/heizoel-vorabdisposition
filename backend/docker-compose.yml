@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: heizoel-postgres
+    environment:
+      POSTGRES_DB: heizoel_backend
+      POSTGRES_USER: heizoel
+      POSTGRES_PASSWORD: heizoel
+    ports:
+      - "5432:5432"
+    volumes:
+      - heizoel_postgres_data:/var/lib/postgresql/data
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: heizoel-mailpit
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: heizoel-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@heizoel.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    volumes:
+      - heizoel_pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  heizoel_postgres_data:

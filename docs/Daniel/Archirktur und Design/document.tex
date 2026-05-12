@@ -53,7 +53,7 @@
 		\item validating incoming order data
 		\item storing local order snapshots
 		\item creating confirmation requests
-		\item generating token-based action URLs
+		\item generating token-based action URL
 		\item sending customer notification e-mails
 		\item managing confirmation status
 		\item storing customer responses
@@ -315,7 +315,7 @@ Returned when an unexpected technical error occurs.
 	BR-009 & SENT is set only after successful technical e-mail sending. \\
 	BR-010 & The 24-hour response timer starts only after successful technical e-mail sending. \\
 	BR-011 & If e-mail sending fails, the API returns an error and no successful confirmation status is created. \\
-	BR-012 & The e-mail contains token-based action buttons. \\
+	BR-012 & The e-mail contains one token-based customer link. \\
 	BR-013 & Action links open a minimal customer confirmation page. \\
 	BR-014 & Opening an action link does not directly change the confirmation status. \\
 	BR-015 & The confirmation status is changed only after a final submit on the customer page. \\
@@ -331,6 +331,27 @@ Returned when an unexpected technical error occurs.
 	BR-025 & If DISPO sends a request for the same externalOrderId with changed confirmation-relevant data, the backend invalidates previous active requests and creates a new confirmation request. \\
 	\bottomrule
 \end{longtable}
+	
+	\section{Customer Confirmation Link Concept}
+	
+	The e-mail contains one token-based customer link:
+	
+	\begin{lstlisting}
+		/confirmation/{token}
+	\end{lstlisting}
+	
+	Opening this link does not change the confirmation status.
+	
+	The link opens a minimal customer confirmation page. On this page, the customer can choose between confirming or rejecting the proposed delivery window.
+	
+	\begin{lstlisting}
+		GET /confirmation/{token} -> open customer page
+		POST confirm action      -> update status to CONFIRMED
+		POST reject action       -> update status to REJECTED
+	\end{lstlisting}
+	
+	Reason: GET requests must not change state. E-mail scanners or preview systems may open links automatically.
+	
 	
 	\section{Duplicate Handling}
 	

@@ -1,8 +1,9 @@
-package heizoel.backend.dispo.api.dto;
+package heizoel.backend.dispo.api;
 
 import heizoel.backend.dispo.api.dto.request.DispoConfirmationRequestDto;
 import heizoel.backend.dispo.api.dto.response.DispoConfirmationResponseDto;
-import heizoel.backend.dispo.domain.ConfirmationStatus;
+import heizoel.backend.dispo.application.interfaces.DispoConfirmationService;
+import heizoel.backend.dispo.application.model.command.DispoConfirmationCreationResult;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,14 +18,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class DispoController {
 
+    private final DispoConfirmationService confirmationService;
+
     @PostMapping
     public ResponseEntity<DispoConfirmationResponseDto> createConfirmationRequest(
             @Valid @RequestBody DispoConfirmationRequestDto request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new DispoConfirmationResponseDto(
-                        request.externalOrderId(),
-                        ConfirmationStatus.SENT
-                ));
+
+        DispoConfirmationCreationResult result  = confirmationService.createConfirmationRequest(request);
+
+        HttpStatus status = result.created()
+                ? HttpStatus.CREATED
+                : HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(result.response());
     }
 }

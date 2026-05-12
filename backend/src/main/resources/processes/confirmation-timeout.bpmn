@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions
+        xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+        xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+        xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+        xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+        xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+        id="Definitions_ConfirmationTimeout"
+        targetNamespace="http://heizoel.backend/processes">
+
+    <bpmn:process id="confirmation-timeout-process"
+                  name="Confirmation Timeout Process"
+                  isExecutable="true"
+                  camunda:historyTimeToLive="30">
+
+        <bpmn:startEvent id="StartEvent_ConfirmationSent"
+                         name="Confirmation sent">
+            <bpmn:outgoing>Flow_Start_To_Timer</bpmn:outgoing>
+        </bpmn:startEvent>
+
+        <bpmn:intermediateCatchEvent id="Timer_WaitForCustomerResponse"
+                                     name="Wait for customer response">
+            <bpmn:incoming>Flow_Start_To_Timer</bpmn:incoming>
+            <bpmn:outgoing>Flow_Timer_To_NoResponse</bpmn:outgoing>
+            <bpmn:timerEventDefinition>
+                <bpmn:timeDuration>${responseDeadline}</bpmn:timeDuration>
+            </bpmn:timerEventDefinition>
+        </bpmn:intermediateCatchEvent>
+
+        <bpmn:serviceTask id="ServiceTask_HandleNoResponse"
+                          name="Handle no response"
+                          camunda:delegateExpression="${noResponseTimeoutDelegate}">
+            <bpmn:incoming>Flow_Timer_To_NoResponse</bpmn:incoming>
+            <bpmn:outgoing>Flow_NoResponse_To_End</bpmn:outgoing>
+        </bpmn:serviceTask>
+
+        <bpmn:endEvent id="EndEvent_TimeoutHandled"
+                       name="Timeout handled">
+            <bpmn:incoming>Flow_NoResponse_To_End</bpmn:incoming>
+        </bpmn:endEvent>
+
+        <bpmn:sequenceFlow id="Flow_Start_To_Timer"
+                           sourceRef="StartEvent_ConfirmationSent"
+                           targetRef="Timer_WaitForCustomerResponse"/>
+
+        <bpmn:sequenceFlow id="Flow_Timer_To_NoResponse"
+                           sourceRef="Timer_WaitForCustomerResponse"
+                           targetRef="ServiceTask_HandleNoResponse"/>
+
+        <bpmn:sequenceFlow id="Flow_NoResponse_To_End"
+                           sourceRef="ServiceTask_HandleNoResponse"
+                           targetRef="EndEvent_TimeoutHandled"/>
+
+    </bpmn:process>
+
+    <bpmndi:BPMNDiagram id="BPMNDiagram_ConfirmationTimeout">
+        <bpmndi:BPMNPlane id="BPMNPlane_ConfirmationTimeout"
+                          bpmnElement="confirmation-timeout-process">
+            <bpmndi:BPMNShape id="StartEvent_ConfirmationSent_di"
+                              bpmnElement="StartEvent_ConfirmationSent">
+                <dc:Bounds x="150" y="100" width="36" height="36"/>
+            </bpmndi:BPMNShape>
+
+            <bpmndi:BPMNShape id="Timer_WaitForCustomerResponse_di"
+                              bpmnElement="Timer_WaitForCustomerResponse">
+                <dc:Bounds x="250" y="100" width="36" height="36"/>
+            </bpmndi:BPMNShape>
+
+            <bpmndi:BPMNShape id="ServiceTask_HandleNoResponse_di"
+                              bpmnElement="ServiceTask_HandleNoResponse">
+                <dc:Bounds x="360" y="78" width="120" height="80"/>
+            </bpmndi:BPMNShape>
+
+            <bpmndi:BPMNShape id="EndEvent_TimeoutHandled_di"
+                              bpmnElement="EndEvent_TimeoutHandled">
+                <dc:Bounds x="550" y="100" width="36" height="36"/>
+            </bpmndi:BPMNShape>
+
+            <bpmndi:BPMNEdge id="Flow_Start_To_Timer_di"
+                             bpmnElement="Flow_Start_To_Timer">
+                <di:waypoint x="186" y="118"/>
+                <di:waypoint x="250" y="118"/>
+            </bpmndi:BPMNEdge>
+
+            <bpmndi:BPMNEdge id="Flow_Timer_To_NoResponse_di"
+                             bpmnElement="Flow_Timer_To_NoResponse">
+                <di:waypoint x="286" y="118"/>
+                <di:waypoint x="360" y="118"/>
+            </bpmndi:BPMNEdge>
+
+            <bpmndi:BPMNEdge id="Flow_NoResponse_To_End_di"
+                             bpmnElement="Flow_NoResponse_To_End">
+                <di:waypoint x="480" y="118"/>
+                <di:waypoint x="550" y="118"/>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+
+</bpmn:definitions>
