@@ -25,132 +25,183 @@
 %--------------------------------------------------
 \section{Einleitung}
 \subsection{Ziel des Dokuments}
-Dieses Dokument beschreibt die technische Spezifikation und Umsetzung der im Lastenheft definierten Anforderungen. Es dient als Grundlage für die Entwicklung, Implementierung und Validierung des Systems und richtet sich an Entwickler, Projektbeteiligte sowie Stakeholder.
+Dieses Pflichtenheft beschreibt die technische Umsetzung der im Lastenheft definierten Anforderungen.
 
 \subsection{Projektübersicht}
 
-Im aktuellen Prozess werden Liefertermine manuell durch Disponenten telefonisch mit den Kunden abgestimmt. Dieses Vorgehen ist zeitintensiv, fehleranfällig und nur begrenzt skalierbar.
+Im aktuellen Prozess werden Liefertermine manuell durch Disponenten mit Kunden abgestimmt. 
+Dieses Vorgehen ist zeitintensiv, fehleranfällig und nur begrenzt skalierbar.
 
-Ziel des Projekts ist die Entwicklung eines digitalen, workflowbasierten Systems zur Automatisierung der Terminplanung und -bestätigung im DISPO-Umfeld.
+Ziel des Projekts ist die Entwicklung eines digitalen, prototypischen Systems zur workflowbasierten Rückbestätigung von bereits durch die Disposition vorgeschlagenen Lieferterminen bzw. Lieferfenstern.
 
-Das System ermöglicht die automatische Planung von Lieferterminen sowie die Kommunikation von Terminvorschlägen an den Kunden über verschiedene Kanäle (z.B. E-Mail, WhatsApp oder Weblink). Kunden können vorgeschlagene Termine bestätigen, ablehnen oder unbeantwortet lassen.
+Das System übernimmt keine automatische Lieferterminplanung und keine automatische Tourenplanung. 
+Die Planung und fachliche Entscheidung verbleiben bei der Disposition.
 
-Basierend auf der Kundenreaktion steuert das System den weiteren Prozessablauf. Dazu gehören die Verarbeitung von Bestätigungen, das Setzen von Statuswerten bei ausbleibender Rückmeldung sowie die Prüfung und Auswahl alternativer Zeitfenster oder Touren.
+Das System unterstützt die Disposition bei der Anzeige vorgeschlagener Lieferoptionen, beim Versand von Rückbestätigungsanfragen sowie bei der strukturierten Verarbeitung von Kundenrückmeldungen.
 
-Die fachliche Prozesslogik wird mithilfe von BPMN 2.0 modelliert und durch eine Workflow-Engine (Camunda) ausgeführt. Ergänzend übernimmt ein Backend-Service die Implementierung der Geschäftslogik sowie die Integration externer und interner Systeme.
+Die Prozesslogik kann optional mithilfe von BPMN 2.0 modelliert und durch eine Workflow-Engine wie Camunda unterstützt werden.
 
 %--------------------------------------------------
 \section{Systemübersicht}
 \subsection{Gesamtsystem}
 
-Das Gesamtsystem dient der Automatisierung der Lieferterminplanung und -bestätigung innerhalb eines DISPO-Systems. Es ersetzt den bisherigen manuellen, telefonbasierten Abstimmungsprozess durch einen digitalen, workflowgesteuerten Ablauf.
+Das Gesamtsystem dient der digitalen Rückbestätigung von Lieferterminen im DISPO-Umfeld. 
+Es ersetzt nicht die Disposition und führt keine automatische Liefertermin- oder Tourenplanung durch.
 
-Das System umfasst mehrere zentrale Komponenten: eine Web-basierte Benutzeroberfläche für Disponenten zur Verwaltung von Aufträgen und Prozessen, eine Workflow-Engine (Camunda) zur Ausführung und Steuerung der Geschäftsprozesse sowie einen Backend-Service, der die Geschäftslogik implementiert und die Integration mit internen und externen Systemen übernimmt.
+Das System zeigt vorhandene Auftragsdaten, vorgeschlagene Lieferfenster und den aktuellen Rückbestätigungsstatus an. 
+Über das System kann der Disponent eine Rückbestätigungsanfrage starten. 
+Der Kunde kann das vorgeschlagene Lieferfenster bestätigen oder ablehnen.
 
-Der Prozess beginnt mit der Erfassung und Prüfung eines Auftrags. Anschließend wird eine vorläufige Tourplanung durchgeführt und ein Lieferzeitfenster definiert. Der Kunde wird automatisch über verschiedene Kommunikationskanäle (z.B. E-Mail, WhatsApp oder Weblink) über den vorgeschlagenen Termin informiert.
+Die Kundenreaktion wird gespeichert und der Status des Auftrags aktualisiert. 
+Bei Ablehnung oder ausbleibender Rückmeldung wird der Auftrag als problematischer Fall markiert und dem Disponenten zur manuellen Weiterbearbeitung angezeigt.
 
-Abhängig von der Kundenreaktion steuert das System den weiteren Ablauf. Bestätigte Termine werden im System gespeichert und fest eingeplant. Bei Ablehnung oder ausbleibender Rückmeldung werden alternative Zeitfenster oder Touren geprüft und entsprechende Anpassungen vorgenommen.
-
-Durch die Kombination aus Prozessautomatisierung, systemgestützter Entscheidungslogik und integrierter Kommunikation ermöglicht das System eine effizientere, transparentere und skalierbare Abwicklung der Lieferterminplanung.
+Optional kann eine Workflow-Komponente eingesetzt werden, um den Rückbestätigungsprozess technisch zu steuern.
 
 \subsection{Systemkontext}
-Einordnung des Systems in die bestehende Systemlandschaft (z.B. DISPO-System).
+
+Das System wird als eigenständige Anwendung im Umfeld eines bestehenden DISPO-Systems betrieben.
+
+Auftragsdaten und Lieferinformationen werden aus dem DISPO-Umfeld übernommen und im Rückbestätigungsprozess verarbeitet.
+
+Das System ersetzt keine bestehende Dispositionssoftware und übernimmt keine automatische Liefertermin- oder Tourenplanung.
 
 \subsection{Systemarchitektur}
 \begin{itemize}
-    \item Frontend (Web UI)
-    \item Backend (Business Logic)
-    \item Workflow Engine (z.B. Camunda)
+    \item Frontend (Web UI für Disponenten und ggf. Kundenseite)
+    \item Backend (Geschäftslogik und REST-API)
     \item Datenbank
+    \item E-Mail-Kommunikationsschnittstelle
+    \item Optional: Workflow Engine, z.B. Camunda
 \end{itemize}
 
 %--------------------------------------------------
 \section{Prozessbeschreibung}
 \subsection{Soll-Prozess}
-Beschreibung des geplanten Prozesses.
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{bpmn.png}
-\caption{BPMN Soll-Prozess}
-\end{figure}
+Der Soll-Prozess beschreibt die digitale Rückbestätigung eines bereits durch die Disposition vorgeschlagenen Lieferfensters.
 
-\subsection{Ablaufbeschreibung}
-Textuelle Beschreibung des Prozessablaufs (Schritt für Schritt).
+Der Prozess umfasst folgende Schritte:
 
-%--------------------------------------------------
-\section{Technische Architektur}
-\subsection{Technologien}
-\begin{itemize}
-    \item BPMN 2.0
-    \item Camunda Workflow Engine
-    \item Backend (z.B. Node.js / Java)
-    \item REST APIs
-    \item Datenbank (z.B. PostgreSQL)
-\end{itemize}
+\begin{enumerate}
+    \item Der Disponent wählt einen bestehenden Auftrag mit vorgeschlagenem Lieferfenster aus.
+    \item Das System zeigt Auftragsdaten, Lieferfenster und Tourinformationen an.
+    \item Der Disponent startet eine Rückbestätigungsanfrage.
+    \item Das System versendet die Anfrage primär per E-Mail.
+    \item Der Kunde bestätigt oder lehnt das vorgeschlagene Lieferfenster ab.
+    \item Das System speichert die Kundenreaktion.
+    \item Der Rückbestätigungsstatus des Auftrags wird aktualisiert.
+    \item Abgelehnte Aufträge oder Aufträge ohne Rückmeldung werden dem Disponenten als problematische Fälle angezeigt.
+\end{enumerate}
 
-\subsection{Deployment}
-Beschreibung der Systembereitstellung (Cloud, lokal, Serverstruktur).
-
-%--------------------------------------------------
-\section{Rollen und Benutzer}
-\begin{itemize}
-    \item Disponent (Dispatcher)
-    \item Kunde (Customer)
-    \item System (automatisierte Prozesse)
-\end{itemize}
+Eine automatische Planung neuer Lieferfenster oder Touren ist nicht Bestandteil des Systems.
 
 %--------------------------------------------------
 \section{Datenmodell}
 \subsection{Übersicht}
+
 Beschreibung der zentralen Datenobjekte:
+
 \begin{itemize}
     \item Auftrag
     \item Kunde
-    \item Tour
     \item Lieferfenster
+    \item Tourinformation
+    \item Rückbestätigung
     \item Status
 \end{itemize}
 
-\subsection{Tabellen}
-\begin{longtable}{|l|l|l|}
-\hline
-Tabelle & Attribut & Beschreibung \\
-\hline
-Auftrag & id & Eindeutige ID \\
-Auftrag & status & z.B. geplant, verschoben \\
-Kunde & email & Kontaktinformation \\
-Tour & datum & Lieferdatum \\
-\hline
-\end{longtable}
-
 %--------------------------------------------------
 \section{Funktionsbeschreibung}
-\subsection{Auftragsprüfung}
-System prüft eingehende Aufträge.
 
-\subsection{Tourplanung}
-Erstellung und Planung von Lieferungen.
+\subsection{Anzeige von Aufträgen}
 
-\subsection{Benachrichtigung}
-Automatischer Versand von Terminvorschlägen.
+Das System zeigt bestehende Aufträge mit geplantem Lieferdatum, geplantem Lieferfenster und zugeordneter Tourinformation an.
+
+\subsection{Start einer Rückbestätigungsanfrage}
+
+Der Disponent kann für einen ausgewählten Auftrag manuell eine Rückbestätigungsanfrage starten.
+
+\subsection{Benachrichtigung des Kunden}
+
+Das System versendet die Rückbestätigungsanfrage primär per E-Mail. 
+Weitere Kommunikationskanäle können optional ergänzt werden.
 
 \subsection{Kundenreaktion}
-Verarbeitung von Bestätigung, Ablehnung oder fehlender Rückmeldung.
 
-\subsection{Alternative Planung}
-Prüfung alternativer Zeitfenster oder Touren.
+Der Kunde kann das vorgeschlagene Lieferfenster bestätigen oder ablehnen.
 
-\subsection{Abschluss}
-Finale Einplanung und Sperrung des Auftrags.
+\subsection{Statusverarbeitung}
+
+Das System speichert die Kundenantwort und aktualisiert den Rückbestätigungsstatus des Auftrags.
+
+\subsection{Behandlung ausbleibender Rückmeldungen}
+
+Wenn innerhalb einer definierten Frist keine gültige Antwort eingeht, setzt das System den Status auf ``keine Rückmeldung''.
+
+\subsection{Anzeige problematischer Fälle}
+
+Abgelehnte Aufträge und Aufträge ohne Rückmeldung werden dem Disponenten als problematische Fälle angezeigt.
+
+\subsection{Manuelle Weiterbearbeitung}
+
+Der Disponent kann problematische Fälle außerhalb des automatisierten Rückbestätigungsprozesses manuell weiterbearbeiten.
+
+%--------------------------------------------------
+\section{Technische Funktionsanforderungen}
+
+\begin{longtable}{|p{1.5cm}|p{4cm}|p{8cm}|}
+\hline
+\textbf{ID} & \textbf{Funktion} & \textbf{Technische Umsetzung} \\
+\hline
+
+PF1 & Anzeige von Aufträgen &
+Das Frontend ruft Auftragsdaten über eine REST-API ab und zeigt Lieferdatum, Lieferfenster, Tourinformation und Rückbestätigungsstatus an. \\
+\hline
+
+PF2 & Start einer Rückbestätigungsanfrage &
+Der Disponent kann über das Frontend eine Rückbestätigungsanfrage starten. Das Backend verarbeitet die Anfrage und erstellt eine eindeutige Rückbestätigungs-ID. \\
+\hline
+
+PF3 & Versand der Rückbestätigungsanfrage &
+Das Backend versendet automatisiert eine E-Mail mit einem Weblink zur Rückmeldung an den Kunden. Weitere Kommunikationskanäle können optional ergänzt werden. \\
+\hline
+
+PF4 & Verarbeitung von Kundenreaktionen &
+Kundenreaktionen werden über einen Weblink entgegengenommen, durch das Backend verarbeitet und in der Datenbank gespeichert. \\
+\hline
+
+PF5 & Statusverwaltung &
+Das System aktualisiert den Rückbestätigungsstatus abhängig von der Kundenreaktion automatisch in der Datenbank. \\
+\hline
+
+PF6 & Behandlung ausbleibender Rückmeldungen &
+Wenn innerhalb der definierten Frist keine gültige Antwort eingeht, setzt das Backend den Status automatisch auf ``keine Rückmeldung''. \\
+\hline
+
+PF7 & Anzeige problematischer Fälle &
+Aufträge mit Ablehnung oder fehlender Rückmeldung werden im Frontend als problematische Fälle dargestellt. \\
+\hline
+
+PF8 & Verhinderung mehrfacher Antworten &
+Das System stellt sicher, dass pro Rückbestätigungsanfrage nur eine gültige Antwort statuswirksam gespeichert wird. \\
+\hline
+
+PF9 & Workflow-Unterstützung (optional) &
+Optional kann eine Workflow-Engine wie Camunda verwendet werden, um den Rückbestätigungsprozess technisch zu steuern. \\
+\hline
+
+\end{longtable}
 
 %--------------------------------------------------
 \section{Geschäftslogik}
 \begin{itemize}
-    \item Ein Auftrag wird nur bei Bestätigung final eingeplant.
-    \item Bei fehlender Rückmeldung wird ein Status gesetzt.
-    \item Alternative Zeitfenster werden vor alternativen Touren geprüft.
-    \item Ohne verfügbare Alternative wird der Kunde informiert.
+    \item Ein Auftrag kann eine Rückbestätigungsanfrage erhalten.
+    \item Pro Anfrage darf nur eine gültige Kundenantwort statuswirksam gespeichert werden.
+    \item Bei Bestätigung wird der Status auf ``bestätigt'' gesetzt.
+    \item Bei Ablehnung wird der Status auf ``abgelehnt'' gesetzt.
+    \item Bei ausbleibender Antwort innerhalb der Frist wird der Status auf ``keine Rückmeldung'' gesetzt.
+    \item Abgelehnte Aufträge und Aufträge ohne Rückmeldung werden als problematische Fälle markiert.
+    \item Das System führt keine automatische Liefertermin- oder Tourenplanung durch.
 \end{itemize}
 
 %--------------------------------------------------
@@ -164,30 +215,9 @@ Finale Einplanung und Sperrung des Auftrags.
 
 \subsection{Externe Schnittstellen}
 \begin{itemize}
-    \item E-Mail Service
-    \item WhatsApp API
-    \item Weblink für Bestätigung
-\end{itemize}
-
-%--------------------------------------------------
-\section{Benutzeroberfläche}
-\subsection{Übersicht}
-Beschreibung der Benutzeroberfläche.
-
-\subsection{Wichtige Screens}
-\begin{itemize}
-    \item Dashboard
-    \item Prozessübersicht
-    \item Aufgabenansicht
-    \item Kundenbestätigungsseite
-\end{itemize}
-
-%--------------------------------------------------
-\section{Nicht-funktionale Anforderungen}
-\begin{itemize}
-    \item Performance (schnelle Antwortzeiten)
-    \item Sicherheit (Authentifizierung, Datenschutz)
-    \item Usability (benutzerfreundliche Oberfläche)
+    \item E-Mail-Service für den Versand von Rückbestätigungsanfragen
+    \item Weblink für die Kundenrückmeldung
+    \item Optional: weitere Kommunikationskanäle, z.B. WhatsApp
 \end{itemize}
 
 %--------------------------------------------------
@@ -197,17 +227,11 @@ Unit-, Integrations- und Prozesstests.
 
 \subsection{Testfälle}
 \begin{itemize}
-    \item Kunde bestätigt Termin → Auftrag geplant
-    \item Kunde antwortet nicht → Status gesetzt
-    \item Keine Alternative → Kunde informiert
-\end{itemize}
-
-%--------------------------------------------------
-\section{Anhang}
-\begin{itemize}
-    \item BPMN Diagramm
-    \item Component Diagramm
-    \item ER-Diagramm
+    \item Kunde bestätigt Lieferfenster: Status wird auf ``bestätigt'' gesetzt.
+    \item Kunde lehnt Lieferfenster ab: Status wird auf ``abgelehnt'' gesetzt.
+    \item Kunde antwortet nicht innerhalb der Frist: Status wird auf ``keine Rückmeldung'' gesetzt.
+    \item Kunde antwortet mehrfach: Nur eine gültige Antwort wird statuswirksam gespeichert.
+    \item Abgelehnte Aufträge werden als problematische Fälle angezeigt.
 \end{itemize}
 
 \end{document}
