@@ -11,14 +11,36 @@
 
 \geometry{a4paper, margin=1in}
 
-% Title Page
-\title{Pflichtenheft \\ \large Projektname}
-\author{Dein Name}
-\date{\today}
 
 \begin{document}
 
-\maketitle
+% ------------------------------------------------
+% Deckblatt
+% ------------------------------------------------
+\begin{titlepage}
+    \centering
+
+    \vspace*{3cm}
+
+    {\Huge \textbf{PFLICHTENHEFT}}\\[1.5cm]
+
+    {\LARGE Workflowbasierte Rückbestätigung}\\[0.3cm]
+    {\LARGE von Lieferterminen}\\[3cm]
+
+    {\Large Projektarbeit}\\[2cm]
+
+    {\large
+    MINOVA / THWS
+    }\\[1cm]
+
+    {\large
+    \today
+    }
+
+    \vfill
+
+\end{titlepage}
+
 \tableofcontents
 \newpage
 
@@ -37,9 +59,9 @@ Ziel des Projekts ist die Entwicklung eines digitalen, prototypischen Systems zu
 Das System übernimmt keine automatische Lieferterminplanung und keine automatische Tourenplanung. 
 Die Planung und fachliche Entscheidung verbleiben bei der Disposition.
 
-Das System unterstützt die Disposition bei der Anzeige vorgeschlagener Lieferoptionen, beim Versand von Rückbestätigungsanfragen sowie bei der strukturierten Verarbeitung von Kundenrückmeldungen.
+Das System unterstützt die Disposition bei der Anzeige vorgeschlagener Lieferfenster, beim Versand von Rückbestätigungsanfragen sowie bei der strukturierten Verarbeitung von Kundenrückmeldungen.
 
-Die Prozesslogik kann optional mithilfe von BPMN 2.0 modelliert und durch eine Workflow-Engine wie Camunda unterstützt werden.
+Die Prozesslogik wird mithilfe von BPMN 2.0 modelliert und durch die Workflow-Engine Camunda ausgeführt.
 
 %--------------------------------------------------
 \section{Systemübersicht}
@@ -55,8 +77,6 @@ Der Kunde kann das vorgeschlagene Lieferfenster bestätigen oder ablehnen.
 Die Kundenreaktion wird gespeichert und der Status des Auftrags aktualisiert. 
 Bei Ablehnung oder ausbleibender Rückmeldung wird der Auftrag als problematischer Fall markiert und dem Disponenten zur manuellen Weiterbearbeitung angezeigt.
 
-Optional kann eine Workflow-Komponente eingesetzt werden, um den Rückbestätigungsprozess technisch zu steuern.
-
 \subsection{Systemkontext}
 
 Das System wird als eigenständige Anwendung im Umfeld eines bestehenden DISPO-Systems betrieben.
@@ -71,7 +91,7 @@ Das System ersetzt keine bestehende Dispositionssoftware und übernimmt keine au
     \item Backend (Geschäftslogik und REST-API)
     \item Datenbank
     \item E-Mail-Kommunikationsschnittstelle
-    \item Optional: Workflow Engine, z.B. Camunda
+    \item Workflow Engine, z.B. Camunda
 \end{itemize}
 
 %--------------------------------------------------
@@ -186,8 +206,8 @@ PF8 & Verhinderung mehrfacher Antworten &
 Das System stellt sicher, dass pro Rückbestätigungsanfrage nur eine gültige Antwort statuswirksam gespeichert wird. \\
 \hline
 
-PF9 & Workflow-Unterstützung (optional) &
-Optional kann eine Workflow-Engine wie Camunda verwendet werden, um den Rückbestätigungsprozess technisch zu steuern. \\
+PF9 & Workflow-Unterstützung &
+Eine Workflow-Engine wie Camunda kann verwendet werden, um den Rückbestätigungsprozess technisch zu steuern. \\
 \hline
 
 \end{longtable}
