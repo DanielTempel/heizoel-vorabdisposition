@@ -2,43 +2,23 @@ spring:
   application:
     name: heizoel-backend
 
-  datasource:
-    url: jdbc:postgresql://localhost:5432/heizoel_backend
-    username: heizoel
-    password: heizoel
-    driver-class-name: org.postgresql.Driver
-
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
 
   flyway:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-  mail:
-    host: localhost
-    port: 1025
-    username:
-    password:
-    properties:
-      mail:
-        smtp:
-          auth: false
-          starttls:
-            enable: false
-          connectiontimeout: 5000
-          timeout: 3000
-          writetimeout: 5000
-
 server:
   port: 8080
+
 camunda:
   bpm:
     auto-deployment-enabled: true
@@ -47,13 +27,13 @@ camunda:
 
 heizoel:
   confirmation:
-    response-deadline: PT30M
-    frontend-base-url: http://localhost:3000
+    response-deadline: PT24H
+    frontend-url: http://localhost:3000
+    dispo-url: http://localhost:8090/api/dispo/confirmation-status-updates
 
   mail:
     from: no-reply@heizoel.local
 
 logging:
   level:
-    org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace
+    root: info

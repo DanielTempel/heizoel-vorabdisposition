@@ -1,41 +1,162 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<body style="font-family: Arial, sans-serif;">
-<h2>Rückbestätigung Ihres Liefertermins</h2>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Rückbestätigung Ihres Liefertermins</title>
+</head>
 
-<p>
-    Sehr geehrte/r <span th:text="${customerName}">Max Müller</span>,
-</p>
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, Helvetica, sans-serif; color:#1f2937;">
 
-<p>
-    bitte bestätigen Sie den geplanten Liefertermin für Ihre Heizöl-Lieferung.
-</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8; padding:32px 0;">
+    <tr>
+        <td align="center">
 
-<ul>
-    <li><strong>Adresse:</strong> <span th:text="${deliveryAddress}">Beispielstraße 12</span></li>
-    <li><strong>Produkt:</strong> <span th:text="${product}">Heizöl</span></li>
-    <li><strong>Menge:</strong> <span th:text="${quantityLiters}">3000</span> Liter</li>
-    <li><strong>Datum:</strong> <span th:text="${deliveryDate}">2026-06-12</span></li>
-    <li>
-        <strong>Zeitfenster:</strong>
-        <span th:text="${deliveryWindowStart}">10:00</span> -
-        <span th:text="${deliveryWindowEnd}">11:00</span> Uhr
-    </li>
-</ul>
+            <table width="100%" cellpadding="0" cellspacing="0"
+                   style="max-width:640px; background-color:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.08);">
 
-<p>
-    <a th:href="${confirmationUrl}"
-       href="http://localhost:3000/confirmation/example-token"
-       style="display:inline-block;padding:12px 18px;background:#1f6feb;color:white;text-decoration:none;border-radius:6px;">
-        Liefertermin beantworten
-    </a>
-</p>
+                <!-- Header -->
+                <tr>
+                    <td style="background-color:#1f6feb; padding:28px 32px; color:#ffffff;">
+                        <h1 style="margin:0; font-size:24px; font-weight:700;">
+                            Rückbestätigung Ihres Liefertermins
+                        </h1>
+                        <p style="margin:8px 0 0 0; font-size:15px; line-height:1.5;">
+                            Bitte prüfen und bestätigen Sie den geplanten Liefertermin.
+                        </p>
+                    </td>
+                </tr>
 
-<p>Diese Anfrage ist zeitlich begrenzt.</p>
+                <!-- Main content -->
+                <tr>
+                    <td style="padding:32px;">
 
-<p>
-    Mit freundlichen Grüßen<br/>
-    Ihr Heizöl-Team
-</p>
+                        <p style="margin:0 0 18px 0; font-size:16px; line-height:1.6;">
+                            Sehr geehrte/r
+                            <strong th:text="${customerName}">Max Müller</strong>,
+                        </p>
+
+                        <p style="margin:0 0 24px 0; font-size:16px; line-height:1.6;">
+                            für Ihre Lieferung wurde ein Liefertermin geplant.
+                            Bitte bestätigen Sie, ob der vorgeschlagene Zeitraum für Sie passt.
+                        </p>
+
+                        <!-- Info card -->
+                        <table width="100%" cellpadding="0" cellspacing="0"
+                               style="border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; margin:0 0 28px 0;">
+                            <tr>
+                                <td style="background-color:#f9fafb; padding:14px 18px; border-bottom:1px solid #e5e7eb;">
+                                    <strong style="font-size:15px; color:#111827;">Geplante Lieferung</strong>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="padding:18px;">
+
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="font-size:15px; line-height:1.6;">
+                                        <tr>
+                                            <td style="padding:6px 0; color:#6b7280; width:150px;">Adresse</td>
+                                            <td style="padding:6px 0; color:#111827;" th:text="${deliveryAddress}">
+                                                Beispielstraße 12, 97070 Würzburg
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td style="padding:6px 0; color:#6b7280;">Produkt</td>
+                                            <td style="padding:6px 0; color:#111827;" th:text="${product}">
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td style="padding:6px 0; color:#6b7280;">Menge</td>
+                                            <td style="padding:6px 0; color:#111827;">
+                                                <span th:text="${quantityLiters}">3000</span> Liter
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td style="padding:6px 0; color:#6b7280;">Datum</td>
+                                            <td style="padding:6px 0; color:#111827;" th:text="${deliveryDate}">
+                                                2026-06-12
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td style="padding:6px 0; color:#6b7280;">Zeitfenster</td>
+                                            <td style="padding:6px 0; color:#111827;">
+                                                <span th:text="${deliveryWindowStart}">10:00</span>
+                                                -
+                                                <span th:text="${deliveryWindowEnd}">11:00</span>
+                                                Uhr
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- CTA -->
+                        <p style="margin:0 0 24px 0; text-align:center;">
+                            <a th:href="${confirmationUrl}"
+                               href="http://localhost:3000/confirmation/example-token"
+                               style="display:inline-block;
+                                      padding:14px 24px;
+                                      background-color:#1f6feb;
+                                      color:#ffffff;
+                                      text-decoration:none;
+                                      border-radius:8px;
+                                      font-size:16px;
+                                      font-weight:700;">
+                                Liefertermin beantworten
+                            </a>
+                        </p>
+
+                        <!-- Notice -->
+                        <table width="100%" cellpadding="0" cellspacing="0"
+                               style="background-color:#fff7ed; border:1px solid #fed7aa; border-radius:8px; margin:0 0 24px 0;">
+                            <tr>
+                                <td style="padding:14px 16px; font-size:14px; line-height:1.5; color:#7c2d12;">
+                                    Diese Anfrage ist zeitlich begrenzt. Falls Sie nicht rechtzeitig antworten,
+                                    wird die Anfrage automatisch als
+                                    <strong>keine Rückmeldung</strong> markiert.
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Fallback link -->
+                        <p style="margin:0 0 24px 0; font-size:13px; line-height:1.5; color:#6b7280;">
+                            Falls der Button nicht funktioniert, kopieren Sie bitte folgenden Link in Ihren Browser:
+                            <br>
+                            <a th:href="${confirmationUrl}"
+                               th:text="${confirmationUrl}"
+                               href="http://localhost:3000/confirmation/example-token"
+                               style="color:#1f6feb; word-break:break-all;">
+                                http://localhost:3000/confirmation/example-token
+                            </a>
+                        </p>
+
+                        <p style="margin:0; font-size:15px; line-height:1.6;">
+                            Mit freundlichen Grüßen<br>
+                            <strong>Ihr Team</strong>
+                        </p>
+
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color:#f9fafb; padding:18px 32px; border-top:1px solid #e5e7eb;">
+                        <p style="margin:0; font-size:12px; line-height:1.5; color:#6b7280;">
+                            Diese E-Mail wurde automatisch erstellt. Bitte antworten Sie nicht direkt auf diese Nachricht.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
 </body>
 </html>

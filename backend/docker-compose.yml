@@ -1,3 +1,4 @@
+name: heizoel-vorabdisposition
 services:
   postgres:
     image: postgres:16
@@ -22,7 +23,7 @@ services:
     image: dpage/pgadmin4:latest
     container_name: heizoel-pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@heizoel.local
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
@@ -31,5 +32,14 @@ services:
     volumes:
       - heizoel_pgadmin_data:/var/lib/pgadmin
 
+  dispo-mock:
+    build:
+      context: ./dispo-mock
+      dockerfile: Dockerfile
+    container_name: heizoel-dispo-mock
+    ports:
+      - "8090:8090"
+
 volumes:
   heizoel_postgres_data:
+  heizoel_pgadmin_data:

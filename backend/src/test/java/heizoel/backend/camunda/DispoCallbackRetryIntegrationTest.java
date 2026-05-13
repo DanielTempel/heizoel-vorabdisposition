@@ -1,0 +1,341 @@
+package heizoel.backend.camunda;
+
+import heizoel.backend.dispo.application.interfaces.DispoStatusCallbackService;
+import heizoel.backend.dispo.domain.ConfirmationStatus;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatcher;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@Testcontainers
+@SpringBootTest
+@AutoConfigureMockMvc
+class DispoCallbackRetryIntegrationTest {
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
+            .withDatabaseName("heizoel_backend_test")
+            .withUsername("heizoel")
+            .withPassword("heizoel");
+
+    @DynamicPropertySource
+    static void registerProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
+        registry.add("spring.flyway.enabled", () -> "true");
+        registry.add("spring.flyway.locations", () -> "classpath:db/migration");
+
+        registry.add("camunda.bpm.auto-deployment-enabled", () -> "true");
+        registry.add("camunda.bpm.deployment-resource-pattern[0]", () -> "classpath*:processes/*.bpmn");
+        registry.add("camunda.bpm.job-execution.enabled", () -> "true");
+
+        registry.add("confirmation.response-deadline", () -> "PT2S");
+    }
+
+    @Autowired
+    MockMvc mockMvc;
+
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
+    @MockitoBean
+    DispoStatusCallbackService dispoStatusCallbackService;
+
+    @BeforeEach
+    void resetMocks() {
+        reset(dispoStatusCallbackService);
+    }
+
+    @Test
+    void customerConfirm_shouldReturn204AndPersistResponse_evenWhenDispoCallbackFails() throws Exception {
+        String externalOrderId = uniqueOrderId("A-CALLBACK-FAIL-CONFIRM");
+
+        doThrow(new RuntimeException("DISPO callback failed for testing."))
+                .when(dispoStatusCallbackService)
+                .sendStatusUpdate(any());
+
+        createDispoConfirmationRequest(externalOrderId)
+                .andExpect(status().isCreated());
+
+        String token = getLatestToken(externalOrderId);
+
+        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isNoContent());
+
+        assertThat(getConfirmationStatus(externalOrderId))
+                .isEqualTo("CONFIRMED");
+
+        assertThat(isActiveRequest(externalOrderId))
+                .isFalse();
+
+        assertThat(getLatestCustomerResponseType(externalOrderId))
+                .isEqualTo("CONFIRM");
+
+        await()
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofMillis(300))
+                .untilAsserted(() -> {
+                    Map<String, Object> failedJob = findFailedCallbackJob(externalOrderId);
+
+                    assertThat(failedJob)
+                            .isNotEmpty();
+
+                    assertThat(failedJob.get("exception_msg_"))
+                            .isEqualTo("DISPO callback failed for testing.");
+
+                    assertThat(((Number) failedJob.get("retries_")).intValue())
+                            .isGreaterThan(0);
+                });
+
+        verify(dispoStatusCallbackService, atLeastOnce())
+                .sendStatusUpdate(argThat(statusUpdateFor(
+                        externalOrderId,
+                        ConfirmationStatus.CONFIRMED
+                )));
+    }
+
+    @Test
+    void customerReject_shouldReturn204AndPersistResponse_evenWhenDispoCallbackFails() throws Exception {
+        String externalOrderId = uniqueOrderId("A-CALLBACK-FAIL-REJECT");
+
+        doThrow(new RuntimeException("DISPO callback failed for testing."))
+                .when(dispoStatusCallbackService)
+                .sendStatusUpdate(any());
+
+        createDispoConfirmationRequest(externalOrderId)
+                .andExpect(status().isCreated());
+
+        String token = getLatestToken(externalOrderId);
+
+        mockMvc.perform(post("/api/customer/confirmations/{token}/reject", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "customerComment": "Bitte erst ab 15 Uhr."
+                                }
+                                """))
+                .andExpect(status().isNoContent());
+
+        assertThat(getConfirmationStatus(externalOrderId))
+                .isEqualTo("REJECTED");
+
+        assertThat(isActiveRequest(externalOrderId))
+                .isFalse();
+
+        assertThat(getLatestCustomerResponseType(externalOrderId))
+                .isEqualTo("REJECT");
+
+        assertThat(getLatestCustomerComment(externalOrderId))
+                .isEqualTo("Bitte erst ab 15 Uhr.");
+
+        await()
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofMillis(300))
+                .untilAsserted(() -> {
+                    Map<String, Object> failedJob = findFailedCallbackJob(externalOrderId);
+
+                    assertThat(failedJob)
+                            .isNotEmpty();
+
+                    assertThat(failedJob.get("exception_msg_"))
+                            .isEqualTo("DISPO callback failed for testing.");
+
+                    assertThat(((Number) failedJob.get("retries_")).intValue())
+                            .isGreaterThan(0);
+                });
+
+        verify(dispoStatusCallbackService, atLeastOnce())
+                .sendStatusUpdate(argThat(statusUpdateFor(
+                        externalOrderId,
+                        ConfirmationStatus.REJECTED
+                )));
+    }
+
+    @Test
+    void timeout_shouldPersistNoResponseAndCreateRetryableCallbackJob_whenDispoCallbackFails() throws Exception {
+        String externalOrderId = uniqueOrderId("A-CALLBACK-FAIL-NO-RESPONSE");
+
+        doThrow(new RuntimeException("DISPO callback failed for testing."))
+                .when(dispoStatusCallbackService)
+                .sendStatusUpdate(any());
+
+        createDispoConfirmationRequest(externalOrderId)
+                .andExpect(status().isCreated());
+
+        await()
+                .atMost(Duration.ofSeconds(45))
+                .pollInterval(Duration.ofSeconds(1))
+                .untilAsserted(() -> {
+                    assertThat(getConfirmationStatus(externalOrderId))
+                            .isEqualTo("NO_RESPONSE");
+
+                    assertThat(isActiveRequest(externalOrderId))
+                            .isFalse();
+                });
+
+        await()
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofMillis(300))
+                .untilAsserted(() -> {
+                    Map<String, Object> failedJob = findFailedCallbackJob(externalOrderId);
+
+                    assertThat(failedJob)
+                            .isNotEmpty();
+
+                    assertThat(failedJob.get("exception_msg_"))
+                            .isEqualTo("DISPO callback failed for testing.");
+
+                    assertThat(((Number) failedJob.get("retries_")).intValue())
+                            .isGreaterThan(0);
+                });
+
+        verify(dispoStatusCallbackService, atLeastOnce())
+                .sendStatusUpdate(argThat(statusUpdateFor(
+                        externalOrderId,
+                        ConfirmationStatus.NO_RESPONSE
+                )));
+    }
+
+    private org.springframework.test.web.servlet.ResultActions createDispoConfirmationRequest(
+            String externalOrderId
+    ) throws Exception {
+        return mockMvc.perform(post("/api/dispo/confirmation-requests")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                          "externalOrderId": "%s",
+                          "customerName": "Max Muller",
+                          "customerEmail": "daniel@example.com",
+                          "deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
+                          "product": "Heizol",
+                          "quantityLiters": 3000,
+                          "deliveryDate": "2026-06-12",
+                          "deliveryWindowStart": "10:00",
+                          "deliveryWindowEnd": "11:00"
+                        }
+                        """.formatted(externalOrderId)));
+    }
+
+    private String uniqueOrderId(String prefix) {
+        return prefix + "-" + UUID.randomUUID();
+    }
+
+    private String getLatestToken(String externalOrderId) {
+        return jdbcTemplate.queryForObject("""
+                SELECT cr.token
+                FROM confirmation_request cr
+                JOIN order_snapshot os ON os.id = cr.order_snapshot_id
+                WHERE os.external_order_id = ?
+                ORDER BY cr.id DESC
+                LIMIT 1
+                """, String.class, externalOrderId);
+    }
+
+    private String getConfirmationStatus(String externalOrderId) {
+        return jdbcTemplate.queryForObject("""
+                SELECT confirmation_status
+                FROM order_snapshot
+                WHERE external_order_id = ?
+                """, String.class, externalOrderId);
+    }
+
+    private boolean isActiveRequest(String externalOrderId) {
+        Boolean active = jdbcTemplate.queryForObject("""
+                SELECT cr.active
+                FROM confirmation_request cr
+                JOIN order_snapshot os ON os.id = cr.order_snapshot_id
+                WHERE os.external_order_id = ?
+                ORDER BY cr.id DESC
+                LIMIT 1
+                """, Boolean.class, externalOrderId);
+
+        return Boolean.TRUE.equals(active);
+    }
+
+    private String getLatestCustomerResponseType(String externalOrderId) {
+        return jdbcTemplate.queryForObject("""
+                SELECT resp.response_type
+                FROM customer_response resp
+                JOIN confirmation_request cr ON cr.id = resp.confirmation_request_id
+                JOIN order_snapshot os ON os.id = cr.order_snapshot_id
+                WHERE os.external_order_id = ?
+                ORDER BY resp.id DESC
+                LIMIT 1
+                """, String.class, externalOrderId);
+    }
+
+    private String getLatestCustomerComment(String externalOrderId) {
+        return jdbcTemplate.queryForObject("""
+                SELECT resp.comment
+                FROM customer_response resp
+                JOIN confirmation_request cr ON cr.id = resp.confirmation_request_id
+                JOIN order_snapshot os ON os.id = cr.order_snapshot_id
+                WHERE os.external_order_id = ?
+                ORDER BY resp.id DESC
+                LIMIT 1
+                """, String.class, externalOrderId);
+    }
+
+    private Map<String, Object> findFailedCallbackJob(String externalOrderId) {
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+                SELECT
+                    j.id_,
+                    j.retries_,
+                    j.duedate_,
+                    j.exception_msg_
+                FROM act_ru_job j
+                JOIN act_ru_variable v
+                  ON v.proc_inst_id_ = j.process_instance_id_
+                WHERE v.name_ = 'externalOrderId'
+                  AND v.text_ = ?
+                  AND j.exception_msg_ = ?
+                ORDER BY j.create_time_ DESC
+                LIMIT 1
+                """,
+                externalOrderId,
+                "DISPO callback failed for testing."
+        );
+
+        if (rows.isEmpty()) {
+            return Map.of();
+        }
+        return rows.get(0);
+    }
+
+    private ArgumentMatcher<heizoel.backend.dispo.api.dto.response.DispoConfirmationStatusUpdateDto>
+    statusUpdateFor(String externalOrderId, ConfirmationStatus confirmationStatus) {
+        return update ->
+                update != null
+                        && externalOrderId.equals(update.externalOrderId())
+                        && confirmationStatus == update.confirmationStatus();
+    }
+}

@@ -1,13 +1,13 @@
 package heizoel.backend.customer.application;
 
 
+import heizoel.backend.camunda.application.interfaces.DispoCallbackWorkflowService;
 import heizoel.backend.customer.api.dto.CustomerConfirmationPreviewDto;
 import heizoel.backend.customer.application.interfaces.CustomerConfirmationService;
 import heizoel.backend.customer.application.interfaces.CustomerResponseService;
 import heizoel.backend.customer.domain.CustomerResponseType;
 import heizoel.backend.dispo.application.interfaces.ConfirmationRequestService;
 import heizoel.backend.dispo.application.interfaces.OrderSnapshotService;
-import heizoel.backend.dispo.application.model.command.CustomerConfirmationStatusChangedEvent;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
@@ -16,7 +16,6 @@ import heizoel.backend.exceptions.customer.ConfirmationRequestInactiveException;
 import heizoel.backend.exceptions.customer.ConfirmationRequestNotFoundException;
 import heizoel.backend.exceptions.customer.CustomerResponseAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +28,7 @@ public class CustomerConfirmationServiceImpl implements CustomerConfirmationServ
     private final ConfirmationRequestService confirmationRequestService;
     private final OrderSnapshotService orderSnapshotService;
     private final CustomerResponseService customerResponseService;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DispoCallbackWorkflowService dispoCallbackWorkflowService;
 
     @Override
     @Transactional(readOnly = true)
@@ -53,34 +52,31 @@ public class CustomerConfirmationServiceImpl implements CustomerConfirmationServ
 
     @Override
     @Transactional
-    public void  confirm(String token, String customerComment) {
+    public void confirm(String token, String customerComment) {
         submitCustomerResponse(
                 token,
                 CustomerResponseType.CONFIRM,
                 ConfirmationStatus.CONFIRMED,
-                customerComment,
-                "The delivery window has been confirmed."
+                customerComment
         );
     }
 
     @Override
     @Transactional
-    public void  reject(String token, String customerComment) {
+    public void reject(String token, String customerComment) {
         submitCustomerResponse(
                 token,
                 CustomerResponseType.REJECT,
                 ConfirmationStatus.REJECTED,
-                customerComment,
-                "The delivery window has been rejected."
+                customerComment
         );
     }
 
-    private void  submitCustomerResponse(
+    private void submitCustomerResponse(
             String token,
             CustomerResponseType responseType,
             ConfirmationStatus confirmationStatus,
-            String customerComment,
-            String message
+            String customerComment
     ) {
         ConfirmationRequest confirmationRequest = findValidActiveRequest(token);
 
@@ -101,12 +97,10 @@ public class CustomerConfirmationServiceImpl implements CustomerConfirmationServ
         confirmationRequestService.markInactive(confirmationRequest);
         orderSnapshotService.updateStatus(orderSnapshot, confirmationStatus);
 
-        eventPublisher.publishEvent(
-                new CustomerConfirmationStatusChangedEvent(
-                        orderSnapshot.getExternalOrderId(),
-                        confirmationStatus,
-                        customerComment
-                )
+        dispoCallbackWorkflowService.startDispoCallbackProcess(
+                orderSnapshot.getExternalOrderId(),
+                confirmationStatus,
+                customerComment
         );
     }
 

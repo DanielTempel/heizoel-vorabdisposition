@@ -28,7 +28,7 @@ public class SmtpConfirmationNotificationService implements ConfirmationNotifica
             ConfirmationRequest confirmationRequest
     ) {
         try {
-            String confirmationUrl = confirmationProperties.getFrontendBaseUrl()
+            String confirmationUrl = confirmationProperties.getFrontendUrl()
                     + "/confirmation/"
                     + confirmationRequest.getToken();
 

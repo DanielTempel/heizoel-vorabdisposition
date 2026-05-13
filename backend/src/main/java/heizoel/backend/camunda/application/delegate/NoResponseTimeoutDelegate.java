@@ -1,4 +1,4 @@
-package heizoel.backend.dispo.application.interfaces;
+package heizoel.backend.camunda.application.delegate;
 
 
 import heizoel.backend.camunda.application.interfaces.NoResponseTimeoutService;

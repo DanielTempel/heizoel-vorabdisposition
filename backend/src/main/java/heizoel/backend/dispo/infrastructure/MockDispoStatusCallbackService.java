@@ -3,10 +3,12 @@ package heizoel.backend.dispo.infrastructure;
 import heizoel.backend.dispo.api.dto.response.DispoConfirmationStatusUpdateDto;
 import heizoel.backend.dispo.application.interfaces.DispoStatusCallbackService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@Profile("mock-dispo-callback")
 public class MockDispoStatusCallbackService implements DispoStatusCallbackService {
 
     @Override

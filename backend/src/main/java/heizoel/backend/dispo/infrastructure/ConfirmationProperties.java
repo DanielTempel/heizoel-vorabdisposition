@@ -14,5 +14,6 @@ import java.time.Duration;
 public class ConfirmationProperties {
 
     private Duration responseDeadline = Duration.ofHours(24);
-    private String frontendBaseUrl = "http://localhost:3000";
+    private String frontendUrl = "http://localhost:3000";
+    private String dispoUrl;
 }

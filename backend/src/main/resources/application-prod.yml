@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/heizoel_backend}
+    username: ${DB_USERNAME:heizoel}
+    password: ${DB_PASSWORD:heizoel}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:false}
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+
+heizoel:
+  confirmation:
+    response-deadline: ${CONFIRMATION_RESPONSE_DEADLINE:PT24H}
+    frontend-url: ${FRONTEND_URL:http://localhost:3000}
+    dispo-url: ${DISPO_CALLBACK_URL:http://localhost:8090/api/dispo/confirmation-status-updates}
+
+logging:
+  level:
+    root: info
+    org.hibernate.SQL: warn
+    org.hibernate.orm.jdbc.bind: warn

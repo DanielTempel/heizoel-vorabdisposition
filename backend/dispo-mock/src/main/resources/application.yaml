@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: dispo-mock
+
+server:
+  port: 8090
+
+logging:
+  level:
+    heizoel.dispomock: info

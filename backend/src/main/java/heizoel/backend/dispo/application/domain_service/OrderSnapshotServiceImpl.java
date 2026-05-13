@@ -1,4 +1,4 @@
-package heizoel.backend.dispo.application;
+package heizoel.backend.dispo.application.domain_service;
 
 import heizoel.backend.dispo.application.interfaces.OrderSnapshotService;
 import heizoel.backend.dispo.application.model.OrderSnapshotData;
