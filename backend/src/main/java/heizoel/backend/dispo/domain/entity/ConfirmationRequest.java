@@ -1,6 +1,7 @@
 package heizoel.backend.dispo.domain.entity;
 
 
+import heizoel.backend.notification.domain.CommunicationChannel;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,6 +42,10 @@ public class ConfirmationRequest {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_snapshot_id", nullable = false)
     private OrderSnapshot orderSnapshot;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "communication_channel", nullable = false, length = 20)
+    private CommunicationChannel communicationChannel;
 
     @Column(name = "delivery_date", nullable = false)
     private LocalDate deliveryDate;

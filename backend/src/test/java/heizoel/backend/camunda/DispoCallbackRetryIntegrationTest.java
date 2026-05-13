@@ -2,6 +2,7 @@ package heizoel.backend.camunda;
 
 import heizoel.backend.dispo.application.interfaces.DispoStatusCallbackService;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
+import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
@@ -10,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -47,6 +49,7 @@ class DispoCallbackRetryIntegrationTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.datasource.driver-class-name", postgres::getDriverClassName);
 
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
         registry.add("spring.flyway.enabled", () -> "true");
@@ -56,8 +59,11 @@ class DispoCallbackRetryIntegrationTest {
         registry.add("camunda.bpm.deployment-resource-pattern[0]", () -> "classpath*:processes/*.bpmn");
         registry.add("camunda.bpm.job-execution.enabled", () -> "true");
 
-        registry.add("confirmation.response-deadline", () -> "PT2S");
+        registry.add("heizoel.confirmation.response-deadline", () -> "PT2S");
     }
+
+    @MockitoBean
+    JavaMailSender javaMailSender;
 
     @Autowired
     MockMvc mockMvc;
@@ -68,9 +74,12 @@ class DispoCallbackRetryIntegrationTest {
     @MockitoBean
     DispoStatusCallbackService dispoStatusCallbackService;
 
+    @MockitoBean
+    ConfirmationNotificationService notificationService;
+
     @BeforeEach
     void resetMocks() {
-        reset(dispoStatusCallbackService);
+        reset(dispoStatusCallbackService, notificationService);
     }
 
     @Test
@@ -235,6 +244,8 @@ class DispoCallbackRetryIntegrationTest {
                           "externalOrderId": "%s",
                           "customerName": "Max Muller",
                           "customerEmail": "daniel@example.com",
+                          "customerPhoneNumber": null,
+                          "communicationChannel": "EMAIL",
                           "deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
                           "product": "Heizol",
                           "quantityLiters": 3000,
@@ -328,6 +339,7 @@ class DispoCallbackRetryIntegrationTest {
         if (rows.isEmpty()) {
             return Map.of();
         }
+
         return rows.get(0);
     }
 

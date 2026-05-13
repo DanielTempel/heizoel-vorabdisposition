@@ -10,10 +10,12 @@ import heizoel.backend.dispo.application.interfaces.OrderSnapshotService;
 import heizoel.backend.dispo.application.model.ConfirmationRequestData;
 import heizoel.backend.dispo.application.model.OrderSnapshotData;
 import heizoel.backend.dispo.application.model.command.DispoConfirmationCreationResult;
+import heizoel.backend.notification.domain.CommunicationChannel;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
 import heizoel.backend.exceptions.dispo.InvalidDeliveryWindowException;
+import heizoel.backend.exceptions.dispo.MissingDigitalContactException;
 import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -40,10 +42,13 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
             );
         }
 
+        validateCommunicationChannel(request);
+
         OrderSnapshotData orderData = new OrderSnapshotData(
                 request.externalOrderId(),
                 request.customerName(),
                 request.customerEmail(),
+                request.customerPhoneNumber(),
                 request.deliveryAddress(),
                 request.product(),
                 request.quantityLiters()
@@ -52,7 +57,8 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
         ConfirmationRequestData requestData = new ConfirmationRequestData(
                 request.deliveryDate(),
                 request.deliveryWindowStart(),
-                request.deliveryWindowEnd()
+                request.deliveryWindowEnd(),
+                request.communicationChannel()
         );
 
         Optional<OrderSnapshot> existingOrder = orderSnapshotService.findByExternalOrderId(orderData.externalOrderId());
@@ -92,7 +98,7 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
         ConfirmationRequest confirmationRequest =
                 confirmationRequestService.create(orderSnapshot, requestData);
 
-        notificationService.sendConfirmationRequestEmail(orderSnapshot, confirmationRequest);
+        notificationService.sendConfirmationRequest(orderSnapshot, confirmationRequest);
 
         confirmationWorkflowService.startTimeoutProcess(confirmationRequest);
 
@@ -103,5 +109,25 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
                 ),
                 true
         );
+    }
+
+    private void validateCommunicationChannel(DispoConfirmationRequestDto request) {
+        if (request.communicationChannel() == CommunicationChannel.EMAIL
+                && isBlank(request.customerEmail())) {
+            throw new MissingDigitalContactException(
+                    "Customer e-mail is required when communication channel is EMAIL."
+            );
+        }
+
+        if (request.communicationChannel() == CommunicationChannel.SMS
+                && isBlank(request.customerPhoneNumber())) {
+            throw new MissingDigitalContactException(
+                    "Customer phone number is required when communication channel is SMS."
+            );
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

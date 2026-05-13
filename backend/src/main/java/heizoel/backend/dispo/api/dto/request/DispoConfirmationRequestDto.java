@@ -1,5 +1,6 @@
 package heizoel.backend.dispo.api.dto.request;
 
+import heizoel.backend.notification.domain.CommunicationChannel;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -16,9 +17,13 @@ public record DispoConfirmationRequestDto(
         @NotBlank(message = "Customer name must not be blank.")
         String customerName,
 
-        @NotBlank(message = "Customer e-mail is required for digital confirmation.")
+        @NotNull(message = "Communication channel is required.")
+        CommunicationChannel communicationChannel,
+
         @Email(message = "Customer e-mail must be a valid e-mail address.")
         String customerEmail,
+
+        String customerPhoneNumber,
 
         @NotBlank(message = "Delivery address must not be blank.")
         String deliveryAddress,

@@ -3,9 +3,9 @@ package heizoel.backend.notification.application.interfaces;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 
-public interface ConfirmationNotificationService {
+public interface SmsConfirmationSender {
 
-    void sendConfirmationRequest(
+    void send(
             OrderSnapshot orderSnapshot,
             ConfirmationRequest confirmationRequest
     );

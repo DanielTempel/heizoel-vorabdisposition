@@ -2,7 +2,7 @@
 
 Backend prototype for the Heizöl delivery confirmation process.
 
-The backend receives confirmation requests from a DISPO system, sends confirmation e-mails to customers, stores customer responses, updates confirmation statuses, and sends status updates back to DISPO via HTTP callback. Camunda handles the timeout case when the customer does not respond within the configured deadline.
+The backend receives confirmation requests from a DISPO system, sends confirmation messages to customers by e-mail or SMS, stores customer responses, updates confirmation statuses, and sends status updates back to DISPO via HTTP callback. Camunda handles the timeout case when the customer does not respond within the configured deadline.
 
 ---
 
@@ -17,6 +17,7 @@ The backend receives confirmation requests from a DISPO system, sends confirmati
 * Spring Mail
 * Thymeleaf mail templates
 * Mailpit for local e-mail testing
+* SMS Mock for local SMS testing
 * pgAdmin for database inspection
 * DISPO Mock for local callback testing
 * Swagger / OpenAPI
@@ -30,6 +31,7 @@ The backend receives confirmation requests from a DISPO system, sends confirmati
 backend/
 ├── src/                    # Main backend application
 ├── dispo-mock/             # Local DISPO mock service
+├── sms-mock/               # Local SMS mock service
 ├── docker-compose.yml      # Local infrastructure
 └── README.md
 ```
@@ -48,9 +50,9 @@ DISPO request / Postman / Swagger
         v
 Backend :8080
         |
-        | sends e-mail
+        | sends e-mail or SMS depending on communicationChannel
         v
-Mailpit :8025
+Mailpit :8025 / SMS Mock :8091
         |
         | customer confirms/rejects via backend API
         v
@@ -71,6 +73,7 @@ For local development, start the infrastructure with Docker Compose:
 * Mailpit
 * pgAdmin
 * DISPO Mock
+* SMS Mock
 
 The backend is intentionally not started by Docker Compose during development. Run it locally with the `dev` Spring profile.
 
@@ -93,6 +96,7 @@ This starts:
 | Mailpit Web UI | `http://localhost:8025` | Inspect sent e-mails       |
 | pgAdmin        | `http://localhost:5050` | Inspect PostgreSQL         |
 | DISPO Mock     | `http://localhost:8090` | Receives backend callbacks |
+| SMS Mock       | `http://localhost:8091` | Receives mocked SMS        |
 
 Check running containers:
 
@@ -196,6 +200,9 @@ heizoel:
     response-deadline: PT60S
     frontend-url: http://localhost:3000
     dispo-url: http://localhost:8090/api/dispo/confirmation-status-updates
+
+  sms:
+    mock-url: http://localhost:8091/api/sms
 ```
 
 ### `application-prod.yml`
@@ -227,6 +234,10 @@ heizoel:
 
   mail:
     from: ${MAIL_FROM:no-reply@heizoel.local}
+
+  sms:
+    provider-url: ${SMS_PROVIDER_URL}
+    api-key: ${SMS_API_KEY}
 ```
 
 ---
@@ -236,13 +247,15 @@ heizoel:
 | Property                                 | Meaning                                                 |
 | ---------------------------------------- | ------------------------------------------------------- |
 | `heizoel.confirmation.response-deadline` | Time until a confirmation request becomes `NO_RESPONSE` |
-| `heizoel.confirmation.frontend-url`      | Base URL used in customer e-mail links                  |
+| `heizoel.confirmation.frontend-url`      | Base URL used in customer confirmation links            |
 | `heizoel.confirmation.dispo-url`         | HTTP callback URL for DISPO status updates              |
 | `heizoel.mail.from`                      | Sender address for confirmation e-mails                 |
 | `spring.mail.host`                       | SMTP host                                               |
 | `spring.mail.port`                       | SMTP port                                               |
+| `heizoel.sms.mock-url`                   | Local SMS Mock URL                                      |
+| `heizoel.sms.provider-url`               | Real SMS provider URL for production-like setup         |
 
-For local frontend development, the e-mail link points to:
+For local frontend development, confirmation links point to:
 
 ```text
 http://localhost:3000/confirmation/{token}
@@ -280,7 +293,7 @@ Open:
 http://localhost:8025
 ```
 
-When a DISPO confirmation request is created successfully, an e-mail appears in Mailpit.
+When a DISPO confirmation request with communication channel `EMAIL` is created successfully, an e-mail appears in Mailpit.
 The e-mail contains one customer confirmation link:
 
 ```text
@@ -288,6 +301,55 @@ http://localhost:3000/confirmation/{token}
 ```
 
 Since the frontend may not be implemented yet, the link may lead to an empty page. For backend testing, copy the token and call the customer API directly.
+
+---
+
+## SMS Mock
+
+The SMS Mock is a small local service that receives SMS requests from the backend.
+
+It runs on:
+
+```text
+http://localhost:8091
+```
+
+When a DISPO confirmation request with communication channel `SMS` is created successfully, the backend sends a mocked SMS to the SMS Mock.
+The SMS contains the customer confirmation link:
+
+```text
+http://localhost:3000/confirmation/{token}
+```
+
+### Inspect received SMS messages
+
+```http
+GET http://localhost:8091/api/sms
+```
+
+Example response:
+
+```json
+[
+  {
+    "receivedAt": "2026-05-13T12:34:24.600Z",
+    "phoneNumber": "+491701234567",
+    "message": "Please confirm your Heizöl delivery: http://localhost:3000/confirmation/abc123"
+  }
+]
+```
+
+### Clear received SMS messages
+
+```http
+DELETE http://localhost:8091/api/sms
+```
+
+Expected response:
+
+```http
+204 No Content
+```
 
 ---
 
@@ -389,19 +451,39 @@ Password: heizoel
 
 ## Main API Endpoints
 
-## DISPO creates confirmation request
+### DISPO creates confirmation request
 
 ```http
 POST /api/dispo/confirmation-requests
 ```
 
-Example request:
+Example request with e-mail:
 
 ```json
 {
   "externalOrderId": "A-2001",
   "customerName": "Max Muller",
   "customerEmail": "daniel@example.com",
+  "customerPhoneNumber": null,
+  "communicationChannel": "EMAIL",
+  "deliveryAddress": "Beispielstrasse 12, 97070 Wuerzburg",
+  "product": "Heizoel",
+  "quantityLiters": 3000,
+  "deliveryDate": "2026-06-12",
+  "deliveryWindowStart": "10:00",
+  "deliveryWindowEnd": "11:00"
+}
+```
+
+Example request with SMS:
+
+```json
+{
+  "externalOrderId": "A-2002",
+  "customerName": "Max Muller",
+  "customerEmail": null,
+  "customerPhoneNumber": "+491701234567",
+  "communicationChannel": "SMS",
   "deliveryAddress": "Beispielstrasse 12, 97070 Wuerzburg",
   "product": "Heizoel",
   "quantityLiters": 3000,
@@ -422,16 +504,16 @@ Example success response:
 
 Possible responses:
 
-| Status            | Meaning                                            |
-| ----------------- | -------------------------------------------------- |
-| `201 Created`     | New confirmation request created and e-mail sent   |
-| `200 OK`          | Duplicate unchanged request; no second e-mail sent |
-| `400 Bad Request` | Validation error                                   |
-| `502 Bad Gateway` | E-mail could not be sent                           |
+| Status            | Meaning                                                  |
+| ----------------- | -------------------------------------------------------- |
+| `201 Created`     | New confirmation request created and notification sent   |
+| `200 OK`          | Duplicate unchanged request; no second notification sent |
+| `400 Bad Request` | Validation error                                         |
+| `502 Bad Gateway` | E-mail or SMS could not be sent                          |
 
 ---
 
-## Customer gets confirmation preview
+### Customer gets confirmation preview
 
 ```http
 GET /api/customer/confirmations/{token}
@@ -454,7 +536,7 @@ Example response:
 
 ---
 
-## Customer confirms delivery window
+### Customer confirms delivery window
 
 ```http
 POST /api/customer/confirmations/{token}/confirm
@@ -476,7 +558,7 @@ Success:
 
 ---
 
-## Customer rejects delivery window
+### Customer rejects delivery window
 
 ```http
 POST /api/customer/confirmations/{token}/reject
@@ -495,6 +577,25 @@ Success:
 ```http
 204 No Content
 ```
+
+---
+
+## Communication Channels
+
+The DISPO request defines the channel used for customer notification:
+
+```text
+EMAIL
+SMS
+```
+
+Rules:
+
+* `EMAIL` requires `customerEmail`.
+* `SMS` requires `customerPhoneNumber`.
+* Both channels send the same customer confirmation link.
+* The customer response flow is identical for both channels.
+* DISPO status callbacks are independent of the original communication channel.
 
 ---
 
@@ -534,12 +635,12 @@ If the callback fails, the Camunda job fails and is retried by the Camunda job e
 
 ## Confirmation Status Values
 
-| Status        | Meaning                                                 |
-| ------------- | ------------------------------------------------------- |
-| `SENT`        | E-mail was sent and backend waits for customer response |
-| `CONFIRMED`   | Customer confirmed the delivery window                  |
-| `REJECTED`    | Customer rejected the delivery window                   |
-| `NO_RESPONSE` | Customer did not respond before the deadline            |
+| Status        | Meaning                                                       |
+| ------------- | ------------------------------------------------------------- |
+| `SENT`        | Notification was sent and backend waits for customer response |
+| `CONFIRMED`   | Customer confirmed the delivery window                        |
+| `REJECTED`    | Customer rejected the delivery window                         |
+| `NO_RESPONSE` | Customer did not respond before the deadline                  |
 
 ---
 
@@ -563,6 +664,7 @@ Common error codes:
 | ---------------------------------- | ----------: | ------------------------------------- |
 | `VALIDATION_ERROR`                 |         400 | Invalid request data                  |
 | `EMAIL_SENDING_FAILED`             |         502 | Confirmation e-mail could not be sent |
+| `SMS_SENDING_FAILED`               |         502 | Confirmation SMS could not be sent    |
 | `CONFIRMATION_REQUEST_NOT_FOUND`   |         404 | Token does not exist                  |
 | `CONFIRMATION_REQUEST_INACTIVE`    |         409 | Request is no longer active           |
 | `CONFIRMATION_REQUEST_EXPIRED`     |         410 | Request has expired                   |
@@ -574,13 +676,13 @@ Common error codes:
 
 ## Local End-to-End Test Flow
 
-## 1. Start infrastructure
+### 1. Start infrastructure
 
 ```bash
 docker compose up -d
 ```
 
-## 2. Start backend
+### 2. Start backend
 
 ```bash
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
@@ -588,13 +690,13 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 or run `BackendApplication` in IntelliJ with profile `dev`.
 
-## 3. Create confirmation request
+### 3. Create confirmation request
 
 ```http
 POST http://localhost:8080/api/dispo/confirmation-requests
 ```
 
-Use the example DISPO request body.
+Use one of the example DISPO request bodies.
 
 Expected:
 
@@ -602,7 +704,9 @@ Expected:
 201 Created
 ```
 
-## 4. Open Mailpit
+### 4a. Check e-mail notification
+
+For `communicationChannel = EMAIL`, open Mailpit:
 
 ```text
 http://localhost:8025
@@ -622,13 +726,23 @@ The token is:
 abc123
 ```
 
-## 5. Test preview without frontend
+### 4b. Check SMS notification
+
+For `communicationChannel = SMS`, inspect SMS Mock:
+
+```http
+GET http://localhost:8091/api/sms
+```
+
+Copy the token from the confirmation link in the SMS message.
+
+### 5. Test preview without frontend
 
 ```http
 GET http://localhost:8080/api/customer/confirmations/{token}
 ```
 
-## 6. Confirm without frontend
+### 6. Confirm without frontend
 
 ```http
 POST http://localhost:8080/api/customer/confirmations/{token}/confirm
@@ -640,7 +754,7 @@ Expected:
 204 No Content
 ```
 
-## 7. Check database
+### 7. Check database
 
 ```sql
 SELECT external_order_id, confirmation_status
@@ -654,7 +768,7 @@ Expected:
 CONFIRMED
 ```
 
-## 8. Check DISPO callback
+### 8. Check DISPO callback
 
 ```http
 GET http://localhost:8090/api/dispo/confirmation-status-updates
@@ -714,7 +828,7 @@ heizoel:
 
 ## Useful SQL Queries
 
-## Check order status
+### Check order status
 
 ```sql
 SELECT external_order_id, confirmation_status
@@ -722,13 +836,14 @@ FROM order_snapshot
 ORDER BY id DESC;
 ```
 
-## Check confirmation requests
+### Check confirmation requests
 
 ```sql
 SELECT
     os.external_order_id,
     cr.id,
     cr.active,
+    cr.communication_channel,
     cr.sent_at,
     cr.expires_at,
     cr.token
@@ -737,7 +852,7 @@ JOIN order_snapshot os ON os.id = cr.order_snapshot_id
 ORDER BY cr.id DESC;
 ```
 
-## Check customer responses
+### Check customer responses
 
 ```sql
 SELECT
@@ -751,7 +866,7 @@ JOIN order_snapshot os ON os.id = cr.order_snapshot_id
 ORDER BY crs.id DESC;
 ```
 
-## Check latest order with callback-relevant information
+### Check latest order with callback-relevant information
 
 ```sql
 SELECT
@@ -759,11 +874,13 @@ SELECT
     os.external_order_id,
     os.customer_name,
     os.customer_email,
+    os.customer_phone_number,
     os.delivery_address,
     os.product,
     os.quantity_liters,
     cr.id AS confirmation_request_id,
     cr.active,
+    cr.communication_channel,
     cr.sent_at,
     cr.expires_at,
     cr.token
@@ -824,6 +941,7 @@ The frontend does not call DISPO directly. DISPO status updates are handled by t
 * DISPO callback is implemented as HTTP client, but local testing uses DISPO Mock.
 * Callback retry relies on Camunda job retry behavior.
 * Real SMTP provider is not configured yet; Mailpit is used locally.
+* Real SMS provider is not configured yet; SMS Mock is used locally.
 * Token is stored as plain text for MVP.
 * Authentication/authorization is not part of the MVP.
 * Frontend is developed separately.

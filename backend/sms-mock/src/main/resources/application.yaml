@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: sms-mock
+
+server:
+  port: 8091

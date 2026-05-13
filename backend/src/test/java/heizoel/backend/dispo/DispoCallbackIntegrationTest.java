@@ -8,6 +8,8 @@ import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.domain.repository.ConfirmationRequestRepository;
 import heizoel.backend.dispo.domain.repository.OrderSnapshotRepository;
+import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
+import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -24,12 +27,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -49,7 +49,15 @@ class DispoCallbackIntegrationTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.datasource.driver-class-name", postgres::getDriverClassName);
+
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
+        registry.add("spring.flyway.enabled", () -> "true");
+        registry.add("spring.flyway.locations", () -> "classpath:db/migration");
     }
+
+    @MockitoBean
+    JavaMailSender javaMailSender;
 
     @Autowired
     private MockMvc mockMvc;
@@ -66,20 +74,23 @@ class DispoCallbackIntegrationTest {
     @MockitoBean
     private DispoStatusCallbackService dispoStatusCallbackService;
 
+    @MockitoBean
+    private ConfirmationNotificationService notificationService;
+
     @BeforeEach
     void setUp() {
         customerResponseRepository.deleteAll();
         confirmationRequestRepository.deleteAll();
         orderSnapshotRepository.deleteAll();
 
-        reset(dispoStatusCallbackService);
+        reset(dispoStatusCallbackService, notificationService);
     }
 
     @Test
     void confirm_shouldSendDispoCallbackAfterCommit() throws Exception {
         String externalOrderId = "A-CB-1001";
 
-        createDispoConfirmationRequest(
+        createEmailDispoConfirmationRequest(
                 externalOrderId,
                 "10:00",
                 "11:00"
@@ -109,7 +120,7 @@ class DispoCallbackIntegrationTest {
     void reject_shouldSendDispoCallbackAfterCommit() throws Exception {
         String externalOrderId = "A-CB-1002";
 
-        createDispoConfirmationRequest(
+        createEmailDispoConfirmationRequest(
                 externalOrderId,
                 "12:00",
                 "13:00"
@@ -139,7 +150,7 @@ class DispoCallbackIntegrationTest {
     void callbackFailure_shouldNotRollbackCustomerConfirmation() throws Exception {
         String externalOrderId = "A-CB-1003";
 
-        createDispoConfirmationRequest(
+        createEmailDispoConfirmationRequest(
                 externalOrderId,
                 "14:00",
                 "15:00"
@@ -181,7 +192,50 @@ class DispoCallbackIntegrationTest {
                 .sendStatusUpdate(any(DispoConfirmationStatusUpdateDto.class));
     }
 
-    private void createDispoConfirmationRequest(
+    @Test
+    void confirm_smsRequest_shouldStillSendDispoCallback() throws Exception {
+        String externalOrderId = "A-CB-SMS-1004";
+
+        createSmsDispoConfirmationRequest(
+                externalOrderId
+        );
+
+        String token = findActiveToken(externalOrderId);
+
+        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "customerComment": "SMS confirmation works."
+                                }
+                                """))
+                .andExpect(status().isNoContent());
+
+        OrderSnapshot orderSnapshot = orderSnapshotRepository
+                .findByExternalOrderId(externalOrderId)
+                .orElseThrow();
+
+        assertThat(orderSnapshot.getCustomerEmail()).isNull();
+        assertThat(orderSnapshot.getCustomerPhoneNumber()).isEqualTo("+491701234567");
+        assertThat(orderSnapshot.getConfirmationStatus()).isEqualTo(ConfirmationStatus.CONFIRMED);
+
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository
+                .findByToken(token)
+                .orElseThrow();
+
+        assertThat(confirmationRequest.getCommunicationChannel())
+                .isEqualTo(CommunicationChannel.SMS);
+
+        verify(dispoStatusCallbackService, timeout(1000)).sendStatusUpdate(argThat(
+                statusUpdateMatches(
+                        externalOrderId,
+                        ConfirmationStatus.CONFIRMED,
+                        "SMS confirmation works."
+                )
+        ));
+    }
+
+    private void createEmailDispoConfirmationRequest(
             String externalOrderId,
             String deliveryWindowStart,
             String deliveryWindowEnd
@@ -193,6 +247,8 @@ class DispoCallbackIntegrationTest {
                                   "externalOrderId": "%s",
                                   "customerName": "Max Muller",
                                   "customerEmail": "daniel@example.com",
+                                  "customerPhoneNumber": null,
+                                  "communicationChannel": "EMAIL",
                                   "deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
                                   "product": "Heizol",
                                   "quantityLiters": 3000,
@@ -204,6 +260,33 @@ class DispoCallbackIntegrationTest {
                                 externalOrderId,
                                 deliveryWindowStart,
                                 deliveryWindowEnd
+                        )))
+                .andExpect(status().isCreated());
+    }
+
+    private void createSmsDispoConfirmationRequest(
+            String externalOrderId
+    ) throws Exception {
+        mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "externalOrderId": "%s",
+                                  "customerName": "Max Muller",
+                                  "customerEmail": null,
+                                  "customerPhoneNumber": "+491701234567",
+                                  "communicationChannel": "SMS",
+                                  "deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
+                                  "product": "Heizol",
+                                  "quantityLiters": 3000,
+                                  "deliveryDate": "2026-06-12",
+                                  "deliveryWindowStart": "%s",
+                                  "deliveryWindowEnd": "%s"
+                                }
+                                """.formatted(
+                                externalOrderId,
+                                "16:00",
+                                "17:00"
                         )))
                 .andExpect(status().isCreated());
     }

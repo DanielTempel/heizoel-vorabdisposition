@@ -3,7 +3,7 @@ package heizoel.backend.notification.application.mail;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.infrastructure.ConfirmationProperties;
-import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
+import heizoel.backend.notification.application.interfaces.EmailConfirmationSender;
 import heizoel.backend.notification.infrastrukture.MailProperties;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class SmtpConfirmationNotificationService implements ConfirmationNotificationService {
+public class EmailConfirmationNotificationService implements EmailConfirmationSender {
 
     private final JavaMailSender mailSender;
     private final MailProperties mailProperties;
@@ -23,7 +23,7 @@ public class SmtpConfirmationNotificationService implements ConfirmationNotifica
     private final ThymeleafConfirmationMailRenderer mailRenderer;
 
     @Override
-    public void sendConfirmationRequestEmail(
+    public void send(
             OrderSnapshot orderSnapshot,
             ConfirmationRequest confirmationRequest
     ) {

@@ -40,6 +40,14 @@ services:
     ports:
       - "8090:8090"
 
+  sms-mock:
+    build:
+      context: ./sms-mock
+      dockerfile: Dockerfile
+    container_name: heizoel-sms-mock
+    ports:
+      - "8091:8091"
+
 volumes:
   heizoel_postgres_data:
   heizoel_pgadmin_data:

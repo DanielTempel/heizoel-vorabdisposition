@@ -9,14 +9,19 @@ import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.domain.repository.ConfirmationRequestRepository;
 import heizoel.backend.dispo.domain.repository.OrderSnapshotRepository;
+import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
+import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -26,6 +31,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -51,7 +58,21 @@ class CustomerConfirmationIntegrationTest {
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
         registry.add("spring.flyway.enabled", () -> "true");
         registry.add("spring.flyway.locations", () -> "classpath:db/migration");
+
+        registry.add("camunda.bpm.auto-deployment-enabled", () -> "true");
+        registry.add("camunda.bpm.deployment-resource-pattern[0]", () -> "classpath*:processes/*.bpmn");
+        registry.add("camunda.bpm.job-execution.enabled", () -> "false");
+
+        registry.add("heizoel.confirmation.response-deadline", () -> "PT24H");
+        registry.add("heizoel.confirmation.frontend-url", () -> "http://localhost:3000");
+        registry.add("heizoel.confirmation.dispo-url", () -> "http://localhost:8090/api/dispo/confirmation-status-updates");
     }
+
+    @MockitoBean
+    JavaMailSender javaMailSender;
+
+    @MockitoBean
+    ConfirmationNotificationService confirmationNotificationService;
 
     @Autowired
     MockMvc mockMvc;
@@ -73,6 +94,8 @@ class CustomerConfirmationIntegrationTest {
         customerResponseRepository.deleteAll();
         confirmationRequestRepository.deleteAll();
         orderSnapshotRepository.deleteAll();
+
+        Mockito.reset(confirmationNotificationService);
     }
 
     @Test
@@ -132,6 +155,7 @@ class CustomerConfirmationIntegrationTest {
         assertThat(responseExists).isTrue();
 
         var customerResponses = customerResponseRepository.findAll();
+
         assertThat(customerResponses).hasSize(1);
         assertThat(customerResponses.get(0).getComment())
                 .isEqualTo("Bitte 30 Minuten vorher anrufen.");
@@ -169,6 +193,7 @@ class CustomerConfirmationIntegrationTest {
         assertThat(confirmationRequest.isActive()).isFalse();
 
         var customerResponses = customerResponseRepository.findAll();
+
         assertThat(customerResponses).hasSize(1);
         assertThat(customerResponses.get(0).getComment())
                 .isEqualTo("Bitte erst ab 15 Uhr.");
@@ -200,11 +225,26 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.status").value(404));
     }
 
+    @Test
+    void createDispoConfirmationRequest_shouldUseNotificationService() throws Exception {
+        String externalOrderId = "A-3005";
+
+        createDispoConfirmationRequest(externalOrderId);
+
+        Mockito.verify(confirmationNotificationService, times(1))
+                .sendConfirmationRequest(
+                        any(OrderSnapshot.class),
+                        any(ConfirmationRequest.class)
+                );
+    }
+
     private void createDispoConfirmationRequest(String externalOrderId) throws Exception {
         DispoConfirmationRequestDto request = new DispoConfirmationRequestDto(
                 externalOrderId,
                 "Max Muller",
+                CommunicationChannel.EMAIL,
                 "daniel@example.com",
+                "+491701234567",
                 "Beispielstrase 12, 97070 Wurzburg",
                 "Heizol",
                 3000,

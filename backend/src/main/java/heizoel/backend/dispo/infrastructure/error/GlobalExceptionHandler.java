@@ -1,11 +1,13 @@
 package heizoel.backend.dispo.infrastructure.error;
 
-import heizoel.backend.exceptions.EmailSendingException;
+import heizoel.backend.exceptions.notification.EmailSendingException;
 import heizoel.backend.exceptions.customer.ConfirmationRequestExpiredException;
 import heizoel.backend.exceptions.customer.ConfirmationRequestInactiveException;
 import heizoel.backend.exceptions.customer.ConfirmationRequestNotFoundException;
 import heizoel.backend.exceptions.customer.CustomerResponseAlreadyExistsException;
 import heizoel.backend.exceptions.dispo.InvalidDeliveryWindowException;
+import heizoel.backend.exceptions.dispo.MissingDigitalContactException;
+import heizoel.backend.exceptions.notification.SmsSendingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -89,11 +91,24 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.BAD_GATEWAY, "EMAIL_SENDING_FAILED", "The confirmation e-mail could not be sent.", request.getRequestURI());
     }
 
+    @ExceptionHandler(SmsSendingException.class)
+    ResponseEntity<ErrorResponseDto> smsSendingFailed(SmsSendingException e, HttpServletRequest req
+    ) {
+        return respond(HttpStatus.BAD_GATEWAY, "SMS_SENDING_FAILED", e.getMessage(), req.getRequestURI());
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ErrorResponseDto> unexpected(Exception e, HttpServletRequest req) {
         log.error("Unexpected error occurred", e);
         return respond(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "An unexpected technical error occurred.", req.getRequestURI());
     }
+
+    @ExceptionHandler(MissingDigitalContactException.class)
+    ResponseEntity<ErrorResponseDto> missingDigitalContact(MissingDigitalContactException e, HttpServletRequest req
+    ) {
+        return respond(HttpStatus.UNPROCESSABLE_ENTITY, "MISSING_DIGITAL_CONTACT", e.getMessage(), req.getRequestURI());
+    }
+
 
     private ResponseEntity<ErrorResponseDto> respond(
             HttpStatus status,

@@ -8,6 +8,7 @@ import heizoel.backend.dispo.domain.repository.OrderSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -29,6 +30,7 @@ public class OrderSnapshotServiceImpl implements OrderSnapshotService {
         orderSnapshot.setExternalOrderId(data.externalOrderId());
         orderSnapshot.setCustomerName(data.customerName());
         orderSnapshot.setCustomerEmail(data.customerEmail());
+        orderSnapshot.setCustomerPhoneNumber(data.customerPhoneNumber());
         orderSnapshot.setDeliveryAddress(data.deliveryAddress());
         orderSnapshot.setProduct(data.product());
         orderSnapshot.setQuantityLiters(data.quantityLiters());
@@ -41,6 +43,7 @@ public class OrderSnapshotServiceImpl implements OrderSnapshotService {
     public OrderSnapshot update(OrderSnapshot orderSnapshot, OrderSnapshotData data) {
         orderSnapshot.setCustomerName(data.customerName());
         orderSnapshot.setCustomerEmail(data.customerEmail());
+        orderSnapshot.setCustomerPhoneNumber(data.customerPhoneNumber());
         orderSnapshot.setDeliveryAddress(data.deliveryAddress());
         orderSnapshot.setProduct(data.product());
         orderSnapshot.setQuantityLiters(data.quantityLiters());
@@ -51,13 +54,13 @@ public class OrderSnapshotServiceImpl implements OrderSnapshotService {
 
     @Override
     public boolean hasSameData(OrderSnapshot orderSnapshot, OrderSnapshotData data) {
-        return orderSnapshot.getCustomerName().equals(data.customerName())
-                && orderSnapshot.getCustomerEmail().equals(data.customerEmail())
-                && orderSnapshot.getDeliveryAddress().equals(data.deliveryAddress())
-                && orderSnapshot.getProduct().equals(data.product())
-                && orderSnapshot.getQuantityLiters().equals(data.quantityLiters());
+        return Objects.equals(orderSnapshot.getCustomerName(), data.customerName())
+                && Objects.equals(orderSnapshot.getCustomerEmail(), data.customerEmail())
+                && Objects.equals(orderSnapshot.getCustomerPhoneNumber(), data.customerPhoneNumber())
+                && Objects.equals(orderSnapshot.getDeliveryAddress(), data.deliveryAddress())
+                && Objects.equals(orderSnapshot.getProduct(), data.product())
+                && Objects.equals(orderSnapshot.getQuantityLiters(), data.quantityLiters());
     }
-
     @Override
     public OrderSnapshot updateStatus(OrderSnapshot orderSnapshot, ConfirmationStatus status) {
         orderSnapshot.setConfirmationStatus(status);

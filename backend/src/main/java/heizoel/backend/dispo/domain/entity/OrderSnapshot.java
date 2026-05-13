@@ -31,8 +31,11 @@ public class OrderSnapshot {
     @Column(name = "customer_name", nullable = false)
     private String customerName;
 
-    @Column(name = "customer_email", nullable = false)
+    @Column(name = "customer_email")
     private String customerEmail;
+
+    @Column(name = "customer_phone_number", length = 50)
+    private String customerPhoneNumber;
 
     @Column(name = "delivery_address", nullable = false, length = 1000)
     private String deliveryAddress;

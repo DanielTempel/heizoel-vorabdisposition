@@ -2,6 +2,8 @@ package heizoel.backend.camunda;
 
 import heizoel.backend.dispo.application.interfaces.DispoStatusCallbackService;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
+import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
+import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
@@ -10,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -53,11 +56,9 @@ class ConfirmationFlowIntegrationTest {
         registry.add("camunda.bpm.deployment-resource-pattern[0]", () -> "classpath*:processes/*.bpmn");
         registry.add("camunda.bpm.job-execution.enabled", () -> "true");
 
-        /*
-         * Test deadline.
-         * Production value should be PT24H.
-         */
-        registry.add("confirmation.response-deadline", () -> "PT2S");
+        registry.add("heizoel.confirmation.response-deadline", () -> "PT2S");
+        registry.add("heizoel.confirmation.frontend-url", () -> "http://localhost:3000");
+        registry.add("heizoel.confirmation.dispo-url", () -> "http://localhost:8090/api/dispo/confirmation-status-updates");
     }
 
     @Autowired
@@ -68,10 +69,15 @@ class ConfirmationFlowIntegrationTest {
 
     @MockitoBean
     DispoStatusCallbackService dispoStatusCallbackService;
+    @MockitoBean
+    ConfirmationNotificationService confirmationNotificationService;
+
+    @MockitoBean
+    JavaMailSender javaMailSender;
 
     @BeforeEach
     void resetMocks() {
-        reset(dispoStatusCallbackService);
+        reset(dispoStatusCallbackService, confirmationNotificationService);
     }
 
     @Test
@@ -93,7 +99,8 @@ class ConfirmationFlowIntegrationTest {
                 });
 
         await()
-                .atMost(Duration.ofSeconds(5))
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofMillis(300))
                 .untilAsserted(() ->
                         verify(dispoStatusCallbackService, atLeastOnce())
                                 .sendStatusUpdate(argThat(statusUpdateFor(
@@ -123,16 +130,17 @@ class ConfirmationFlowIntegrationTest {
         assertThat(isActiveRequest(externalOrderId))
                 .isFalse();
 
-        verify(dispoStatusCallbackService, atLeastOnce())
-                .sendStatusUpdate(argThat(statusUpdateFor(
-                        externalOrderId,
-                        ConfirmationStatus.CONFIRMED
-                )));
+        await()
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofMillis(300))
+                .untilAsserted(() ->
+                        verify(dispoStatusCallbackService, atLeastOnce())
+                                .sendStatusUpdate(argThat(statusUpdateFor(
+                                        externalOrderId,
+                                        ConfirmationStatus.CONFIRMED
+                                )))
+                );
 
-        /*
-         * Wait longer than response-deadline.
-         * Camunda will wake up, but must not change CONFIRMED to NO_RESPONSE.
-         */
         await()
                 .pollDelay(Duration.ofSeconds(8))
                 .atMost(Duration.ofSeconds(10))
@@ -178,11 +186,16 @@ class ConfirmationFlowIntegrationTest {
         assertThat(getLatestCustomerComment(externalOrderId))
                 .isEqualTo("Bitte erst ab 15 Uhr.");
 
-        verify(dispoStatusCallbackService, atLeastOnce())
-                .sendStatusUpdate(argThat(statusUpdateFor(
-                        externalOrderId,
-                        ConfirmationStatus.REJECTED
-                )));
+        await()
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofMillis(300))
+                .untilAsserted(() ->
+                        verify(dispoStatusCallbackService, atLeastOnce())
+                                .sendStatusUpdate(argThat(statusUpdateFor(
+                                        externalOrderId,
+                                        ConfirmationStatus.REJECTED
+                                )))
+                );
     }
 
     private org.springframework.test.web.servlet.ResultActions createDispoConfirmationRequest(
@@ -194,7 +207,9 @@ class ConfirmationFlowIntegrationTest {
                         {
                           "externalOrderId": "%s",
                           "customerName": "Max Muller",
+                          "communicationChannel": "%s",
                           "customerEmail": "daniel@example.com",
+                          "customerPhoneNumber": null,
                           "deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
                           "product": "Heizol",
                           "quantityLiters": 3000,
@@ -202,7 +217,10 @@ class ConfirmationFlowIntegrationTest {
                           "deliveryWindowStart": "10:00",
                           "deliveryWindowEnd": "11:00"
                         }
-                        """.formatted(externalOrderId)));
+                        """.formatted(
+                        externalOrderId,
+                        CommunicationChannel.EMAIL.name()
+                )));
     }
 
     private String uniqueOrderId(String prefix) {

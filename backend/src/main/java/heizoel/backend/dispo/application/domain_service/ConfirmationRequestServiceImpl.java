@@ -39,6 +39,7 @@ public class ConfirmationRequestServiceImpl implements ConfirmationRequestServic
         confirmationRequest.setDeliveryDate(data.deliveryDate());
         confirmationRequest.setDeliveryWindowStart(data.deliveryWindowStart());
         confirmationRequest.setDeliveryWindowEnd(data.deliveryWindowEnd());
+        confirmationRequest.setCommunicationChannel(data.communicationChannel());
         confirmationRequest.setActive(true);
         confirmationRequest.setSentAt(sentAt);
         confirmationRequest.setExpiresAt(sentAt.plus(confirmationProperties.getResponseDeadline()));
@@ -59,7 +60,8 @@ public class ConfirmationRequestServiceImpl implements ConfirmationRequestServic
     ) {
         return confirmationRequest.getDeliveryDate().equals(data.deliveryDate())
                 && confirmationRequest.getDeliveryWindowStart().equals(data.deliveryWindowStart())
-                && confirmationRequest.getDeliveryWindowEnd().equals(data.deliveryWindowEnd());
+                && confirmationRequest.getDeliveryWindowEnd().equals(data.deliveryWindowEnd())
+                && confirmationRequest.getCommunicationChannel() == data.communicationChannel();
     }
 
     @Override
