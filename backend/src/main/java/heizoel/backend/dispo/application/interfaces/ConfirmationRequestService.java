@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface ConfirmationRequestService {
 
-    Optional<ConfirmationRequest> findActiveRequest(OrderSnapshot orderSnapshot);
+    Optional<ConfirmationRequest> findLatestRequest(OrderSnapshot orderSnapshot);
 
     ConfirmationRequest create(
             OrderSnapshot orderSnapshot,

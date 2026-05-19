@@ -1,10 +1,7 @@
 package heizoel.backend.dispo.api.dto.request;
 
 import heizoel.backend.notification.domain.CommunicationChannel;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -42,6 +39,11 @@ public record DispoConfirmationRequestDto(
         LocalTime deliveryWindowStart,
 
         @NotNull(message = "Delivery window end is required.")
-        LocalTime deliveryWindowEnd
+        LocalTime deliveryWindowEnd,
+
+        @NotNull(message = "Response deadline in hours is required.")
+        @Positive(message = "Response deadline in hours must be greater than 0.")
+        @Max(value = 168, message = "Response deadline must not exceed 168 hours.")
+        Integer responseDeadlineHours
 ) {
 }

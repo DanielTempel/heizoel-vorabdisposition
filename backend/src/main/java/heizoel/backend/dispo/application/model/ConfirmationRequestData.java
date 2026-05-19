@@ -9,6 +9,7 @@ public record ConfirmationRequestData (
         LocalDate deliveryDate,
         LocalTime deliveryWindowStart,
         LocalTime deliveryWindowEnd,
-        CommunicationChannel communicationChannel
+        CommunicationChannel communicationChannel,
+        Integer responseDeadline
 ) {
 }

@@ -1,5 +1,7 @@
 package heizoel.backend.customer.api.dto;
 
+import heizoel.backend.dispo.domain.ConfirmationStatus;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -11,6 +13,7 @@ public record CustomerConfirmationPreviewDto(
         Integer quantityLiters,
         LocalDate deliveryDate,
         LocalTime deliveryWindowStart,
-        LocalTime deliveryWindowEnd
+        LocalTime deliveryWindowEnd,
+        ConfirmationStatus confirmationStatus
 ) {
 }

@@ -28,7 +28,6 @@ spring:
 
 heizoel:
   confirmation:
-    response-deadline: ${CONFIRMATION_RESPONSE_DEADLINE:PT24H}
     frontend-url: ${FRONTEND_URL:http://localhost:3000}
     dispo-url: ${DISPO_CALLBACK_URL:http://localhost:8090/api/dispo/confirmation-status-updates}
 

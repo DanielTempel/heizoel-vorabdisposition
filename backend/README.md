@@ -8,7 +8,7 @@ The backend receives confirmation requests from a DISPO system, sends confirmati
 
 ## Tech Stack
 
-* Java 25
+* Java 17
 * Spring Boot 3.5
 * PostgreSQL 16
 * Flyway
