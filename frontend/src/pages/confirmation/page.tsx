@@ -1,4 +1,15 @@
 import { useEffect, useState } from 'react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
 import {
   confirmDelivery,
   getConfirmationPreview,
@@ -88,80 +99,101 @@ export function ConfirmationPage() {
   const isSubmitting = status === 'submitting'
 
   return (
-    <main className="page-shell">
-      <section className="content-card">
-        <h1>Bestätigen Sie Ihren Liefertermin</h1>
-        <p>
-          Bitte prüfen Sie die geplanten Lieferdaten. Wenn der Termin passt,
-          bestätigen Sie die Lieferung. Falls der Termin nicht passt, können
-          Sie ihn ablehnen und eine kurze Nachricht hinterlassen.
-        </p>
+    <main className="min-h-screen bg-background px-6 py-16 text-foreground">
+      <Card className="mx-auto w-full max-w-6xl gap-7 rounded-3xl p-4 shadow-lg sm:p-8">
+        <CardHeader className="px-0">
+          <CardTitle className="text-2xl font-semibold">
+            Bestätigen Sie Ihren Liefertermin
+          </CardTitle>
+          <CardDescription className="max-w-4xl text-sm">
+            Bitte prüfen Sie die geplanten Lieferdaten. Wenn der Termin passt,
+            bestätigen Sie die Lieferung. Falls der Termin nicht passt, können
+            Sie ihn ablehnen und eine kurze Nachricht hinterlassen.
+          </CardDescription>
+        </CardHeader>
 
-        <section className="date-panel">
-          <p className="eyebrow">Lieferdatum</p>
-          <h2>{formatDate(confirmation.deliveryDate)}</h2>
-          <p>
-            {formatTime(confirmation.deliveryWindowStart)} -{' '}
-            {formatTime(confirmation.deliveryWindowEnd)} Uhr
-          </p>
-        </section>
+        <CardContent className="grid gap-7 px-0">
+          <section className="rounded-2xl border bg-muted p-6">
+            <p className="text-xs font-semibold uppercase text-muted-foreground">
+              Lieferdatum
+            </p>
+            <h2 className="mt-2 text-3xl font-bold">
+              {formatDate(confirmation.deliveryDate)}
+            </h2>
+            <p className="mt-3 font-semibold">
+              {formatTime(confirmation.deliveryWindowStart)} -{' '}
+              {formatTime(confirmation.deliveryWindowEnd)} Uhr
+            </p>
+          </section>
 
-        <section>
-          <p className="eyebrow">Lieferdetails</p>
-          <div className="details-list">
-            <p>
-              <strong>Auftragsnummer:</strong> {confirmation.externalOrderId}
+          <section>
+            <p className="text-xs font-semibold uppercase text-muted-foreground">
+              Lieferdetails
             </p>
-            <p>
-              <strong>Kunde:</strong> {confirmation.customerName}
-            </p>
-            <p>
-              <strong>Lieferadresse:</strong>{' '}
-              {confirmation.deliveryAddress}
-            </p>
-            <p>
-              <strong>Produkt:</strong> {confirmation.product}
-            </p>
-            <p>
-              <strong>Menge:</strong>{' '}
-              {confirmation.quantityLiters.toLocaleString('de-DE')} Liter
-            </p>
+            <div className="mt-4 grid gap-3">
+              <p>
+                <strong>Auftragsnummer:</strong> {confirmation.externalOrderId}
+              </p>
+              <Separator />
+              <p>
+                <strong>Kunde:</strong> {confirmation.customerName}
+              </p>
+              <Separator />
+              <p>
+                <strong>Lieferadresse:</strong>{' '}
+                {confirmation.deliveryAddress}
+              </p>
+              <Separator />
+              <p>
+                <strong>Produkt:</strong> {confirmation.product}
+              </p>
+              <Separator />
+              <p>
+                <strong>Menge:</strong>{' '}
+                {confirmation.quantityLiters.toLocaleString('de-DE')} Liter
+              </p>
+            </div>
+          </section>
+
+          <label className="grid gap-2 text-sm font-medium">
+            Nachricht an die Disposition (optional)
+            <Textarea
+              className="min-h-28 resize-y rounded-2xl p-4"
+              value={comment}
+              maxLength={2000}
+              placeholder="Nachricht hier schreiben..."
+              onChange={(event) => setComment(event.target.value)}
+            />
+          </label>
+
+          <Alert className="p-4">
+            <AlertDescription>
+              <strong>Bitte beachten Sie:</strong> Diese Anfrage kann nur
+              einmal beantwortet werden.
+            </AlertDescription>
+          </Alert>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Button
+              className="h-14 rounded-2xl text-base"
+              disabled={isSubmitting}
+              type="button"
+              onClick={() => void submitAnswer('confirm')}
+            >
+              Termin bestätigen
+            </Button>
+            <Button
+              className="h-14 rounded-2xl text-base"
+              variant="destructive"
+              disabled={isSubmitting}
+              type="button"
+              onClick={() => void submitAnswer('reject')}
+            >
+              Termin ablehnen
+            </Button>
           </div>
-        </section>
-
-        <label className="comment-field">
-          Nachricht an die Disposition (optional)
-          <textarea
-            value={comment}
-            maxLength={2000}
-            placeholder="Nachricht hier schreiben..."
-            onChange={(event) => setComment(event.target.value)}
-          />
-        </label>
-
-        <p className="notice">
-          Bitte beachten Sie: Diese Anfrage kann nur einmal beantwortet werden.
-        </p>
-
-        <div className="actions">
-          <button
-            className="primary-action"
-            disabled={isSubmitting}
-            type="button"
-            onClick={() => void submitAnswer('confirm')}
-          >
-            Termin bestätigen
-          </button>
-          <button
-            className="danger-action"
-            disabled={isSubmitting}
-            type="button"
-            onClick={() => void submitAnswer('reject')}
-          >
-            Termin ablehnen
-          </button>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
     </main>
   )
 }

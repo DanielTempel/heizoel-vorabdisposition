@@ -1,3 +1,5 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import { formatDate, formatTime } from '../../../lib/format-delivery'
 import type {
   CustomerAnswerType,
@@ -16,36 +18,46 @@ export function SuccessState({
   const statusText =
     answerType === 'reject'
       ? 'Der Liefertermin wurde abgelehnt.'
-      : 'Der Liefertermin wurde bestaetigt.'
+      : 'Der Liefertermin wurde bestätigt.'
 
   return (
-    <main className="page-shell">
-      <section className="content-card">
-        <p className="eyebrow">Rückmeldung erhalten</p>
-        <h1>Vielen Dank für Ihre Rückmeldung</h1>
-        <p>Ihre Antwort wurde erfolgreich übermittelt.</p>
-        <p>{statusText}</p>
+    <main className="min-h-screen bg-background px-6 py-16 text-foreground">
+      <Card className="mx-auto w-full max-w-6xl rounded-3xl p-4 sm:p-8">
+        <CardHeader className="items-center px-0 text-center">
+          <p className="text-xs font-semibold uppercase text-muted-foreground">
+            Rückmeldung erhalten
+          </p>
+          <CardTitle className="max-w-md text-2xl font-semibold">
+            Vielen Dank für Ihre Rückmeldung
+          </CardTitle>
+          <p className="text-sm font-semibold">
+            Ihre Antwort wurde erfolgreich übermittelt.
+          </p>
+          <p className="text-sm text-muted-foreground">{statusText}</p>
+        </CardHeader>
 
-        <div className="details-list">
+        <CardContent className="grid gap-4 px-0">
           <p>
             <strong>Lieferdatum:</strong>{' '}
             {formatDate(confirmation.deliveryDate)} -{' '}
             {formatTime(confirmation.deliveryWindowStart)} -{' '}
             {formatTime(confirmation.deliveryWindowEnd)} Uhr
           </p>
+          <Separator />
           <p>
             <strong>Lieferadresse:</strong> {confirmation.deliveryAddress}
           </p>
+          <Separator />
           <p>
             <strong>Produkt / Menge:</strong> {confirmation.product} -{' '}
             {confirmation.quantityLiters.toLocaleString('de-DE')} Liter
           </p>
-        </div>
 
-        <p className="close-note">
-          Sie können dieses Fenster nun schliessen.
-        </p>
-      </section>
+          <p className="mt-8 text-center font-semibold">
+            Sie können dieses Fenster nun schließen.
+          </p>
+        </CardContent>
+      </Card>
     </main>
   )
 }
