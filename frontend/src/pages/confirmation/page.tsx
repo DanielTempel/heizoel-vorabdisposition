@@ -149,10 +149,9 @@ export function ConfirmationPage() {
             </div>
           </section>
 
-          <Alert className="p-4">
-            <AlertDescription>
-              <strong>Bitte beachten Sie:</strong> Diese Anfrage kann nur
-              einmal beantwortet werden.
+          <Alert className="border-amber-300 bg-amber-50 p-4">
+            <AlertDescription className="text-amber-950">
+              <strong>Bitte beachten Sie:</strong> Diese Anfrage kann nur einmal beantwortet werden.
             </AlertDescription>
           </Alert>
 

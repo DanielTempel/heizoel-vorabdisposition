@@ -23,20 +23,16 @@ export function SuccessState({
   return (
     <main className="min-h-screen bg-background px-6 py-16 text-foreground">
       <Card className="mx-auto w-full max-w-6xl rounded-3xl p-4 sm:p-8">
-        <CardHeader className="items-center px-0 text-center">
+        <CardHeader className="flex flex-col items-center gap-3 px-0 text-center">
           <p className="text-xs font-semibold uppercase text-muted-foreground">
             Rückmeldung erhalten
           </p>
-          <CardTitle className="max-w-md text-2xl font-semibold">
-            Vielen Dank für Ihre Rückmeldung
+          <CardTitle className="max-w-2xl text-2xl font-semibold">
+            {statusText}
           </CardTitle>
-          <p className="text-sm font-semibold">
-            Ihre Antwort wurde erfolgreich übermittelt.
-          </p>
-          <p className="text-sm text-muted-foreground">{statusText}</p>
         </CardHeader>
 
-        <CardContent className="grid gap-4 px-0">
+        <CardContent className="mx-auto grid w-full max-w-5xl gap-4 px-0 pt-8">
           <p>
             <strong>Lieferdatum:</strong>{' '}
             {formatDate(confirmation.deliveryDate)} -{' '}
