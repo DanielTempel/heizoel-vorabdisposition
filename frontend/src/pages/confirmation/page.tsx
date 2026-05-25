@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Textarea } from '@/components/ui/textarea'
 import {
   confirmDelivery,
   getConfirmationPreview,
@@ -41,7 +40,6 @@ export function ConfirmationPage() {
   const [status, setStatus] = useState<PageStatus>('loading')
   const [confirmation, setConfirmation] =
     useState<CustomerConfirmationPreview | null>(null)
-  const [comment, setComment] = useState('')
   const [answerType, setAnswerType] = useState<CustomerAnswerType | null>(null)
 
   const token = getTokenFromPath()
@@ -66,14 +64,10 @@ export function ConfirmationPage() {
     setAnswerType(type)
 
     try {
-      const request = comment.trim()
-        ? { customerComment: comment.trim() }
-        : {}
-
       if (type === 'confirm') {
-        await confirmDelivery(token, request)
+        await confirmDelivery(token, {})
       } else {
-        await rejectDelivery(token, request)
+        await rejectDelivery(token, {})
       }
 
       setStatus('success')
@@ -99,13 +93,13 @@ export function ConfirmationPage() {
   const isSubmitting = status === 'submitting'
 
   return (
-    <main className="min-h-screen bg-background px-6 py-16 text-foreground">
+    <main className="min-h-screen bg-background px-6 py-6 text-foreground">
       <Card className="mx-auto w-full max-w-6xl gap-7 rounded-3xl p-4 shadow-lg sm:p-8">
         <CardHeader className="px-0">
           <CardTitle className="text-2xl font-semibold">
             Bestätigen Sie Ihren Liefertermin
           </CardTitle>
-          <CardDescription className="max-w-4xl text-sm">
+          <CardDescription className="text-sm">
             Bitte prüfen Sie die geplanten Lieferdaten. Wenn der Termin passt,
             bestätigen Sie die Lieferung. Falls der Termin nicht passt, können
             Sie ihn ablehnen und eine kurze Nachricht hinterlassen.
@@ -154,17 +148,6 @@ export function ConfirmationPage() {
               </p>
             </div>
           </section>
-
-          <label className="grid gap-2 text-sm font-medium">
-            Nachricht an die Disposition (optional)
-            <Textarea
-              className="min-h-28 resize-y rounded-2xl p-4"
-              value={comment}
-              maxLength={2000}
-              placeholder="Nachricht hier schreiben..."
-              onChange={(event) => setComment(event.target.value)}
-            />
-          </label>
 
           <Alert className="p-4">
             <AlertDescription>
