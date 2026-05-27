@@ -3,11 +3,11 @@ package heizoel.backend.camunda.application;
 
 import heizoel.backend.camunda.application.interfaces.ConfirmationWorkflowService;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
-import heizoel.backend.dispo.infrastructure.ConfirmationProperties;
 import lombok.RequiredArgsConstructor;
 import org.camunda.bpm.engine.RuntimeService;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Map;
 
 @Service
@@ -19,7 +19,6 @@ public class ConfirmationWorkflowServiceImpl implements ConfirmationWorkflowServ
     private static final String VAR_RESPONSE_DEADLINE = "responseDeadline";
 
     private final RuntimeService runtimeService;
-    private final ConfirmationProperties confirmationProperties;
 
     @Override
     public void startTimeoutProcess(ConfirmationRequest confirmationRequest) {
@@ -28,7 +27,7 @@ public class ConfirmationWorkflowServiceImpl implements ConfirmationWorkflowServ
                 confirmationRequest.getId().toString(),
                 Map.of(
                         VAR_CONFIRMATION_REQUEST_ID, confirmationRequest.getId(),
-                        VAR_RESPONSE_DEADLINE, confirmationProperties.getResponseDeadline().toString()
+                        VAR_RESPONSE_DEADLINE, Duration.ofHours(confirmationRequest.getResponseDeadlineHours()).toString()
                 )
         );
     }

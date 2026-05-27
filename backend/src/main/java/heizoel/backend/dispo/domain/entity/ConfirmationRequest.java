@@ -64,4 +64,7 @@ public class ConfirmationRequest {
 
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
+
+    @Column(name = "response_deadline_hours", nullable = false)
+    private Integer responseDeadlineHours;
 }

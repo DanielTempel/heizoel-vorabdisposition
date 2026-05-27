@@ -1,4 +1,4 @@
-package heizoel.backend.notification.infrastrukture;
+package heizoel.backend.notification.infrastructure;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -58,7 +58,8 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
                 request.deliveryDate(),
                 request.deliveryWindowStart(),
                 request.deliveryWindowEnd(),
-                request.communicationChannel()
+                request.communicationChannel(),
+                request.responseDeadlineHours()
         );
 
         Optional<OrderSnapshot> existingOrder = orderSnapshotService.findByExternalOrderId(orderData.externalOrderId());
@@ -68,24 +69,24 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
         }
 
         OrderSnapshot orderSnapshot = existingOrder.get();
-        Optional<ConfirmationRequest> activeRequest = confirmationRequestService.findActiveRequest(orderSnapshot);
-        if (activeRequest.isPresent()
+        Optional<ConfirmationRequest> latestRequest = confirmationRequestService.findLatestRequest(orderSnapshot);
+        if (latestRequest.isPresent()
                 && orderSnapshotService.hasSameData(orderSnapshot, orderData)
-                && confirmationRequestService.hasSameData(activeRequest.get(), requestData)) {
+                && confirmationRequestService.hasSameData(latestRequest.get(), requestData)
+                && isFinalCustomerStatus(orderSnapshot.getConfirmationStatus())) {
 
             return new DispoConfirmationCreationResult(
                     new DispoConfirmationResponseDto(
                             orderSnapshot.getExternalOrderId(),
-                            ConfirmationStatus.SENT
+                            orderSnapshot.getConfirmationStatus()
                     ),
                     false
             );
         }
 
-        activeRequest.ifPresent(confirmationRequestService::markInactive);
+        latestRequest.filter(ConfirmationRequest::isActive)
+                .ifPresent(confirmationRequestService::markInactive);
         OrderSnapshot updatedOrderSnapshot = orderSnapshotService.update(orderSnapshot, orderData);
-
-
 
 
         return createNewConfirmation(updatedOrderSnapshot, requestData);
@@ -105,7 +106,7 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
         return new DispoConfirmationCreationResult(
                 new DispoConfirmationResponseDto(
                         orderSnapshot.getExternalOrderId(),
-                        ConfirmationStatus.SENT
+                        orderSnapshot.getConfirmationStatus()
                 ),
                 true
         );
@@ -129,5 +130,10 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private boolean isFinalCustomerStatus(ConfirmationStatus status) {
+        return status == ConfirmationStatus.CONFIRMED
+                || status == ConfirmationStatus.REJECTED;
     }
 }

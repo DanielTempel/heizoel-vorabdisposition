@@ -297,7 +297,7 @@ class DispoCallbackIntegrationTest {
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByOrderSnapshotAndActiveTrue(orderSnapshot)
+                .findTopByOrderSnapshotOrderByIdDesc(orderSnapshot)
                 .orElseThrow();
 
         return confirmationRequest.getToken();

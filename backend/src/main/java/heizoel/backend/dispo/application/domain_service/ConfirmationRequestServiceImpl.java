@@ -6,10 +6,10 @@ import heizoel.backend.dispo.application.model.ConfirmationRequestData;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.domain.repository.ConfirmationRequestRepository;
-import heizoel.backend.dispo.infrastructure.ConfirmationProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -19,11 +19,10 @@ public class ConfirmationRequestServiceImpl implements ConfirmationRequestServic
 
     private final ConfirmationRequestRepository confirmationRequestRepository;
     private final TokenService tokenService;
-    private final ConfirmationProperties confirmationProperties;
 
     @Override
-    public Optional<ConfirmationRequest> findActiveRequest(OrderSnapshot orderSnapshot) {
-        return confirmationRequestRepository.findByOrderSnapshotAndActiveTrue(orderSnapshot);
+    public Optional<ConfirmationRequest> findLatestRequest(OrderSnapshot orderSnapshot) {
+        return confirmationRequestRepository.findTopByOrderSnapshotOrderByIdDesc(orderSnapshot);
     }
 
     @Override
@@ -42,7 +41,8 @@ public class ConfirmationRequestServiceImpl implements ConfirmationRequestServic
         confirmationRequest.setCommunicationChannel(data.communicationChannel());
         confirmationRequest.setActive(true);
         confirmationRequest.setSentAt(sentAt);
-        confirmationRequest.setExpiresAt(sentAt.plus(confirmationProperties.getResponseDeadline()));
+        confirmationRequest.setExpiresAt(sentAt.plus(Duration.ofHours(data.responseDeadline())));
+        confirmationRequest.setResponseDeadlineHours((data.responseDeadline()));
 
         return confirmationRequestRepository.save(confirmationRequest);
     }
@@ -61,7 +61,8 @@ public class ConfirmationRequestServiceImpl implements ConfirmationRequestServic
         return confirmationRequest.getDeliveryDate().equals(data.deliveryDate())
                 && confirmationRequest.getDeliveryWindowStart().equals(data.deliveryWindowStart())
                 && confirmationRequest.getDeliveryWindowEnd().equals(data.deliveryWindowEnd())
-                && confirmationRequest.getCommunicationChannel() == data.communicationChannel();
+                && confirmationRequest.getCommunicationChannel() == data.communicationChannel()
+                && confirmationRequest.getResponseDeadlineHours().equals(data.responseDeadline());
     }
 
     @Override

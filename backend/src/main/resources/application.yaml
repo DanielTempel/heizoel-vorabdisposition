@@ -27,7 +27,6 @@ camunda:
 
 heizoel:
   confirmation:
-    response-deadline: PT24H
     frontend-url: http://localhost:3000
     dispo-url: http://localhost:8090/api/dispo/confirmation-status-updates
     sms-provider-url: http://localhost:8091/api/sms/messages

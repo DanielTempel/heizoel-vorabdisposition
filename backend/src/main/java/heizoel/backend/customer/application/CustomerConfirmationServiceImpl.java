@@ -34,7 +34,10 @@ public class CustomerConfirmationServiceImpl implements CustomerConfirmationServ
     @Transactional(readOnly = true)
     public CustomerConfirmationPreviewDto getConfirmationPreview(String token) {
 
-        ConfirmationRequest confirmationRequest = findValidActiveRequest(token);
+        ConfirmationRequest confirmationRequest = confirmationRequestService.findByToken(token)
+                .orElseThrow(() -> new ConfirmationRequestNotFoundException(
+                        "Confirmation request was not found."
+                ));
         OrderSnapshot orderSnapshot = confirmationRequest.getOrderSnapshot();
 
         return new CustomerConfirmationPreviewDto(
@@ -45,7 +48,8 @@ public class CustomerConfirmationServiceImpl implements CustomerConfirmationServ
                 orderSnapshot.getQuantityLiters(),
                 confirmationRequest.getDeliveryDate(),
                 confirmationRequest.getDeliveryWindowStart(),
-                confirmationRequest.getDeliveryWindowEnd()
+                confirmationRequest.getDeliveryWindowEnd(),
+                orderSnapshot.getConfirmationStatus()
         );
     }
 

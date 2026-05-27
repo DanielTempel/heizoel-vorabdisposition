@@ -267,7 +267,7 @@ class CustomerConfirmationIntegrationTest {
                 .orElseThrow();
 
         return confirmationRequestRepository
-                .findByOrderSnapshotAndActiveTrue(orderSnapshot)
+                .findTopByOrderSnapshotOrderByIdDesc(orderSnapshot)
                 .orElseThrow()
                 .getToken();
     }

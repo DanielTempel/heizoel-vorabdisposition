@@ -4,7 +4,7 @@ import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.infrastructure.ConfirmationProperties;
 import heizoel.backend.notification.application.interfaces.EmailConfirmationSender;
-import heizoel.backend.notification.infrastrukture.MailProperties;
+import heizoel.backend.notification.infrastructure.MailProperties;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class EmailConfirmationNotificationService implements EmailConfirmationSe
             MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
             helper.setFrom(mailProperties.getFrom());
             helper.setTo(orderSnapshot.getCustomerEmail());
-            helper.setSubject("Bitte bestätigen Sie Ihren Heizöl-Liefertermin");
+            helper.setSubject("Bitte bestätigen Sie Ihren Liefertermin");
             helper.setText(htmlBody, true);
 
             mailSender.send(message);

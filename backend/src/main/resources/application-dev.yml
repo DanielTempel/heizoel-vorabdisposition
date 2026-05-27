@@ -28,7 +28,6 @@ spring:
 
 heizoel:
   confirmation:
-    response-deadline: PT60S
     frontend-url: http://localhost:3000
     dispo-url: http://localhost:8090/api/dispo/confirmation-status-updates
 
