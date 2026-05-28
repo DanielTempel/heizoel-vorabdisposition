@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_CustomerConfirmationOverview" targetNamespace="http://heizoel.backend/bpmn" exporter="Camunda Modeler" exporterVersion="5.45.0">
+  <bpmn:message id="Message_CustomerResponse" name="Customer response received" />
+  <bpmn:process id="customer-confirmation-overview" name="Customer Confirmation Overview" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Dispo" name="DISPO / Disponent">
+        <bpmn:flowNodeRef>StartEvent_DispoRequest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SelectOrder</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ShowFinalStatus</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_ProcessFinished</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Backend" name="Backend / Camunda">
+        <bpmn:flowNodeRef>Task_CreateRequest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SendLink</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_WaitForResult</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_ResponseReceived</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_Timeout</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SaveCustomerResponse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SetNoResponse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SendCallback</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Customer" name="Kunde">
+        <bpmn:flowNodeRef>Task_OpenLink</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ConfirmOrReject</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_DispoRequest" name="Request needed">
+      <bpmn:outgoing>Flow_Start_To_SelectOrder</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_SelectOrder" name="Select order, channel and deadline">
+      <bpmn:incoming>Flow_Start_To_SelectOrder</bpmn:incoming>
+      <bpmn:outgoing>Flow_SelectOrder_To_CreateRequest</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_CreateRequest" name="Create confirmation request">
+      <bpmn:incoming>Flow_SelectOrder_To_CreateRequest</bpmn:incoming>
+      <bpmn:outgoing>Flow_CreateRequest_To_SendLink</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="Task_SendLink" name="Send link via E-Mail / SMS">
+      <bpmn:incoming>Flow_CreateRequest_To_SendLink</bpmn:incoming>
+      <bpmn:outgoing>Flow_SendLink_To_OpenLink</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="Task_OpenLink" name="Open confirmation link">
+      <bpmn:incoming>Flow_SendLink_To_OpenLink</bpmn:incoming>
+      <bpmn:outgoing>Flow_OpenLink_To_ConfirmOrReject</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ConfirmOrReject" name="Confirm or reject delivery window">
+      <bpmn:incoming>Flow_OpenLink_To_ConfirmOrReject</bpmn:incoming>
+      <bpmn:outgoing>Flow_ConfirmOrReject_To_Wait</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:eventBasedGateway id="Gateway_WaitForResult" name="Wait for result">
+      <bpmn:incoming>Flow_ConfirmOrReject_To_Wait</bpmn:incoming>
+      <bpmn:outgoing>Flow_Wait_To_ResponseReceived</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Wait_To_Timeout</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="Event_ResponseReceived" name="Customer answered">
+      <bpmn:incoming>Flow_Wait_To_ResponseReceived</bpmn:incoming>
+      <bpmn:outgoing>Flow_ResponseReceived_To_SaveResponse</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Message_CustomerResponse" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="Event_Timeout" name="Deadline reached">
+      <bpmn:incoming>Flow_Wait_To_Timeout</bpmn:incoming>
+      <bpmn:outgoing>Flow_Timeout_To_SetNoResponse</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${responseDeadline}</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:serviceTask id="Task_SaveCustomerResponse" name="Save CONFIRMED / REJECTED">
+      <bpmn:incoming>Flow_ResponseReceived_To_SaveResponse</bpmn:incoming>
+      <bpmn:outgoing>Flow_SaveResponse_To_SendCallback</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_SetNoResponse" name="Set NO_RESPONSE">
+      <bpmn:incoming>Flow_Timeout_To_SetNoResponse</bpmn:incoming>
+      <bpmn:outgoing>Flow_SetNoResponse_To_SendCallback</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="Task_SendCallback" name="Send status update to DISPO">
+      <bpmn:incoming>Flow_SaveResponse_To_SendCallback</bpmn:incoming>
+      <bpmn:incoming>Flow_SetNoResponse_To_SendCallback</bpmn:incoming>
+      <bpmn:outgoing>Flow_SendCallback_To_ShowFinalStatus</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="Task_ShowFinalStatus" name="Show final status">
+      <bpmn:incoming>Flow_SendCallback_To_ShowFinalStatus</bpmn:incoming>
+      <bpmn:outgoing>Flow_ShowFinalStatus_To_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_ProcessFinished" name="Finished">
+      <bpmn:incoming>Flow_ShowFinalStatus_To_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_To_SelectOrder" sourceRef="StartEvent_DispoRequest" targetRef="Task_SelectOrder" />
+    <bpmn:sequenceFlow id="Flow_SelectOrder_To_CreateRequest" sourceRef="Task_SelectOrder" targetRef="Task_CreateRequest" />
+    <bpmn:sequenceFlow id="Flow_CreateRequest_To_SendLink" sourceRef="Task_CreateRequest" targetRef="Task_SendLink" />
+    <bpmn:sequenceFlow id="Flow_SendLink_To_OpenLink" sourceRef="Task_SendLink" targetRef="Task_OpenLink" />
+    <bpmn:sequenceFlow id="Flow_OpenLink_To_ConfirmOrReject" sourceRef="Task_OpenLink" targetRef="Task_ConfirmOrReject" />
+    <bpmn:sequenceFlow id="Flow_ConfirmOrReject_To_Wait" sourceRef="Task_ConfirmOrReject" targetRef="Gateway_WaitForResult" />
+    <bpmn:sequenceFlow id="Flow_Wait_To_ResponseReceived" sourceRef="Gateway_WaitForResult" targetRef="Event_ResponseReceived" />
+    <bpmn:sequenceFlow id="Flow_Wait_To_Timeout" sourceRef="Gateway_WaitForResult" targetRef="Event_Timeout" />
+    <bpmn:sequenceFlow id="Flow_ResponseReceived_To_SaveResponse" sourceRef="Event_ResponseReceived" targetRef="Task_SaveCustomerResponse" />
+    <bpmn:sequenceFlow id="Flow_Timeout_To_SetNoResponse" sourceRef="Event_Timeout" targetRef="Task_SetNoResponse" />
+    <bpmn:sequenceFlow id="Flow_SaveResponse_To_SendCallback" sourceRef="Task_SaveCustomerResponse" targetRef="Task_SendCallback" />
+    <bpmn:sequenceFlow id="Flow_SetNoResponse_To_SendCallback" sourceRef="Task_SetNoResponse" targetRef="Task_SendCallback" />
+    <bpmn:sequenceFlow id="Flow_SendCallback_To_ShowFinalStatus" sourceRef="Task_SendCallback" targetRef="Task_ShowFinalStatus" />
+    <bpmn:sequenceFlow id="Flow_ShowFinalStatus_To_End" sourceRef="Task_ShowFinalStatus" targetRef="EndEvent_ProcessFinished" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_CustomerConfirmationOverview">
+    <bpmndi:BPMNPlane id="BPMNPlane_CustomerConfirmationOverview" bpmnElement="customer-confirmation-overview">
+      <bpmndi:BPMNShape id="Lane_Customer_di" bpmnElement="Lane_Customer" isHorizontal="true">
+        <dc:Bounds x="120" y="430" width="1930" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Backend_di" bpmnElement="Lane_Backend" isHorizontal="true">
+        <dc:Bounds x="120" y="220" width="1930" height="210" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Dispo_di" bpmnElement="Lane_Dispo" isHorizontal="true">
+        <dc:Bounds x="120" y="80" width="1930" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_DispoRequest_di" bpmnElement="StartEvent_DispoRequest">
+        <dc:Bounds x="190" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SelectOrder_di" bpmnElement="Task_SelectOrder">
+        <dc:Bounds x="270" y="110" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CreateRequest_di" bpmnElement="Task_CreateRequest">
+        <dc:Bounds x="470" y="285" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SendLink_di" bpmnElement="Task_SendLink">
+        <dc:Bounds x="680" y="285" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenLink_di" bpmnElement="Task_OpenLink">
+        <dc:Bounds x="890" y="465" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ConfirmOrReject_di" bpmnElement="Task_ConfirmOrReject">
+        <dc:Bounds x="1100" y="465" width="190" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WaitForResult_di" bpmnElement="Gateway_WaitForResult">
+        <dc:Bounds x="1165" y="300" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_ResponseReceived_di" bpmnElement="Event_ResponseReceived">
+        <dc:Bounds x="1285" y="257" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_Timeout_di" bpmnElement="Event_Timeout">
+        <dc:Bounds x="1285" y="357" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SaveCustomerResponse_di" bpmnElement="Task_SaveCustomerResponse">
+        <dc:Bounds x="1360" y="235" width="170" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SetNoResponse_di" bpmnElement="Task_SetNoResponse">
+        <dc:Bounds x="1360" y="335" width="170" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SendCallback_di" bpmnElement="Task_SendCallback">
+        <dc:Bounds x="1570" y="285" width="180" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ShowFinalStatus_di" bpmnElement="Task_ShowFinalStatus">
+        <dc:Bounds x="1790" y="110" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_ProcessFinished_di" bpmnElement="EndEvent_ProcessFinished">
+        <dc:Bounds x="1980" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Start_To_SelectOrder_di" bpmnElement="Flow_Start_To_SelectOrder">
+        <di:waypoint x="226" y="150" />
+        <di:waypoint x="270" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SelectOrder_To_CreateRequest_di" bpmnElement="Flow_SelectOrder_To_CreateRequest">
+        <di:waypoint x="420" y="150" />
+        <di:waypoint x="445" y="150" />
+        <di:waypoint x="445" y="325" />
+        <di:waypoint x="470" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CreateRequest_To_SendLink_di" bpmnElement="Flow_CreateRequest_To_SendLink">
+        <di:waypoint x="630" y="325" />
+        <di:waypoint x="680" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SendLink_To_OpenLink_di" bpmnElement="Flow_SendLink_To_OpenLink">
+        <di:waypoint x="840" y="325" />
+        <di:waypoint x="865" y="325" />
+        <di:waypoint x="865" y="505" />
+        <di:waypoint x="890" y="505" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_OpenLink_To_ConfirmOrReject_di" bpmnElement="Flow_OpenLink_To_ConfirmOrReject">
+        <di:waypoint x="1050" y="505" />
+        <di:waypoint x="1100" y="505" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ConfirmOrReject_To_Wait_di" bpmnElement="Flow_ConfirmOrReject_To_Wait">
+        <di:waypoint x="1195" y="465" />
+        <di:waypoint x="1195" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Wait_To_ResponseReceived_di" bpmnElement="Flow_Wait_To_ResponseReceived">
+        <di:waypoint x="1215" y="325" />
+        <di:waypoint x="1250" y="325" />
+        <di:waypoint x="1250" y="275" />
+        <di:waypoint x="1285" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Wait_To_Timeout_di" bpmnElement="Flow_Wait_To_Timeout">
+        <di:waypoint x="1215" y="325" />
+        <di:waypoint x="1250" y="325" />
+        <di:waypoint x="1250" y="375" />
+        <di:waypoint x="1285" y="375" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ResponseReceived_To_SaveResponse_di" bpmnElement="Flow_ResponseReceived_To_SaveResponse">
+        <di:waypoint x="1321" y="275" />
+        <di:waypoint x="1360" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Timeout_To_SetNoResponse_di" bpmnElement="Flow_Timeout_To_SetNoResponse">
+        <di:waypoint x="1321" y="375" />
+        <di:waypoint x="1360" y="375" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SaveResponse_To_SendCallback_di" bpmnElement="Flow_SaveResponse_To_SendCallback">
+        <di:waypoint x="1530" y="275" />
+        <di:waypoint x="1550" y="275" />
+        <di:waypoint x="1550" y="325" />
+        <di:waypoint x="1570" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SetNoResponse_To_SendCallback_di" bpmnElement="Flow_SetNoResponse_To_SendCallback">
+        <di:waypoint x="1530" y="375" />
+        <di:waypoint x="1550" y="375" />
+        <di:waypoint x="1550" y="325" />
+        <di:waypoint x="1570" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SendCallback_To_ShowFinalStatus_di" bpmnElement="Flow_SendCallback_To_ShowFinalStatus">
+        <di:waypoint x="1750" y="325" />
+        <di:waypoint x="1770" y="325" />
+        <di:waypoint x="1770" y="150" />
+        <di:waypoint x="1790" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ShowFinalStatus_To_End_di" bpmnElement="Flow_ShowFinalStatus_To_End">
+        <di:waypoint x="1940" y="150" />
+        <di:waypoint x="1980" y="150" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
