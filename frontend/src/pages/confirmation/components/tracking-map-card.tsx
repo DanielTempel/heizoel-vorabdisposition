@@ -2,7 +2,7 @@ import 'leaflet/dist/leaflet.css'
 import { useEffect } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import L from 'leaflet'
-import { MapPinned, Route, Truck } from 'lucide-react'
+import { CircleCheckBig, MapPinned, Route, Truck } from 'lucide-react'
 import {
   MapContainer,
   Marker,
@@ -106,6 +106,7 @@ function formatDistance(distanceKilometers: number) {
 }
 
 export function TrackingMapCard({ confirmation }: TrackingMapCardProps) {
+  const arrivalThresholdKilometers = 0.08
   const vehiclePosition: Coordinate = [
     confirmation.locationY,
     confirmation.locationX,
@@ -120,6 +121,16 @@ export function TrackingMapCard({ confirmation }: TrackingMapCardProps) {
     confirmation.targetLocationY,
     confirmation.targetLocationX,
   )
+  const hasArrived = remainingDistance <= arrivalThresholdKilometers
+  const badgeText = hasArrived
+    ? 'Angekommen'
+    : `Noch ${formatDistance(remainingDistance)}`
+  const titleText = hasArrived
+    ? 'Ihr Fahrzeug ist angekommen'
+    : 'Ihr Fahrzeug ist unterwegs'
+  const descriptionText = hasArrived
+    ? 'Das Fahrzeug hat die Lieferadresse erreicht.'
+    : `Zieladresse: ${confirmation.deliveryAddress}`
 
   return (
     <Card className="overflow-hidden rounded-[2rem] border-0 bg-white/90 shadow-[0_28px_80px_rgba(15,23,42,0.12)] backdrop-blur">
@@ -130,16 +141,26 @@ export function TrackingMapCard({ confirmation }: TrackingMapCardProps) {
               Live Tracking
             </p>
             <CardTitle className="mt-2 font-heading text-2xl text-stone-950">
-              Ihr Fahrzeug ist unterwegs
+              {titleText}
             </CardTitle>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-stone-50">
-            <Route className="size-4" />
-            Noch {formatDistance(remainingDistance)}
+          <div
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${
+              hasArrived
+                ? 'bg-emerald-600 text-white'
+                : 'bg-stone-950 text-stone-50'
+            }`}
+          >
+            {hasArrived ? (
+              <CircleCheckBig className="size-4" />
+            ) : (
+              <Route className="size-4" />
+            )}
+            {badgeText}
           </div>
         </div>
         <p className="max-w-3xl text-sm leading-6 text-stone-600">
-          Zieladresse: {confirmation.deliveryAddress}
+          {descriptionText}
         </p>
       </CardHeader>
 
@@ -159,8 +180,8 @@ export function TrackingMapCard({ confirmation }: TrackingMapCardProps) {
               <FitBounds positions={[vehiclePosition, destinationPosition]} />
               <Polyline
                 pathOptions={{
-                  color: '#f59e0b',
-                  dashArray: '12 12',
+                  color: hasArrived ? '#059669' : '#f59e0b',
+                  dashArray: hasArrived ? undefined : '12 12',
                   lineCap: 'round',
                   opacity: 0.9,
                   weight: 5,
@@ -174,7 +195,7 @@ export function TrackingMapCard({ confirmation }: TrackingMapCardProps) {
                   opacity={1}
                   permanent
                 >
-                  Noch {formatDistance(remainingDistance)}
+                  {badgeText}
                 </Tooltip>
               </Marker>
               <Marker
