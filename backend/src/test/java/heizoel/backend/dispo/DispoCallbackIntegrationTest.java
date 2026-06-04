@@ -250,11 +250,16 @@ class DispoCallbackIntegrationTest {
                                   "customerPhoneNumber": null,
                                   "communicationChannel": "EMAIL",
                                   "deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
+                                  "locationX": 9.8820,
+                                  "locationY": 49.8166,
+                                  "targetLocationX": 9.9372,
+                                  "targetLocationY": 49.7935,
                                   "product": "Heizol",
                                   "quantityLiters": 3000,
                                   "deliveryDate": "2026-06-12",
                                   "deliveryWindowStart": "%s",
-                                  "deliveryWindowEnd": "%s"
+                                  "deliveryWindowEnd": "%s",
+                                  "responseDeadlineHours": 24
                                 }
                                 """.formatted(
                                 externalOrderId,
@@ -277,11 +282,16 @@ class DispoCallbackIntegrationTest {
                                   "customerPhoneNumber": "+491701234567",
                                   "communicationChannel": "SMS",
                                   "deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
+                                  "locationX": 9.8820,
+                                  "locationY": 49.8166,
+                                  "targetLocationX": 9.9372,
+                                  "targetLocationY": 49.7935,
                                   "product": "Heizol",
                                   "quantityLiters": 3000,
                                   "deliveryDate": "2026-06-12",
                                   "deliveryWindowStart": "%s",
-                                  "deliveryWindowEnd": "%s"
+                                  "deliveryWindowEnd": "%s",
+                                  "responseDeadlineHours": 24
                                 }
                                 """.formatted(
                                 externalOrderId,

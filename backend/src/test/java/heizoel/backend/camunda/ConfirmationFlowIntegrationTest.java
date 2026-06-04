@@ -1,5 +1,6 @@
 package heizoel.backend.camunda;
 
+import heizoel.backend.camunda.application.interfaces.NoResponseTimeoutService;
 import heizoel.backend.dispo.application.interfaces.DispoStatusCallbackService;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
 import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
@@ -67,6 +68,9 @@ class ConfirmationFlowIntegrationTest {
     @Autowired
     JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    NoResponseTimeoutService noResponseTimeoutService;
+
     @MockitoBean
     DispoStatusCallbackService dispoStatusCallbackService;
     @MockitoBean
@@ -86,6 +90,7 @@ class ConfirmationFlowIntegrationTest {
 
         createDispoConfirmationRequest(externalOrderId)
                 .andExpect(status().isCreated());
+        forceTimeoutJobDueNow(externalOrderId);
 
         await()
                 .atMost(Duration.ofSeconds(45))
@@ -211,11 +216,16 @@ class ConfirmationFlowIntegrationTest {
                           "customerEmail": "daniel@example.com",
                           "customerPhoneNumber": null,
                           "deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
+                          "locationX": 9.8820,
+                          "locationY": 49.8166,
+                          "targetLocationX": 9.9372,
+                          "targetLocationY": 49.7935,
                           "product": "Heizol",
                           "quantityLiters": 3000,
                           "deliveryDate": "2026-06-12",
                           "deliveryWindowStart": "10:00",
-                          "deliveryWindowEnd": "11:00"
+                          "deliveryWindowEnd": "11:00",
+                          "responseDeadlineHours": 24
                         }
                         """.formatted(
                         externalOrderId,
@@ -236,6 +246,25 @@ class ConfirmationFlowIntegrationTest {
                 ORDER BY cr.id DESC
                 LIMIT 1
                 """, String.class, externalOrderId);
+    }
+
+    private void forceTimeoutJobDueNow(String externalOrderId) {
+        Long confirmationRequestId = jdbcTemplate.queryForObject("""
+                SELECT cr.id
+                FROM confirmation_request cr
+                JOIN order_snapshot os ON os.id = cr.order_snapshot_id
+                WHERE os.external_order_id = ?
+                ORDER BY cr.id DESC
+                LIMIT 1
+                """, Long.class, externalOrderId);
+
+        jdbcTemplate.update("""
+                UPDATE confirmation_request
+                SET expires_at = CURRENT_TIMESTAMP - INTERVAL '1 second'
+                WHERE id = ?
+                """, confirmationRequestId);
+
+        noResponseTimeoutService.handleTimeout(confirmationRequestId);
     }
 
     private String getConfirmationStatus(String externalOrderId) {

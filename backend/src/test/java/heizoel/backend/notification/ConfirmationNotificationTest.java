@@ -217,11 +217,16 @@ class ConfirmationNotificationTest {
                           "customerPhoneNumber": %s,
                           "communicationChannel": "%s",
                           "deliveryAddress": "Beispielstrasse 12, 97070 Wuerzburg",
+                          "locationX": 9.8820,
+                          "locationY": 49.8166,
+                          "targetLocationX": 9.9372,
+                          "targetLocationY": 49.7935,
                           "product": "Heizoel",
                           "quantityLiters": 3000,
                           "deliveryDate": "2026-06-12",
                           "deliveryWindowStart": "10:00",
-                          "deliveryWindowEnd": "11:00"
+                          "deliveryWindowEnd": "11:00",
+                          "responseDeadlineHours": 24
                         }
                         """.formatted(
                         externalOrderId,

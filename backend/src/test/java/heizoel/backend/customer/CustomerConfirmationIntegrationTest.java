@@ -3,12 +3,12 @@ package heizoel.backend.customer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import heizoel.backend.customer.api.dto.CustomerAnswerRequestDto;
 import heizoel.backend.customer.domain.repository.CustomerResponseRepository;
-import heizoel.backend.dispo.api.dto.request.DispoConfirmationRequestDto;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.domain.repository.ConfirmationRequestRepository;
 import heizoel.backend.dispo.domain.repository.OrderSnapshotRepository;
+import heizoel.backend.location.persistence.LocationTrackingSnapshotRepository;
 import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,9 +26,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -89,11 +86,15 @@ class CustomerConfirmationIntegrationTest {
     @Autowired
     CustomerResponseRepository customerResponseRepository;
 
+    @Autowired
+    LocationTrackingSnapshotRepository locationTrackingSnapshotRepository;
+
     @BeforeEach
     void cleanDatabase() {
         customerResponseRepository.deleteAll();
         confirmationRequestRepository.deleteAll();
         orderSnapshotRepository.deleteAll();
+        locationTrackingSnapshotRepository.deleteAll();
 
         Mockito.reset(confirmationNotificationService);
     }
@@ -111,11 +112,16 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value(externalOrderId))
                 .andExpect(jsonPath("$.customerName").value("Max Muller"))
                 .andExpect(jsonPath("$.deliveryAddress").value("Beispielstrase 12, 97070 Wurzburg"))
+                .andExpect(jsonPath("$.locationX").value(9.8820))
+                .andExpect(jsonPath("$.locationY").value(49.8166))
+                .andExpect(jsonPath("$.targetLocationX").value(9.9372))
+                .andExpect(jsonPath("$.targetLocationY").value(49.7935))
                 .andExpect(jsonPath("$.product").value("Heizol"))
                 .andExpect(jsonPath("$.quantityLiters").value(3000))
                 .andExpect(jsonPath("$.deliveryDate").value("2026-06-12"))
                 .andExpect(jsonPath("$.deliveryWindowStart").value("10:00:00"))
-                .andExpect(jsonPath("$.deliveryWindowEnd").value("11:00:00"));
+                .andExpect(jsonPath("$.deliveryWindowEnd").value("11:00:00"))
+                .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
     }
 
     @Test
@@ -239,23 +245,30 @@ class CustomerConfirmationIntegrationTest {
     }
 
     private void createDispoConfirmationRequest(String externalOrderId) throws Exception {
-        DispoConfirmationRequestDto request = new DispoConfirmationRequestDto(
-                externalOrderId,
-                "Max Muller",
-                CommunicationChannel.EMAIL,
-                "daniel@example.com",
-                "+491701234567",
-                "Beispielstrase 12, 97070 Wurzburg",
-                "Heizol",
-                3000,
-                LocalDate.of(2026, 6, 12),
-                LocalTime.of(10, 0),
-                LocalTime.of(11, 0)
-        );
+        String requestJson = """
+                {
+                  "externalOrderId": "%s",
+                  "customerName": "Max Muller",
+                  "communicationChannel": "EMAIL",
+                  "customerEmail": "daniel@example.com",
+                  "customerPhoneNumber": "+491701234567",
+                  "deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
+                  "locationX": 9.8820,
+                  "locationY": 49.8166,
+                  "targetLocationX": 9.9372,
+                  "targetLocationY": 49.7935,
+                  "product": "Heizol",
+                  "quantityLiters": 3000,
+                  "deliveryDate": "2026-06-12",
+                  "deliveryWindowStart": "10:00",
+                  "deliveryWindowEnd": "11:00",
+                  "responseDeadlineHours": 24
+                }
+                """.formatted(externalOrderId);
 
         mockMvc.perform(post("/api/dispo/confirmation-requests")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(requestJson))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.externalOrderId").value(externalOrderId))
                 .andExpect(jsonPath("$.confirmationStatus").value("SENT"));

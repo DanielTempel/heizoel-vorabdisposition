@@ -13,17 +13,23 @@ import {
   confirmDelivery,
   getConfirmationPreview,
   rejectDelivery,
+  startVehicleSimulation,
 } from '../../api/confirmation-api'
 import { formatDate, formatTime } from '../../lib/format-delivery'
 import type {
   CustomerAnswerType,
   CustomerConfirmationPreview,
+  ConfirmationStatus,
 } from '../../types/confirmation'
 import { ErrorState } from './components/error-state'
 import { LoadingState } from './components/loading-state'
 import { SuccessState } from './components/success-state'
 
 type PageStatus = 'loading' | 'ready' | 'submitting' | 'success' | 'error'
+
+function isResolvedConfirmationStatus(status: ConfirmationStatus) {
+  return status === 'CONFIRMED' || status === 'REJECTED'
+}
 
 function getTokenFromPath() {
   const pathParts = window.location.pathname.split('/').filter(Boolean)
@@ -50,7 +56,11 @@ export function ConfirmationPage() {
         const preview = await getConfirmationPreview(token)
 
         setConfirmation(preview)
-        setStatus('ready')
+        setStatus(
+          isResolvedConfirmationStatus(preview.confirmationStatus)
+            ? 'success'
+            : 'ready',
+        )
       } catch {
         setStatus('error')
       }
@@ -70,11 +80,42 @@ export function ConfirmationPage() {
         await rejectDelivery(token, {})
       }
 
+      const preview = await getConfirmationPreview(token)
+      setConfirmation(preview)
       setStatus('success')
     } catch {
       setStatus('error')
     }
   }
+
+  useEffect(() => {
+    if (
+      status !== 'success' ||
+      confirmation === null ||
+      confirmation.confirmationStatus !== 'CONFIRMED'
+    ) {
+      return
+    }
+
+    void startVehicleSimulation(confirmation.externalOrderId).catch(() => {
+      console.warn('Vehicle simulation could not be started.')
+    })
+
+    const pollingHandle = window.setInterval(() => {
+      void getConfirmationPreview(token)
+        .then((preview) => {
+          setConfirmation(preview)
+        })
+        .catch(() => {
+          window.clearInterval(pollingHandle)
+          setStatus('error')
+        })
+    }, 5000)
+
+    return () => {
+      window.clearInterval(pollingHandle)
+    }
+  }, [confirmation?.externalOrderId, status, token])
 
   if (status === 'loading') {
     return <LoadingState />
