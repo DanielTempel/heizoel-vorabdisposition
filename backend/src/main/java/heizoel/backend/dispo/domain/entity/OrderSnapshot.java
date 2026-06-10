@@ -46,7 +46,11 @@ public class OrderSnapshot {
     @Column(name = "quantity_liters", nullable = false)
     private Integer quantityLiters;
 
+    @Column(name = "price_display_text", length = 100)
+    private String priceDisplayText;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "confirmation_status", nullable = false)
     private ConfirmationStatus confirmationStatus;
+
 }

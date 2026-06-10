@@ -1,4 +1,4 @@
-package heizoel.backend.dispo.application.model.command;
+package heizoel.backend.dispo.application.model;
 
 
 import heizoel.backend.dispo.api.dto.response.DispoConfirmationResponseDto;

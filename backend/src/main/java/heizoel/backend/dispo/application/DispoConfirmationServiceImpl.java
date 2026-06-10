@@ -9,7 +9,7 @@ import heizoel.backend.dispo.application.interfaces.DispoConfirmationService;
 import heizoel.backend.dispo.application.interfaces.OrderSnapshotService;
 import heizoel.backend.dispo.application.model.ConfirmationRequestData;
 import heizoel.backend.dispo.application.model.OrderSnapshotData;
-import heizoel.backend.dispo.application.model.command.DispoConfirmationCreationResult;
+import heizoel.backend.dispo.application.model.DispoConfirmationCreationResult;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
@@ -51,7 +51,8 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
                 request.customerPhoneNumber(),
                 request.deliveryAddress(),
                 request.product(),
-                request.quantityLiters()
+                request.quantityLiters(),
+                request.priceDisplayText()
         );
 
         ConfirmationRequestData requestData = new ConfirmationRequestData(

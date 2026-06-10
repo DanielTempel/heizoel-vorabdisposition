@@ -3,12 +3,13 @@ package heizoel.backend.notification.application.mail;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.infrastructure.ConfirmationProperties;
+import heizoel.backend.exceptions.notification.EmailSendingException;
 import heizoel.backend.notification.application.interfaces.EmailConfirmationSender;
 import heizoel.backend.notification.infrastructure.MailProperties;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.MailSendException;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -46,8 +47,12 @@ public class EmailConfirmationNotificationService implements EmailConfirmationSe
             helper.setText(htmlBody, true);
 
             mailSender.send(message);
-        } catch (MessagingException ex) {
-            throw new MailSendException("Could not prepare confirmation e-mail.", ex);
+        } catch (MessagingException | MailException ex) {
+            throw new EmailSendingException(
+                    "The confirmation e-mail could not be sent for externalOrderId="
+                            + orderSnapshot.getExternalOrderId(),
+                    ex
+            );
         }
     }
 

@@ -49,7 +49,8 @@ public class CustomerConfirmationServiceImpl implements CustomerConfirmationServ
                 confirmationRequest.getDeliveryDate(),
                 confirmationRequest.getDeliveryWindowStart(),
                 confirmationRequest.getDeliveryWindowEnd(),
-                orderSnapshot.getConfirmationStatus()
+                orderSnapshot.getConfirmationStatus(),
+                orderSnapshot.getPriceDisplayText()
         );
     }
 

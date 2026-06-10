@@ -7,6 +7,10 @@ import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 @Component
 @RequiredArgsConstructor
 public class ThymeleafConfirmationMailRenderer {
@@ -26,12 +30,21 @@ public class ThymeleafConfirmationMailRenderer {
         context.setVariable("deliveryAddress", orderSnapshot.getDeliveryAddress());
         context.setVariable("product", orderSnapshot.getProduct());
         context.setVariable("quantityLiters", orderSnapshot.getQuantityLiters());
+        context.setVariable("priceDisplayText", orderSnapshot.getPriceDisplayText());
         context.setVariable("deliveryDate", confirmationRequest.getDeliveryDate());
         context.setVariable("deliveryWindowStart", confirmationRequest.getDeliveryWindowStart());
         context.setVariable("deliveryWindowEnd", confirmationRequest.getDeliveryWindowEnd());
         context.setVariable("confirmationUrl", confirmationUrl);
+        context.setVariable("responseDeadline", formatDeadline(confirmationRequest));
 
         return templateEngine.process(TEMPLATE_NAME, context);
+    }
+
+
+    private String formatDeadline(ConfirmationRequest confirmationRequest) {
+        return confirmationRequest.getExpiresAt()
+                .atZone(ZoneId.of("Europe/Berlin"))
+                .format(   DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm 'Uhr'", Locale.GERMANY));
     }
 
 }

@@ -14,6 +14,7 @@ public record CustomerConfirmationPreviewDto(
         LocalDate deliveryDate,
         LocalTime deliveryWindowStart,
         LocalTime deliveryWindowEnd,
+        String priceDisplayText,
         ConfirmationStatus confirmationStatus
 ) {
 }

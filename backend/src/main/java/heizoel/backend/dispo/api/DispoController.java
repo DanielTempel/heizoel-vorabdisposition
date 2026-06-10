@@ -3,7 +3,7 @@ package heizoel.backend.dispo.api;
 import heizoel.backend.dispo.api.dto.request.DispoConfirmationRequestDto;
 import heizoel.backend.dispo.api.dto.response.DispoConfirmationResponseDto;
 import heizoel.backend.dispo.application.interfaces.DispoConfirmationService;
-import heizoel.backend.dispo.application.model.command.DispoConfirmationCreationResult;
+import heizoel.backend.dispo.application.model.DispoConfirmationCreationResult;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
