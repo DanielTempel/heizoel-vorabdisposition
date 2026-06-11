@@ -1,8 +1,15 @@
 import 'leaflet/dist/leaflet.css'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import L from 'leaflet'
-import { CircleCheckBig, MapPinned, Route, Truck } from 'lucide-react'
+import {
+  CircleCheckBig,
+  LoaderCircle,
+  MapPinned,
+  RefreshCw,
+  Route,
+  Truck,
+} from 'lucide-react'
 import {
   MapContainer,
   Marker,
@@ -11,11 +18,17 @@ import {
   Tooltip,
   useMap,
 } from 'react-leaflet'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { CustomerConfirmationPreview } from '../../../types/confirmation'
+import type { DriverLocation, TrackingInfo } from '../../../types/tracking'
 
 type TrackingMapCardProps = {
   confirmation: CustomerConfirmationPreview
+  trackingInfo: TrackingInfo | null
+  driverLocation: DriverLocation | null
+  isRefreshing: boolean
+  onRefresh: () => void
 }
 
 type Coordinate = [number, number]
@@ -70,8 +83,20 @@ function createMarkerIcon(kind: 'vehicle' | 'destination') {
 
 function FitBounds({ positions }: { positions: Coordinate[] }) {
   const map = useMap()
+  const previousPositionsRef = useRef<string | null>(null)
 
   useEffect(() => {
+    const positionsKey = JSON.stringify(positions)
+    if (previousPositionsRef.current === positionsKey) {
+      return
+    }
+    previousPositionsRef.current = positionsKey
+
+    if (positions.length === 1) {
+      map.setView(positions[0], 13)
+      return
+    }
+
     map.fitBounds(positions, {
       padding: [36, 36],
       maxZoom: 13,
@@ -105,32 +130,60 @@ function formatDistance(distanceKilometers: number) {
   return `${distanceKilometers.toFixed(1).replace('.', ',')} km`
 }
 
-export function TrackingMapCard({ confirmation }: TrackingMapCardProps) {
+export function TrackingMapCard({
+  confirmation,
+  trackingInfo,
+  driverLocation,
+  isRefreshing,
+  onRefresh,
+}: TrackingMapCardProps) {
+  if (
+    trackingInfo === null ||
+    trackingInfo.targetLocationX === null ||
+    trackingInfo.targetLocationY === null
+  ) {
+    return null
+  }
+
   const arrivalThresholdKilometers = 0.08
-  const vehiclePosition: Coordinate = [
-    confirmation.locationY,
-    confirmation.locationX,
-  ]
+  const vehiclePosition: Coordinate | null =
+    driverLocation === null
+      ? null
+      : [driverLocation.locationY, driverLocation.locationX]
   const destinationPosition: Coordinate = [
-    confirmation.targetLocationY,
-    confirmation.targetLocationX,
+    trackingInfo.targetLocationY,
+    trackingInfo.targetLocationX,
   ]
-  const remainingDistance = distanceInKilometers(
-    confirmation.locationY,
-    confirmation.locationX,
-    confirmation.targetLocationY,
-    confirmation.targetLocationX,
-  )
-  const hasArrived = remainingDistance <= arrivalThresholdKilometers
-  const badgeText = hasArrived
-    ? 'Angekommen'
-    : `Noch ${formatDistance(remainingDistance)}`
-  const titleText = hasArrived
-    ? 'Ihr Fahrzeug ist angekommen'
-    : 'Ihr Fahrzeug ist unterwegs'
-  const descriptionText = hasArrived
-    ? 'Das Fahrzeug hat die Lieferadresse erreicht.'
-    : `Zieladresse: ${confirmation.deliveryAddress}`
+  const remainingDistance =
+    vehiclePosition === null
+      ? null
+      : distanceInKilometers(
+          vehiclePosition[0],
+          vehiclePosition[1],
+          trackingInfo.targetLocationY,
+          trackingInfo.targetLocationX,
+        )
+  const hasArrived =
+    remainingDistance !== null && remainingDistance <= arrivalThresholdKilometers
+  const badgeText =
+    remainingDistance === null
+      ? 'Standort laden'
+      : hasArrived
+        ? 'Angekommen'
+        : `Noch ${formatDistance(remainingDistance)}`
+  const titleText =
+    remainingDistance === null
+      ? 'Fahrerstandort abrufen'
+      : hasArrived
+        ? 'Ihr Fahrzeug ist angekommen'
+        : 'Ihr Fahrzeug ist unterwegs'
+  const descriptionText =
+    remainingDistance !== null && hasArrived
+      ? 'Das Fahrzeug hat die Lieferadresse erreicht.'
+      : `Zieladresse: ${confirmation.deliveryAddress}`
+  const positions = vehiclePosition === null
+    ? [destinationPosition]
+    : [vehiclePosition, destinationPosition]
 
   return (
     <Card className="overflow-hidden rounded-[2rem] border-0 bg-white/90 shadow-[0_28px_80px_rgba(15,23,42,0.12)] backdrop-blur">
@@ -159,9 +212,22 @@ export function TrackingMapCard({ confirmation }: TrackingMapCardProps) {
             {badgeText}
           </div>
         </div>
-        <p className="max-w-3xl text-sm leading-6 text-stone-600">
-          {descriptionText}
-        </p>
+        <div className="max-w-3xl">
+          <p className="text-sm leading-6 text-stone-600">{descriptionText}</p>
+          <Button
+            className="mt-4 inline-flex h-auto rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-stone-50 hover:bg-stone-800"
+            disabled={isRefreshing}
+            type="button"
+            onClick={onRefresh}
+          >
+            {isRefreshing ? (
+              <LoaderCircle className="mr-2 size-4 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-2 size-4" />
+            )}
+            {isRefreshing ? 'Wird aktualisiert...' : 'Aktualisieren'}
+          </Button>
+        </div>
       </CardHeader>
 
       <CardContent className="p-4 sm:p-6">
@@ -177,27 +243,34 @@ export function TrackingMapCard({ confirmation }: TrackingMapCardProps) {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <FitBounds positions={[vehiclePosition, destinationPosition]} />
-              <Polyline
-                pathOptions={{
-                  color: hasArrived ? '#059669' : '#f59e0b',
-                  dashArray: hasArrived ? undefined : '12 12',
-                  lineCap: 'round',
-                  opacity: 0.9,
-                  weight: 5,
-                }}
-                positions={[vehiclePosition, destinationPosition]}
-              />
-              <Marker icon={createMarkerIcon('vehicle')} position={vehiclePosition}>
-                <Tooltip
-                  direction="top"
-                  offset={[0, -22]}
-                  opacity={1}
-                  permanent
-                >
-                  {badgeText}
-                </Tooltip>
-              </Marker>
+              <FitBounds positions={positions} />
+              {vehiclePosition !== null ? (
+                <>
+                  <Polyline
+                    pathOptions={{
+                      color: hasArrived ? '#059669' : '#f59e0b',
+                      dashArray: hasArrived ? undefined : '12 12',
+                      lineCap: 'round',
+                      opacity: 0.9,
+                      weight: 5,
+                    }}
+                    positions={[vehiclePosition, destinationPosition]}
+                  />
+                  <Marker
+                    icon={createMarkerIcon('vehicle')}
+                    position={vehiclePosition}
+                  >
+                    <Tooltip
+                      direction="top"
+                      offset={[0, -22]}
+                      opacity={1}
+                      permanent
+                    >
+                      {badgeText}
+                    </Tooltip>
+                  </Marker>
+                </>
+              ) : null}
               <Marker
                 icon={createMarkerIcon('destination')}
                 position={destinationPosition}

@@ -7,8 +7,6 @@ import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.domain.repository.ConfirmationRequestRepository;
 import heizoel.backend.dispo.domain.repository.OrderSnapshotRepository;
-import heizoel.backend.location.domain.LocationTrackingSnapshot;
-import heizoel.backend.location.persistence.LocationTrackingSnapshotRepository;
 import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,9 +74,6 @@ class DispoControllerIntegrationTest {
     @Autowired
     CustomerResponseRepository customerResponseRepository;
 
-    @Autowired
-    LocationTrackingSnapshotRepository locationTrackingSnapshotRepository;
-
     @MockitoBean
     ConfirmationNotificationService notificationService;
 
@@ -87,7 +82,6 @@ class DispoControllerIntegrationTest {
         customerResponseRepository.deleteAll();
         confirmationRequestRepository.deleteAll();
         orderSnapshotRepository.deleteAll();
-        locationTrackingSnapshotRepository.deleteAll();
 
         Mockito.reset(notificationService);
     }
@@ -109,9 +103,6 @@ class DispoControllerIntegrationTest {
 
         OrderSnapshot orderSnapshot = orderSnapshots.get(0);
         ConfirmationRequest confirmationRequest = confirmationRequests.get(0);
-        LocationTrackingSnapshot trackingSnapshot = locationTrackingSnapshotRepository
-                .findByExternalOrderId("A-1024")
-                .orElseThrow();
 
         assertThat(orderSnapshot.getExternalOrderId()).isEqualTo("A-1024");
         assertThat(orderSnapshot.getCustomerName()).isEqualTo("Max Muller");
@@ -121,12 +112,6 @@ class DispoControllerIntegrationTest {
         assertThat(orderSnapshot.getProduct()).isEqualTo("Heizol");
         assertThat(orderSnapshot.getQuantityLiters()).isEqualTo(3000);
         assertThat(orderSnapshot.getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
-        assertThat(trackingSnapshot.getDeliveryAddress()).isEqualTo("Beispielstrase 12, 97070 Wurzburg");
-        assertThat(trackingSnapshot.getLocationX()).isEqualTo(9.8820);
-        assertThat(trackingSnapshot.getLocationY()).isEqualTo(49.8166);
-        assertThat(trackingSnapshot.getTargetLocationX()).isEqualTo(9.9372);
-        assertThat(trackingSnapshot.getTargetLocationY()).isEqualTo(49.7935);
-        assertThat(trackingSnapshot.getConfirmationToken()).isEqualTo(confirmationRequest.getToken());
 
         assertThat(confirmationRequest.getOrderSnapshot().getId()).isEqualTo(orderSnapshot.getId());
         assertThat(confirmationRequest.getToken()).isNotBlank();

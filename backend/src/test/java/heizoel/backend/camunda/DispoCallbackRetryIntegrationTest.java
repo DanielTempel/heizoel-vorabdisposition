@@ -3,6 +3,8 @@ package heizoel.backend.camunda;
 import heizoel.backend.camunda.application.interfaces.NoResponseTimeoutService;
 import heizoel.backend.dispo.application.interfaces.DispoStatusCallbackService;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
+import heizoel.backend.location.application.interfaces.GeocodingClient;
+import heizoel.backend.location.domain.GeoCoordinate;
 import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,9 +83,14 @@ class DispoCallbackRetryIntegrationTest {
     @MockitoBean
     ConfirmationNotificationService notificationService;
 
+    @MockitoBean
+    GeocodingClient geocodingClient;
+
     @BeforeEach
     void resetMocks() {
-        reset(dispoStatusCallbackService, notificationService);
+        reset(dispoStatusCallbackService, notificationService, geocodingClient);
+        when(geocodingClient.geocode(any()))
+                .thenReturn(java.util.Optional.of(new GeoCoordinate(9.9372D, 49.7935D)));
     }
 
     @Test

@@ -13,14 +13,15 @@ import {
   confirmDelivery,
   getConfirmationPreview,
   rejectDelivery,
-  startVehicleSimulation,
 } from '../../api/confirmation-api'
+import { getDriverLocation, getTrackingInfo } from '../../api/tracking-api'
 import { formatDate, formatTime } from '../../lib/format-delivery'
 import type {
   CustomerAnswerType,
   CustomerConfirmationPreview,
   ConfirmationStatus,
 } from '../../types/confirmation'
+import type { DriverLocation, TrackingInfo } from '../../types/tracking'
 import { ErrorState } from './components/error-state'
 import { LoadingState } from './components/loading-state'
 import { SuccessState } from './components/success-state'
@@ -46,7 +47,10 @@ export function ConfirmationPage() {
   const [status, setStatus] = useState<PageStatus>('loading')
   const [confirmation, setConfirmation] =
     useState<CustomerConfirmationPreview | null>(null)
+  const [trackingInfo, setTrackingInfo] = useState<TrackingInfo | null>(null)
+  const [driverLocation, setDriverLocation] = useState<DriverLocation | null>(null)
   const [answerType, setAnswerType] = useState<CustomerAnswerType | null>(null)
+  const [isTrackingRefreshing, setIsTrackingRefreshing] = useState(false)
 
   const token = getTokenFromPath()
 
@@ -56,6 +60,8 @@ export function ConfirmationPage() {
         const preview = await getConfirmationPreview(token)
 
         setConfirmation(preview)
+        setTrackingInfo(null)
+        setDriverLocation(null)
         setStatus(
           isResolvedConfirmationStatus(preview.confirmationStatus)
             ? 'success'
@@ -82,11 +88,57 @@ export function ConfirmationPage() {
 
       const preview = await getConfirmationPreview(token)
       setConfirmation(preview)
+      setTrackingInfo(null)
+      setDriverLocation(null)
       setStatus('success')
     } catch {
       setStatus('error')
     }
   }
+
+  async function refreshTracking() {
+    setIsTrackingRefreshing(true)
+
+    try {
+      const nextDriverLocation = await getDriverLocation(token)
+      setDriverLocation(nextDriverLocation)
+    } catch {
+      // Keep the current page state if the location refresh fails.
+    } finally {
+      setIsTrackingRefreshing(false)
+    }
+  }
+
+  async function loadTrackingInfo() {
+    try {
+      const nextTrackingInfo = await getTrackingInfo(token)
+      setTrackingInfo(nextTrackingInfo)
+    } catch {
+      setTrackingInfo(null)
+    }
+  }
+
+  useEffect(() => {
+    if (
+      status !== 'success' ||
+      confirmation === null ||
+      confirmation.confirmationStatus !== 'CONFIRMED' ||
+      trackingInfo === null ||
+      !trackingInfo.trackingAvailable ||
+      driverLocation !== null ||
+      isTrackingRefreshing
+    ) {
+      return
+    }
+
+    void refreshTracking()
+  }, [
+    confirmation,
+    driverLocation,
+    isTrackingRefreshing,
+    status,
+    trackingInfo,
+  ])
 
   useEffect(() => {
     if (
@@ -97,25 +149,8 @@ export function ConfirmationPage() {
       return
     }
 
-    void startVehicleSimulation(confirmation.externalOrderId).catch(() => {
-      console.warn('Vehicle simulation could not be started.')
-    })
-
-    const pollingHandle = window.setInterval(() => {
-      void getConfirmationPreview(token)
-        .then((preview) => {
-          setConfirmation(preview)
-        })
-        .catch(() => {
-          window.clearInterval(pollingHandle)
-          setStatus('error')
-        })
-    }, 5000)
-
-    return () => {
-      window.clearInterval(pollingHandle)
-    }
-  }, [confirmation?.externalOrderId, status, token])
+    void loadTrackingInfo()
+  }, [confirmation, status, token])
 
   if (status === 'loading') {
     return <LoadingState />
@@ -127,7 +162,14 @@ export function ConfirmationPage() {
 
   if (status === 'success') {
     return (
-      <SuccessState answerType={answerType} confirmation={confirmation} />
+        <SuccessState
+          answerType={answerType}
+          confirmation={confirmation}
+          trackingInfo={trackingInfo}
+          driverLocation={driverLocation}
+          isTrackingRefreshing={isTrackingRefreshing}
+          onRefreshTracking={() => void refreshTracking()}
+      />
     )
   }
 
@@ -190,9 +232,9 @@ export function ConfirmationPage() {
             </div>
           </section>
 
-          <Alert className="border-amber-300 bg-amber-50 p-4">
-            <AlertDescription className="text-amber-950">
-              <strong>Bitte beachten Sie:</strong> Diese Anfrage kann nur einmal beantwortet werden.
+          <Alert className="border-red-300 bg-red-50 p-5 shadow-sm">
+            <AlertDescription className="text-red-950">
+              <strong>Wichtiger Hinweis:</strong> Diese Anfrage kann nur einmal beantwortet werden. Tracking-Informationen stehen erst am Liefertag auf dieser Seite zur Verfügung.
             </AlertDescription>
           </Alert>
 

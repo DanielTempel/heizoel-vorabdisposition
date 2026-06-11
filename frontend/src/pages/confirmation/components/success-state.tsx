@@ -1,20 +1,30 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { formatDate, formatTime } from '../../../lib/format-delivery'
 import type {
   CustomerAnswerType,
   CustomerConfirmationPreview,
 } from '../../../types/confirmation'
+import type { DriverLocation, TrackingInfo } from '../../../types/tracking'
 import { TrackingMapCard } from './tracking-map-card'
 
 type SuccessStateProps = {
   answerType: CustomerAnswerType | null
   confirmation: CustomerConfirmationPreview
+  trackingInfo: TrackingInfo | null
+  driverLocation: DriverLocation | null
+  isTrackingRefreshing: boolean
+  onRefreshTracking: () => void
 }
 
 export function SuccessState({
   answerType,
   confirmation,
+  trackingInfo,
+  driverLocation,
+  isTrackingRefreshing,
+  onRefreshTracking,
 }: SuccessStateProps) {
   const resolvedAnswerType =
     answerType ??
@@ -24,6 +34,12 @@ export function SuccessState({
     isRejected
       ? 'Der Liefertermin wurde abgelehnt.'
       : 'Der Liefertermin wurde bestätigt.'
+
+  const hasTrackingData =
+    trackingInfo !== null &&
+    trackingInfo.trackingAvailable &&
+    trackingInfo.targetLocationX !== null &&
+    trackingInfo.targetLocationY !== null
 
   return (
     <main className="min-h-screen bg-background px-6 py-16 text-foreground">
@@ -53,6 +69,17 @@ export function SuccessState({
               <strong>Produkt / Menge:</strong> {confirmation.product} -{' '}
               {confirmation.quantityLiters.toLocaleString('de-DE')} Liter
             </p>
+            {!isRejected && trackingInfo !== null && !trackingInfo.trackingAvailable ? (
+              <>
+                <Separator />
+                <Alert className="border-red-300 bg-red-50 p-5 shadow-sm">
+                  <AlertDescription className="text-red-950">
+                    <strong>Wichtiger Hinweis:</strong> Tracking-Informationen
+                    werden hier erst am Liefertag eingeblendet.
+                  </AlertDescription>
+                </Alert>
+              </>
+            ) : null}
 
             <p className="mt-8 text-center font-semibold">
               Sie können dieses Fenster nun schließen.
@@ -60,7 +87,15 @@ export function SuccessState({
           </CardContent>
         </Card>
 
-        {!isRejected ? <TrackingMapCard confirmation={confirmation} /> : null}
+        {!isRejected && hasTrackingData ? (
+          <TrackingMapCard
+            confirmation={confirmation}
+            trackingInfo={trackingInfo}
+            driverLocation={driverLocation}
+            isRefreshing={isTrackingRefreshing}
+            onRefresh={onRefreshTracking}
+          />
+        ) : null}
       </div>
     </main>
   )

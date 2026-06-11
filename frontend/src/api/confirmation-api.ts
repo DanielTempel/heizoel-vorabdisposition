@@ -12,10 +12,6 @@ const mockConfirmationPreview: CustomerConfirmationPreview = {
   externalOrderId: 'A-3002',
   customerName: 'Max Müller',
   deliveryAddress: 'Domstraße 40, 97070 Würzburg',
-  locationX: 9.882,
-  locationY: 49.8166,
-  targetLocationX: 9.9372,
-  targetLocationY: 49.7935,
   product: 'Heizöl Standard',
   quantityLiters: 3000,
   deliveryDate: '2026-06-12',
@@ -24,16 +20,14 @@ const mockConfirmationPreview: CustomerConfirmationPreview = {
   confirmationStatus: 'SENT',
 }
 
-let mockSimulationTimer: number | null = null
-
 function getApiMode(): ConfirmationApiMode {
   const mode = import.meta.env.VITE_CONFIRMATION_API_MODE
 
-  if (mode === 'backend') {
-    return 'backend'
+  if (mode === 'mock') {
+    return 'mock'
   }
 
-  return 'mock'
+  return 'backend'
 }
 
 function delay(ms: number) {
@@ -46,60 +40,6 @@ async function handleBackendResponse(response: Response) {
   }
 
   throw new Error(`Backend request failed with status ${response.status}`)
-}
-
-function distanceInKilometers(
-  startLatitude: number,
-  startLongitude: number,
-  targetLatitude: number,
-  targetLongitude: number,
-) {
-  const earthRadiusKilometers = 6371
-  const latitudeDistance = ((targetLatitude - startLatitude) * Math.PI) / 180
-  const longitudeDistance =
-    ((targetLongitude - startLongitude) * Math.PI) / 180
-  const a =
-    Math.sin(latitudeDistance / 2) * Math.sin(latitudeDistance / 2) +
-    Math.cos((startLatitude * Math.PI) / 180) *
-      Math.cos((targetLatitude * Math.PI) / 180) *
-      Math.sin(longitudeDistance / 2) *
-      Math.sin(longitudeDistance / 2)
-
-  return earthRadiusKilometers * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
-}
-
-function advanceMockVehicle() {
-  const remainingKilometers = distanceInKilometers(
-    mockConfirmationPreview.locationY,
-    mockConfirmationPreview.locationX,
-    mockConfirmationPreview.targetLocationY,
-    mockConfirmationPreview.targetLocationX,
-  )
-
-  if (remainingKilometers <= 0.08) {
-    mockConfirmationPreview.locationX = mockConfirmationPreview.targetLocationX
-    mockConfirmationPreview.locationY = mockConfirmationPreview.targetLocationY
-
-    if (mockSimulationTimer !== null) {
-      window.clearInterval(mockSimulationTimer)
-      mockSimulationTimer = null
-    }
-
-    return
-  }
-
-  const nextStepKilometers = Math.min(
-    Math.max(remainingKilometers * 0.14, 0.18),
-    0.65,
-  )
-  const stepRatio = Math.min(nextStepKilometers / remainingKilometers, 0.18)
-
-  mockConfirmationPreview.locationX +=
-    (mockConfirmationPreview.targetLocationX - mockConfirmationPreview.locationX) *
-    stepRatio
-  mockConfirmationPreview.locationY +=
-    (mockConfirmationPreview.targetLocationY - mockConfirmationPreview.locationY) *
-    stepRatio
 }
 
 export async function getConfirmationPreview(
@@ -167,29 +107,6 @@ export async function rejectDelivery(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(request),
-    },
-  )
-
-  await handleBackendResponse(response)
-}
-
-export async function startVehicleSimulation(
-  externalOrderId: string,
-): Promise<void> {
-  if (apiMode === 'mock') {
-    console.log('Using mock vehicle simulation start:', { externalOrderId })
-
-    if (mockSimulationTimer === null) {
-      mockSimulationTimer = window.setInterval(advanceMockVehicle, 1000)
-    }
-
-    return
-  }
-
-  const response = await fetch(
-    `${apiBaseUrl}/api/dispo/confirmation-requests/${externalOrderId}/vehicle-simulation/start`,
-    {
-      method: 'POST',
     },
   )
 

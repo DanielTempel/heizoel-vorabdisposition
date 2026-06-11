@@ -4,6 +4,8 @@ import heizoel.backend.camunda.application.interfaces.ConfirmationWorkflowServic
 import heizoel.backend.dispo.application.interfaces.DispoStatusCallbackService;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
+import heizoel.backend.location.application.interfaces.GeocodingClient;
+import heizoel.backend.location.domain.GeoCoordinate;
 import heizoel.backend.notification.application.interfaces.EmailConfirmationSender;
 import heizoel.backend.notification.application.interfaces.SmsConfirmationSender;
 import heizoel.backend.notification.domain.CommunicationChannel;
@@ -26,6 +28,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -85,14 +88,20 @@ class ConfirmationNotificationTest {
     @MockitoBean
     DispoStatusCallbackService dispoStatusCallbackService;
 
+    @MockitoBean
+    GeocodingClient geocodingClient;
+
     @BeforeEach
     void resetMocks() {
         reset(
                 emailConfirmationSender,
                 smsConfirmationSender,
                 confirmationWorkflowService,
-                dispoStatusCallbackService
+                dispoStatusCallbackService,
+                geocodingClient
         );
+        when(geocodingClient.geocode(anyString()))
+                .thenReturn(java.util.Optional.of(new GeoCoordinate(9.9372D, 49.7935D)));
     }
 
     @Test

@@ -3,6 +3,8 @@ package heizoel.backend.camunda;
 import heizoel.backend.camunda.application.interfaces.NoResponseTimeoutService;
 import heizoel.backend.dispo.application.interfaces.DispoStatusCallbackService;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
+import heizoel.backend.location.application.interfaces.GeocodingClient;
+import heizoel.backend.location.domain.GeoCoordinate;
 import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +29,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -79,9 +82,14 @@ class ConfirmationFlowIntegrationTest {
     @MockitoBean
     JavaMailSender javaMailSender;
 
+    @MockitoBean
+    GeocodingClient geocodingClient;
+
     @BeforeEach
     void resetMocks() {
-        reset(dispoStatusCallbackService, confirmationNotificationService);
+        reset(dispoStatusCallbackService, confirmationNotificationService, geocodingClient);
+        when(geocodingClient.geocode(anyString()))
+                .thenReturn(java.util.Optional.of(new GeoCoordinate(9.9372D, 49.7935D)));
     }
 
     @Test

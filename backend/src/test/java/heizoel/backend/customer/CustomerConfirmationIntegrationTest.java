@@ -6,9 +6,12 @@ import heizoel.backend.customer.domain.repository.CustomerResponseRepository;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
+import heizoel.backend.location.application.interfaces.GeocodingClient;
 import heizoel.backend.dispo.domain.repository.ConfirmationRequestRepository;
 import heizoel.backend.dispo.domain.repository.OrderSnapshotRepository;
-import heizoel.backend.location.persistence.LocationTrackingSnapshotRepository;
+import heizoel.backend.location.application.interfaces.DriverLocationService;
+import heizoel.backend.location.domain.DriverLocation;
+import heizoel.backend.location.domain.GeoCoordinate;
 import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,9 +30,12 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.LocalDate;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -71,6 +77,12 @@ class CustomerConfirmationIntegrationTest {
     @MockitoBean
     ConfirmationNotificationService confirmationNotificationService;
 
+    @MockitoBean
+    DriverLocationService driverLocationService;
+
+    @MockitoBean
+    GeocodingClient geocodingClient;
+
     @Autowired
     MockMvc mockMvc;
 
@@ -86,21 +98,24 @@ class CustomerConfirmationIntegrationTest {
     @Autowired
     CustomerResponseRepository customerResponseRepository;
 
-    @Autowired
-    LocationTrackingSnapshotRepository locationTrackingSnapshotRepository;
-
     @BeforeEach
     void cleanDatabase() {
         customerResponseRepository.deleteAll();
         confirmationRequestRepository.deleteAll();
         orderSnapshotRepository.deleteAll();
-        locationTrackingSnapshotRepository.deleteAll();
 
         Mockito.reset(confirmationNotificationService);
+        when(driverLocationService.getDriverLocation(any()))
+                .thenAnswer(invocation -> {
+                    String externalOrderId = invocation.getArgument(0, String.class);
+                    return java.util.Optional.of(new DriverLocation(externalOrderId, 9.8820D, 49.8166D));
+                });
+        when(geocodingClient.geocode(any()))
+                .thenReturn(java.util.Optional.of(new GeoCoordinate(9.9372D, 49.7935D)));
     }
 
     @Test
-    void shouldReturnConfirmationPreviewByToken() throws Exception {
+    void getConfirmationPreview_returnsConfirmationDataByToken() throws Exception {
         String externalOrderId = "A-3001";
 
         createDispoConfirmationRequest(externalOrderId);
@@ -112,10 +127,6 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value(externalOrderId))
                 .andExpect(jsonPath("$.customerName").value("Max Muller"))
                 .andExpect(jsonPath("$.deliveryAddress").value("Beispielstrase 12, 97070 Wurzburg"))
-                .andExpect(jsonPath("$.locationX").value(9.8820))
-                .andExpect(jsonPath("$.locationY").value(49.8166))
-                .andExpect(jsonPath("$.targetLocationX").value(9.9372))
-                .andExpect(jsonPath("$.targetLocationY").value(49.7935))
                 .andExpect(jsonPath("$.product").value("Heizol"))
                 .andExpect(jsonPath("$.quantityLiters").value(3000))
                 .andExpect(jsonPath("$.deliveryDate").value("2026-06-12"))
@@ -125,7 +136,36 @@ class CustomerConfirmationIntegrationTest {
     }
 
     @Test
-    void shouldConfirmDeliveryWindowAndStoreCustomerResponse() throws Exception {
+    void getTrackingInfo_returnsTrackingDataForDeliveryDate() throws Exception {
+        String externalOrderId = "A-3001-TRACKING";
+
+        createDispoConfirmationRequest(externalOrderId, LocalDate.now().toString());
+
+        String token = findActiveTokenByExternalOrderId(externalOrderId);
+
+        mockMvc.perform(get("/api/customer/confirmations/{token}/tracking-info", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.trackingAvailable").value(true))
+                .andExpect(jsonPath("$.targetLocationX").value(9.9372))
+                .andExpect(jsonPath("$.targetLocationY").value(49.7935));
+    }
+
+    @Test
+    void getDriverLocation_returnsDriverLocationForDeliveryDate() throws Exception {
+        String externalOrderId = "A-3001-DRIVER";
+
+        createDispoConfirmationRequest(externalOrderId, LocalDate.now().toString());
+
+        String token = findActiveTokenByExternalOrderId(externalOrderId);
+
+        mockMvc.perform(get("/api/customer/confirmations/{token}/driver-location", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.locationX").value(9.8820))
+                .andExpect(jsonPath("$.locationY").value(49.8166));
+    }
+
+    @Test
+    void confirm_returnsNoContentAndStoresCustomerResponse() throws Exception {
         String externalOrderId = "A-3002";
 
         createDispoConfirmationRequest(externalOrderId);
@@ -168,7 +208,7 @@ class CustomerConfirmationIntegrationTest {
     }
 
     @Test
-    void shouldRejectDeliveryWindowAndStoreCustomerComment() throws Exception {
+    void reject_returnsNoContentAndStoresCustomerComment() throws Exception {
         String externalOrderId = "A-3003";
 
         createDispoConfirmationRequest(externalOrderId);
@@ -206,7 +246,7 @@ class CustomerConfirmationIntegrationTest {
     }
 
     @Test
-    void shouldReturnConflictWhenCustomerAnswersTwice() throws Exception {
+    void confirm_returnsConflictWhenCustomerAnswersTwice() throws Exception {
         String externalOrderId = "A-3004";
 
         createDispoConfirmationRequest(externalOrderId);
@@ -224,7 +264,7 @@ class CustomerConfirmationIntegrationTest {
     }
 
     @Test
-    void shouldReturnNotFoundForUnknownToken() throws Exception {
+    void getConfirmationPreview_returnsNotFoundForUnknownToken() throws Exception {
         mockMvc.perform(get("/api/customer/confirmations/{token}", "unknown-token"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("CONFIRMATION_REQUEST_NOT_FOUND"))
@@ -232,7 +272,7 @@ class CustomerConfirmationIntegrationTest {
     }
 
     @Test
-    void createDispoConfirmationRequest_shouldUseNotificationService() throws Exception {
+    void createDispoConfirmationRequest_usesNotificationService() throws Exception {
         String externalOrderId = "A-3005";
 
         createDispoConfirmationRequest(externalOrderId);
@@ -245,6 +285,10 @@ class CustomerConfirmationIntegrationTest {
     }
 
     private void createDispoConfirmationRequest(String externalOrderId) throws Exception {
+        createDispoConfirmationRequest(externalOrderId, "2026-06-12");
+    }
+
+    private void createDispoConfirmationRequest(String externalOrderId, String deliveryDate) throws Exception {
         String requestJson = """
                 {
                   "externalOrderId": "%s",
@@ -259,12 +303,12 @@ class CustomerConfirmationIntegrationTest {
                   "targetLocationY": 49.7935,
                   "product": "Heizol",
                   "quantityLiters": 3000,
-                  "deliveryDate": "2026-06-12",
+                  "deliveryDate": "%s",
                   "deliveryWindowStart": "10:00",
                   "deliveryWindowEnd": "11:00",
                   "responseDeadlineHours": 24
                 }
-                """.formatted(externalOrderId);
+                """.formatted(externalOrderId, deliveryDate);
 
         mockMvc.perform(post("/api/dispo/confirmation-requests")
                         .contentType(MediaType.APPLICATION_JSON)

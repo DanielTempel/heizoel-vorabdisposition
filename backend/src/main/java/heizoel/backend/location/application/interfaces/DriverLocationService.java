@@ -4,7 +4,7 @@ import heizoel.backend.location.domain.DriverLocation;
 
 import java.util.Optional;
 
-public interface LocationTrackingService {
+public interface DriverLocationService {
 
     Optional<DriverLocation> getDriverLocation(String externalOrderId);
 }
