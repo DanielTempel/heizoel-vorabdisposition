@@ -1,0 +1,541 @@
+\documentclass[
+12pt,
+a4paper
+]{article}
+
+% ------------------------------------------------
+% Pakete
+% ------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[german]{babel}
+
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+\usepackage{float}
+
+% ------------------------------------------------
+% Dokumentinformationen
+% ------------------------------------------------
+
+\title{
+\Huge Projektdokumentation\\[0.5cm]
+\Large Workflowbasierte Rückbestätigung von Lieferterminen
+}
+
+\author{
+THWS \\[0.2cm]
+in Kooperation mit MINOVA
+}
+
+\date{\today}
+
+\begin{document}
+
+% =================================================
+% TITELSEITE
+% =================================================
+
+\begin{titlepage}
+\centering
+
+\vspace*{3cm}
+
+{\Huge\bfseries Projektdokumentation\par}
+
+\vspace{1cm}
+
+{\LARGE Workflowbasierte Rückbestätigung von Lieferterminen\par}
+
+\vspace{2cm}
+
+{\Large Projektarbeit\par}
+
+\vspace{1cm}
+
+\begin{tabular}{ll}
+Unternehmen: & MINOVA \\
+Hochschule: & THWS \\
+Projektzeitraum: & xx.xx.2026 -- xx.xx.2026 \\
+Team: & Name 1, Name 2, Name 3 \\
+\end{tabular}
+
+\vfill
+
+Stand: \today
+
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% =================================================
+\section{Einleitung}
+% =================================================
+
+\subsection{Motivation}
+
+Ausgangspunkt des Projekts war die Beobachtung, dass die
+Rückbestätigung von Lieferterminen in weiten Teilen manuell
+erfolgte und dadurch mit hohem Abstimmungsaufwand verbunden war.
+Informationen mussten mehrfach weitergegeben, Rückmeldungen
+manuell ausgewertet und Statusänderungen separat dokumentiert
+werden.
+
+Ziel der Projektarbeit war es deshalb, einen strukturierten
+digitalen Prozess zu entwickeln, der sowohl die fachliche
+Kommunikation mit dem Kunden als auch die technische
+Weiterverarbeitung im System unterstützt.
+
+\subsection{Ziel der Projektdokumentation}
+
+Diese Dokumentation beschreibt die Ausgangssituation,
+die Zielsetzung, die Umsetzung sowie die organisatorischen und
+methodischen Rahmenbedingungen des Projekts. Dazu zählen
+insbesondere Projektplan, Aufwand, zeitlicher Verlauf und die
+abschließende Reflexion der Zusammenarbeit und Umsetzung.
+
+\subsection{Projektbeteiligte}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+Name & Rolle \\
+\midrule
+Name 1 & Frontend und Benutzeroberfläche \\
+Name 2 & Backend und Datenhaltung \\
+Name 3 & Workflow und Prozessmodellierung \\
+Auftraggeber MINOVA & Fachlicher Ansprechpartner \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =================================================
+\section{Ausgangssituation (IST-Analyse)}
+% =================================================
+
+\subsection{Aktueller Prozess}
+
+Im bisherigen Ablauf wurden Liefertermine durch die
+Disposition vorbereitet und anschließend auf direktem Weg an
+die Kunden kommuniziert. Rückmeldungen erfolgten je nach
+Situation per E-Mail, telefonisch oder über informelle
+Zwischenabsprachen. Die eingehenden Informationen mussten
+anschließend manuell ausgewertet und an weitere Beteiligte
+weitergegeben werden.
+
+Eine durchgängige digitale Verarbeitung des Prozesses war
+dadurch nur eingeschränkt möglich. Insbesondere bei mehreren
+gleichzeitigen Lieferungen stieg der Koordinationsaufwand
+deutlich an.
+
+\subsection{Probleme des aktuellen Prozesses}
+
+\begin{itemize}
+\item Hoher Kommunikationsaufwand
+\item Manuelle Terminabstimmung
+\item Fehlende Transparenz
+\item Medienbrüche
+\end{itemize}
+
+\subsection{Schwachstellenanalyse}
+
+Die wesentlichen Schwachstellen lagen in der fehlenden
+Standardisierung der Rückmeldungen und in den Medienbrüchen
+zwischen Kommunikation, Bearbeitung und Dokumentation. Daraus
+ergaben sich Verzögerungen, erhöhter Abstimmungsbedarf und ein
+größeres Risiko für Missverständnisse im weiteren Ablauf.
+
+Zusätzlich fehlte eine einheitliche Statussicht, sodass der
+aktuelle Bearbeitungsstand eines Liefertermins nicht jederzeit
+direkt nachvollzogen werden konnte.
+
+% =================================================
+\section{Projektziele}
+% =================================================
+
+\subsection{Fachliche Ziele}
+
+\begin{itemize}
+\item Automatisierte Kundenkommunikation
+\item Transparente Statusverwaltung
+\item Reduzierung manueller Arbeitsschritte
+\end{itemize}
+
+\subsection{Technische Ziele}
+
+\begin{itemize}
+\item Integration von Frontend und Backend
+\item Workflowsteuerung über Camunda
+\item Speicherung relevanter Statusdaten
+\end{itemize}
+
+% =================================================
+\section{SOLL-Konzept}
+% =================================================
+
+\subsection{Zielprozess}
+
+Im SOLL-Prozess wird die Kommunikation mit dem Kunden
+standardisiert ausgelöst und systemseitig begleitet. Nach
+Eingang eines relevanten Vorgangs wird automatisch eine
+Benachrichtigung versendet, auf die der Kunde mit einer klar
+strukturierten Rückmeldung reagiert.
+
+Diese Rückmeldung wird automatisiert verarbeitet, in einen
+Status überführt und den beteiligten Stellen ohne manuelle
+Zwischenschritte bereitgestellt. Dadurch entsteht ein
+durchgängiger Prozess von der Auslösung bis zur Anzeige des
+aktuellen Bearbeitungsstands.
+
+\subsection{BPMN-Modell}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{assets/bpmn_soll.png}
+\caption{BPMN-SOLL-Prozess}
+\end{figure}
+
+\subsection{Anforderungen}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{2cm}p{10cm}}
+\toprule
+ID & Beschreibung \\
+\midrule
+A1 & Kunde erhält E-Mail \\
+A2 & Kunde bestätigt Lieferfenster \\
+A3 & Status wird aktualisiert \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =================================================
+\section{Systemarchitektur}
+% =================================================
+
+\subsection{Gesamtarchitektur}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{assets/architektur.png}
+\caption{Systemarchitektur}
+\end{figure}
+
+\subsection{Frontend}
+
+Das Frontend stellt die zentrale Oberfläche für die Sicht auf
+Lieferungen, Rückmeldungen und Statusinformationen bereit.
+Wesentliche Anforderungen waren eine übersichtliche Darstellung
+relevanter Daten sowie eine nachvollziehbare Benutzerführung
+für die Bearbeitung und Kontrolle der Vorgänge.
+
+\subsection{Backend}
+
+Das Backend übernimmt die fachliche Verarbeitung der Daten,
+stellt Schnittstellen für das Frontend bereit und koordiniert
+die Kommunikation mit Datenbank, Workflow Engine und
+E-Mail-Versand. Darüber hinaus bildet es die zentrale Stelle
+für Statuslogik und Validierung.
+
+\subsection{Workflow Engine}
+
+Die Workflow Engine dient zur Modellierung und Steuerung des
+fachlichen Ablaufs. Entscheidungen und Prozessschritte werden
+dadurch nicht nur technisch ausgeführt, sondern auch
+transparent und nachvollziehbar dokumentiert.
+
+\subsection{Datenbank}
+
+In der Datenbank werden die für den Prozess relevanten
+Informationen persistent gespeichert. Dazu gehören insbesondere
+Lieferdaten, Rückmeldungen, Statuswerte und die Zuordnung
+zwischen den einzelnen Prozessobjekten.
+
+% =================================================
+\section{Datenmodell}
+% =================================================
+
+\subsection{ER-Diagramm}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{assets/erd.png}
+\caption{Datenmodell}
+\end{figure}
+
+\subsection{Wichtige Entitäten}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+Entität & Beschreibung \\
+\midrule
+Auftrag & Lieferauftrag \\
+Kunde & Kundendaten \\
+Zeitfenster & Lieferfenster \\
+Rückmeldung & Bestätigung/Ablehnung \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =================================================
+\section{Benutzeroberfläche}
+% =================================================
+
+\subsection{Dashboard}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{assets/dashboard.png}
+\caption{Dashboard}
+\end{figure}
+
+\subsection{Detailansicht}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{assets/detailansicht.png}
+\caption{Detailansicht}
+\end{figure}
+
+% =================================================
+\section{Test und Validierung}
+% =================================================
+
+\subsection{Teststrategie}
+
+Die Validierung erfolgte schrittweise entlang der zentralen
+Anwendungsfälle. Zunächst wurden einzelne Komponenten isoliert
+überprüft, anschließend das Zusammenspiel von Frontend,
+Backend, Workflow Engine und E-Mail-Kommunikation getestet.
+
+Ein besonderer Fokus lag dabei auf den Übergängen zwischen den
+Systemkomponenten, da dort fachliche Fehler oder inkonsistente
+Status besonders wahrscheinlich sind.
+
+\subsection{Testfälle}
+
+\begin{longtable}{p{5cm}p{4cm}p{3cm}}
+\toprule
+Testfall & Erwartetes Ergebnis & Status \\
+\midrule
+Bestätigung eines Lieferfensters &
+Status = Bestätigt &
+Erfolgreich \\
+\midrule
+Ablehnung eines Lieferfensters &
+Status = Abgelehnt &
+Erfolgreich \\
+\midrule
+Keine Rückmeldung &
+Hinweis erscheint &
+Erfolgreich \\
+\bottomrule
+\end{longtable}
+
+% =================================================
+\section{Projektplan}
+% =================================================
+
+\subsection{Projektphasen}
+
+Das Projekt wurde in klar abgegrenzte Phasen unterteilt, um
+Analyse, Konzeption, Umsetzung und Validierung strukturiert
+durchführen zu können. Die Übergänge zwischen den Phasen waren
+teilweise iterativ, da Erkenntnisse aus der Implementierung
+wieder in die Ausgestaltung des SOLL-Prozesses eingeflossen
+sind.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{5cm}p{4cm}p{3cm}}
+\toprule
+Phase & Zeitraum & Status \\
+\midrule
+Analyse und Anforderungsabstimmung & xx.xx - xx.xx & abgeschlossen \\
+Architektur und Prozessmodellierung & xx.xx - xx.xx & abgeschlossen \\
+Implementierung & xx.xx - xx.xx & abgeschlossen \\
+Integration und Test & xx.xx - xx.xx & abgeschlossen \\
+Abschluss und Ergebnisaufbereitung & xx.xx - xx.xx & abgeschlossen \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Projektplan}
+
+Der Projektplan diente als gemeinsame Orientierung für
+inhaltliche Meilensteine, Abstimmungstermine und die
+Reihenfolge der Umsetzung. Besonders hilfreich war die frühe
+Sichtbarkeit von Abhängigkeiten zwischen Prozessmodell,
+Schnittstellen und Benutzeroberfläche.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../Projektplan/assets/projectplan.png}
+\caption{Projektplan}
+\end{figure}
+
+% =================================================
+\section{Projektaufwand}
+% =================================================
+
+Der dokumentierte Aufwand verteilt sich auf Analyse,
+Konzeption, Implementierung, Test und Abstimmung mit dem
+Auftraggeber. Die Tabelle dient als Beispielstruktur zur
+Erfassung der geleisteten Stunden und kann mit den tatsächlichen
+Projektdaten vervollständigt werden.
+
+\begin{longtable}{p{2cm}p{3cm}p{5cm}p{2cm}}
+\toprule
+Datum & Person & Tätigkeit & Stunden \\
+\midrule
+xx.xx.2026 & Name 1 & Anforderungsanalyse und Recherche & 4 \\
+\midrule
+xx.xx.2026 & Name 2 & Backend-Implementierung & 6 \\
+\midrule
+xx.xx.2026 & Name 3 & BPMN-Modellierung und Camunda-Integration & 5 \\
+\midrule
+xx.xx.2026 & Name 1 & Frontend-Umsetzung und UI-Anpassungen & 5 \\
+\midrule
+xx.xx.2026 & Team & Integrationstest und Ergebnisabstimmung & 4 \\
+\bottomrule
+\end{longtable}
+
+\subsection{Aufwandsbewertung}
+
+Der größte Aufwand entstand in den Bereichen
+Schnittstellenabstimmung, Statuslogik und Integration der
+einzelnen Komponenten. Weniger zeitintensiv, aber inhaltlich
+wichtig, waren die Abstimmungen mit dem Auftraggeber zur
+Absicherung des fachlichen Verständnisses.
+
+% =================================================
+\section{Verwendete Technologien}
+% =================================================
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{4cm}p{8cm}}
+\toprule
+Technologie & Verwendung \\
+\midrule
+React & Frontend \\
+Spring Boot & Backend \\
+Camunda & Workflow Engine \\
+PostgreSQL & Datenbank \\
+BPMN 2.0 & Prozessmodellierung \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =================================================
+\section{Ergebnisse}
+% =================================================
+
+Die Projektarbeit führte zu einem konsistenten Prototypen, der
+die wesentlichen Anforderungen des definierten SOLL-Prozesses
+abbildet.
+
+\begin{itemize}
+\item Funktionsfähiger Prototyp
+\item Frontend-Backend-Kommunikation
+\item E-Mail-Versand
+\item Statusverwaltung
+\item Workflowsteuerung
+\end{itemize}
+
+% =================================================
+\section{Nutzenbewertung}
+% =================================================
+
+\begin{itemize}
+\item Reduzierung manueller Tätigkeiten
+\item Schnellere Rückmeldungen
+\item Höhere Transparenz
+\item Verbesserte Nachverfolgbarkeit
+\end{itemize}
+
+% =================================================
+\section{Reflexion}
+% =================================================
+
+\subsection{Positive Aspekte}
+
+Positiv hervorzuheben ist die klare fachliche Eingrenzung des
+Anwendungsfalls. Dadurch konnte früh ein gemeinsames
+Verständnis für Zielprozess, Datenflüsse und erwartete
+Ergebnisse aufgebaut werden. Ebenfalls hilfreich war die
+Aufteilung in technische Verantwortungsbereiche, wodurch
+Frontend, Backend und Workflowmodell parallel vorbereitet
+werden konnten.
+
+\subsection{Herausforderungen}
+
+Herausfordernd war insbesondere die Abstimmung an den
+Schnittstellen zwischen fachlicher Prozessbeschreibung und
+technischer Umsetzung. Bereits kleine Unklarheiten bei
+Statusübergängen oder Rückmeldewegen hatten direkte
+Auswirkungen auf mehrere Systemkomponenten. Auch die
+Konsistenz zwischen Benutzerführung, Datenmodell und
+Workflowlogik erforderte wiederholte Abstimmungen.
+
+\subsection{Lessons Learned}
+
+Für vergleichbare Projekte empfiehlt es sich, Statusmodelle,
+Ereignisse und Verantwortlichkeiten frühzeitig gemeinsam zu
+definieren und schriftlich festzuhalten. Darüber hinaus hat
+sich gezeigt, dass ein visuelles Prozessmodell in Kombination
+mit einer frühen technischen Teilimplementierung sehr hilfreich
+ist, um Missverständnisse schnell sichtbar zu machen.
+
+% =================================================
+\section{Fazit}
+% =================================================
+
+Das Projekt konnte sowohl aus technischer als auch aus
+organisatorischer Sicht erfolgreich abgeschlossen werden. Neben
+dem entwickelten Prototypen entstand eine belastbare Grundlage
+für die weitere fachliche und technische Ausarbeitung des
+Systems. Die Kombination aus Prozessmodellierung,
+Webanwendung und automatisierter Kommunikation erwies sich als
+geeigneter Ansatz für die Digitalisierung des betrachteten
+Anwendungsfalls.
+
+% =================================================
+\section{Ausblick}
+% =================================================
+
+\begin{itemize}
+\item Kartenansicht für Fahrer
+\item Erweiterte Benachrichtigungen
+\item Weitere Automatisierungen
+\item Integration zusätzlicher Systeme
+\end{itemize}
+
+% =================================================
+\section{Anhang}
+% =================================================
+
+\subsection{Verwendete Dokumente}
+
+\begin{itemize}
+\item Lastenheft
+\item Pflichtenheft
+\item Projektplan
+\item Meetingprotokolle
+\item BPMN-Modelle
+\end{itemize}
+
+\end{document}

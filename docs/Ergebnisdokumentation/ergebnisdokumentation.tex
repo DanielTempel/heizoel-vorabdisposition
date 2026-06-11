@@ -1,0 +1,292 @@
+
+\documentclass[
+12pt,
+a4paper
+]{article}
+
+% ------------------------------------------------
+% Pakete
+% ------------------------------------------------
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[german]{babel}
+
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{parskip}
+\usepackage[hidelinks]{hyperref}
+
+% ------------------------------------------------
+% Dokumentinformationen
+% ------------------------------------------------
+
+\title{
+\Huge Ergebnisdokumentation\\[0.5cm]
+\Large Workflowbasierte Rückbestätigung von Lieferterminen
+}
+
+\author{
+THWS \\[0.2cm]
+in Kooperation mit MINOVA
+}
+
+\date{\today}
+
+\begin{document}
+
+% =================================================
+% TITELSEITE
+% =================================================
+
+\begin{titlepage}
+\centering
+
+\vspace*{3cm}
+
+{\Huge\bfseries Ergebnisdokumentation\par}
+
+\vspace{1cm}
+
+{\LARGE Workflowbasierte Rückbestätigung von Lieferterminen\par}
+
+\vspace{2cm}
+
+{\Large Projektarbeit\par}
+
+\vspace{1cm}
+
+\begin{tabular}{ll}
+Unternehmen: & MINOVA GmbH \\
+Hochschule: & THWS \\
+Projektzeitraum: & xx.xx.2026 -- xx.xx.2026 \\
+Team: & Name 1, Name 2, Name 3 \\
+\end{tabular}
+
+\vfill
+
+Stand: \today
+
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% =================================================
+\section{Einleitung}
+% =================================================
+
+\subsection{Projektbeschreibung}
+
+Im Rahmen der Projektarbeit wurde in Kooperation mit der
+MINOVA GmbH ein System zur workflowbasierten Rückbestätigung
+von Lieferterminen entwickelt.
+
+Ziel des Projekts war die Digitalisierung und Automatisierung
+der Kommunikation zwischen Unternehmen und Kunden bei der
+Abstimmung von Lieferterminen.
+
+\subsection{Ziel der Ergebnisdokumentation}
+
+Diese Ergebnisdokumentation beschreibt die Ausgangssituation,
+die angestrebten Ergebnisse, die umgesetzte Lösung sowie die
+fachlichen und technischen Erkenntnisse des Projekts. Der Fokus
+liegt dabei auf dem erreichten Nutzen und nicht auf der
+Projektorganisation oder der zeitlichen Planung.
+
+% =================================================
+\section{Ausgangssituation}
+% =================================================
+
+\subsection{IST-Situation}
+
+Vor Projektbeginn erfolgte die Abstimmung von Lieferterminen
+größtenteils manuell. Kunden wurden über geplante Lieferungen
+informiert und mussten Rückmeldungen auf unterschiedlichen
+Kommunikationswegen übermitteln.
+
+Die Informationen wurden anschließend manuell verarbeitet und
+an die beteiligten Stellen weitergegeben.
+
+\subsection{Fachlicher Kontext}
+
+Die Rückbestätigung von Lieferterminen ist ein zentraler
+Bestandteil der operativen Abstimmung zwischen Unternehmen,
+Disposition und Kunden. Verzögerungen oder unvollständige
+Rückmeldungen führen unmittelbar zu Mehraufwand in der
+Kommunikation und erschweren eine verlässliche Planung.
+
+Vor diesem Hintergrund bestand die Anforderung darin, einen
+nachvollziehbaren und digital unterstützten Prozess zu schaffen,
+der Rückmeldungen strukturiert erfasst und ohne zusätzliche
+manuelle Zwischenschritte weiterverarbeitet.
+
+\subsection{Identifizierte Probleme}
+
+\begin{itemize}
+    \item Hoher Kommunikationsaufwand
+    \item Manuelle Bearbeitung von Rückmeldungen
+    \item Medienbrüche zwischen verschiedenen Systemen
+    \item Eingeschränkte Transparenz über den aktuellen Status
+    \item Erhöhter organisatorischer Aufwand
+\end{itemize}
+
+% =================================================
+\section{Ergebnisziele}
+% =================================================
+
+\subsection{Fachliche Ziele}
+
+\begin{itemize}
+    \item Automatisierte Kundenkommunikation
+    \item Digitale Rückbestätigung von Lieferterminen
+    \item Transparente Statusverwaltung
+    \item Verbesserte Nachvollziehbarkeit
+\end{itemize}
+
+\subsection{Technische Ziele}
+
+\begin{itemize}
+    \item Entwicklung einer Webanwendung
+    \item Integration von Frontend und Backend
+    \item Workflowsteuerung über Camunda
+    \item Automatisierter E-Mail-Versand
+    \item Speicherung relevanter Informationen in einer Datenbank
+\end{itemize}
+
+\subsection{Abgrenzung}
+
+Die Ergebnisdokumentation betrachtet insbesondere die
+funktionsbezogenen Resultate des Projekts. Themen wie
+Projektaufwand, Zeitplanung, Arbeitsverteilung und die
+teambezogene Reflexion werden in der separaten
+Projektdokumentation behandelt.
+
+% =================================================
+\section{Umsetzung}
+% =================================================
+
+\subsection{Systemübersicht}
+
+Die entwickelte Lösung besteht aus mehreren Komponenten:
+
+\begin{itemize}
+    \item React-Frontend
+    \item Spring-Boot-Backend
+    \item Camunda Workflow Engine
+    \item PostgreSQL-Datenbank
+    \item E-Mail-Service
+\end{itemize}
+
+\subsection{Prozessablauf}
+
+Der umgesetzte Prozess läuft wie folgt ab:
+
+\begin{enumerate}
+    \item Ein Lieferauftrag wird verarbeitet.
+    \item Der Kunde erhält automatisch eine E-Mail.
+    \item Der Kunde bestätigt oder lehnt das Zeitfenster ab.
+    \item Die Rückmeldung wird automatisch verarbeitet.
+    \item Der Status wird aktualisiert.
+    \item Die Informationen werden im System dargestellt.
+\end{enumerate}
+
+% =================================================
+\section{Erzielte Ergebnisse}
+% =================================================
+
+\subsection{Erreichte Funktionen}
+
+Im Rahmen der Projektarbeit konnten folgende Ergebnisse erzielt
+werden:
+
+\begin{itemize}
+    \item Funktionsfähige Kommunikation zwischen Frontend und Backend
+    \item Automatisierter Versand von E-Mails
+    \item Verarbeitung von Bestätigungen und Ablehnungen
+    \item Automatische Weiterleitung von Informationen
+    \item Darstellung der Informationen auf den Übersichtsseiten
+    \item Integration der Workflowsteuerung
+\end{itemize}
+
+\subsection{Validierung}
+
+Das entwickelte System wurde gemeinsam mit dem Auftraggeber
+vorgestellt und getestet.
+
+Dabei konnte bestätigt werden, dass:
+
+\begin{itemize}
+    \item die Kommunikation zwischen Frontend und Backend funktioniert,
+    \item Rückmeldungen korrekt verarbeitet werden,
+    \item Statusänderungen ordnungsgemäß dargestellt werden,
+    \item die Benutzerführung nachvollziehbar ist.
+\end{itemize}
+
+\subsection{Abgleich mit den Ergebniszielen}
+
+Die zu Beginn definierten fachlichen und technischen Ziele
+konnten in wesentlichen Punkten erreicht werden. Insbesondere
+wurden die digitale Rückbestätigung von Lieferterminen, die
+strukturierte Statusverwaltung sowie die workflowgestützte
+Verarbeitung erfolgreich umgesetzt.
+
+Darüber hinaus konnte gezeigt werden, dass die gewählte
+Architektur eine tragfähige Grundlage für weitere
+Ausbaustufen bietet. Die erzielten Ergebnisse gehen damit
+über einen rein konzeptionellen Entwurf hinaus und bilden
+einen praktisch nutzbaren Prototypen ab.
+
+% =================================================
+\section{Ausblick}
+% =================================================
+
+Für zukünftige Erweiterungen wurden folgende Ansätze
+identifiziert:
+
+\begin{itemize}
+    \item Kartenansicht zur Anzeige der Fahrerposition
+    \item Erweiterung der E-Mail-Kommunikation
+    \item Zusätzliche Automatisierungen
+    \item Integration weiterer Systeme
+\end{itemize}
+
+% =================================================
+\section{Erfahrungen und Erkenntnisse}
+% =================================================
+
+Im Verlauf der Umsetzung zeigte sich, dass insbesondere die
+klare Abbildung fachlicher Entscheidungen in einem definierten
+Workflow einen hohen Mehrwert für die Nachvollziehbarkeit des
+Gesamtprozesses bietet. Wiederkehrende Kommunikationsschritte
+lassen sich dadurch konsistenter und transparenter gestalten.
+
+Gleichzeitig wurde deutlich, dass die Abstimmung zwischen
+Benutzeroberfläche, Backend-Logik und Workflowsteuerung
+frühzeitig präzisiert werden muss. Schnittstellen,
+Statusübergänge und E-Mail-Inhalte wirken direkt auf die
+Benutzererfahrung und sollten deshalb fachlich und technisch
+gemeinsam betrachtet werden.
+
+Als wesentliche Erkenntnis lässt sich festhalten, dass schon
+eine gezielte Teilautomatisierung spürbare Verbesserungen in
+Bezug auf Transparenz, Bearbeitungsgeschwindigkeit und
+Nachverfolgbarkeit erzeugen kann.
+
+% =================================================
+\section{Fazit}
+% =================================================
+
+Die definierten Projektziele konnten erfolgreich umgesetzt
+werden. Die entwickelte Lösung ermöglicht eine automatisierte
+und transparente Rückbestätigung von Lieferterminen und trägt
+zur Reduzierung manueller Arbeitsschritte bei.
+
+Die erfolgreiche Integration von Frontend, Backend und
+Workflow Engine bildet eine solide Grundlage für zukünftige
+Erweiterungen und den weiteren Ausbau des Systems.
+
+\end{document}
