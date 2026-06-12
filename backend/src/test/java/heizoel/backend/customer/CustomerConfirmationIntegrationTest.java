@@ -9,7 +9,7 @@ import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.domain.repository.ConfirmationRequestRepository;
 import heizoel.backend.dispo.domain.repository.OrderSnapshotRepository;
-import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
+import heizoel.backend.notification.application.interfaces.NotificationService;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,7 +72,7 @@ class CustomerConfirmationIntegrationTest {
     JavaMailSender javaMailSender;
 
     @MockitoBean
-    ConfirmationNotificationService confirmationNotificationService;
+    NotificationService notificationService;
 
     @Autowired
     MockMvc mockMvc;
@@ -95,7 +95,7 @@ class CustomerConfirmationIntegrationTest {
         confirmationRequestRepository.deleteAll();
         orderSnapshotRepository.deleteAll();
 
-        Mockito.reset(confirmationNotificationService);
+        Mockito.reset(notificationService);
     }
 
     @Test
@@ -231,7 +231,7 @@ class CustomerConfirmationIntegrationTest {
 
         createDispoConfirmationRequest(externalOrderId);
 
-        Mockito.verify(confirmationNotificationService, times(1))
+        Mockito.verify(notificationService, times(1))
                 .sendConfirmationRequest(
                         any(OrderSnapshot.class),
                         any(ConfirmationRequest.class)

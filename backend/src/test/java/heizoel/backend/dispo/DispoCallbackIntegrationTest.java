@@ -8,7 +8,7 @@ import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.domain.repository.ConfirmationRequestRepository;
 import heizoel.backend.dispo.domain.repository.OrderSnapshotRepository;
-import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
+import heizoel.backend.notification.application.interfaces.NotificationService;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,7 +75,7 @@ class DispoCallbackIntegrationTest {
     private DispoStatusCallbackService dispoStatusCallbackService;
 
     @MockitoBean
-    private ConfirmationNotificationService notificationService;
+    private NotificationService notificationService;
 
     @BeforeEach
     void setUp() {

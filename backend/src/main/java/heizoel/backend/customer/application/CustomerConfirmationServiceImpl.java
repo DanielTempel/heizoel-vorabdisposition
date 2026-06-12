@@ -15,13 +15,17 @@ import heizoel.backend.exceptions.customer.ConfirmationRequestExpiredException;
 import heizoel.backend.exceptions.customer.ConfirmationRequestInactiveException;
 import heizoel.backend.exceptions.customer.ConfirmationRequestNotFoundException;
 import heizoel.backend.exceptions.customer.CustomerResponseAlreadyExistsException;
+import heizoel.backend.exceptions.notification.EmailSendingException;
+import heizoel.backend.notification.application.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CustomerConfirmationServiceImpl implements CustomerConfirmationService {
 
@@ -29,6 +33,7 @@ public class CustomerConfirmationServiceImpl implements CustomerConfirmationServ
     private final OrderSnapshotService orderSnapshotService;
     private final CustomerResponseService customerResponseService;
     private final DispoCallbackWorkflowService dispoCallbackWorkflowService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -49,6 +54,7 @@ public class CustomerConfirmationServiceImpl implements CustomerConfirmationServ
                 confirmationRequest.getDeliveryDate(),
                 confirmationRequest.getDeliveryWindowStart(),
                 confirmationRequest.getDeliveryWindowEnd(),
+                orderSnapshot.getPriceDisplayText(),
                 orderSnapshot.getConfirmationStatus()
         );
     }
@@ -100,6 +106,21 @@ public class CustomerConfirmationServiceImpl implements CustomerConfirmationServ
 
         confirmationRequestService.markInactive(confirmationRequest);
         orderSnapshotService.updateStatus(orderSnapshot, confirmationStatus);
+
+        try {
+            notificationService.sendCustomerResponseReceived(
+                    orderSnapshot,
+                    confirmationRequest,
+                    responseType
+            );
+        } catch (EmailSendingException ex) {
+            log.warn(
+                    "Customer response follow-up e-mail could not be sent. externalOrderId={}, responseType={}",
+                    orderSnapshot.getExternalOrderId(),
+                    responseType,
+                    ex
+            );
+        }
 
         dispoCallbackWorkflowService.startDispoCallbackProcess(
                 orderSnapshot.getExternalOrderId(),

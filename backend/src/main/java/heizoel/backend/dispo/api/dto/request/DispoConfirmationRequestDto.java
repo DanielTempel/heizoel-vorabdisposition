@@ -44,6 +44,9 @@ public record DispoConfirmationRequestDto(
         @NotNull(message = "Response deadline in hours is required.")
         @Positive(message = "Response deadline in hours must be greater than 0.")
         @Max(value = 168, message = "Response deadline must not exceed 168 hours.")
-        Integer responseDeadlineHours
+        Integer responseDeadlineHours,
+
+        @Size(max = 100, message = "Price display text must not exceed 100 characters.")
+        String priceDisplayText
 ) {
 }

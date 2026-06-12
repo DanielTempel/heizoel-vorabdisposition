@@ -4,7 +4,7 @@ import heizoel.backend.camunda.application.interfaces.ConfirmationWorkflowServic
 import heizoel.backend.dispo.application.interfaces.DispoStatusCallbackService;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
-import heizoel.backend.notification.application.interfaces.EmailConfirmationSender;
+import heizoel.backend.notification.application.interfaces.EmailSender;
 import heizoel.backend.notification.application.interfaces.SmsConfirmationSender;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,7 +74,7 @@ class ConfirmationNotificationTest {
     JdbcTemplate jdbcTemplate;
 
     @MockitoBean
-    EmailConfirmationSender emailConfirmationSender;
+    EmailSender emailSender;
 
     @MockitoBean
     SmsConfirmationSender smsConfirmationSender;
@@ -88,7 +88,7 @@ class ConfirmationNotificationTest {
     @BeforeEach
     void resetMocks() {
         reset(
-                emailConfirmationSender,
+                emailSender,
                 smsConfirmationSender,
                 confirmationWorkflowService,
                 dispoStatusCallbackService
@@ -124,8 +124,8 @@ class ConfirmationNotificationTest {
         ArgumentCaptor<ConfirmationRequest> requestCaptor =
                 ArgumentCaptor.forClass(ConfirmationRequest.class);
 
-        verify(emailConfirmationSender, times(1))
-                .send(orderCaptor.capture(), requestCaptor.capture());
+        verify(emailSender, times(1))
+                .sendConfirmationRequest(orderCaptor.capture(), requestCaptor.capture());
 
         verifyNoInteractions(smsConfirmationSender);
 
@@ -180,7 +180,7 @@ class ConfirmationNotificationTest {
         verify(smsConfirmationSender, times(1))
                 .send(orderCaptor.capture(), requestCaptor.capture());
 
-        verifyNoInteractions(emailConfirmationSender);
+        verifyNoInteractions(emailSender);
 
         OrderSnapshot capturedOrder = orderCaptor.getValue();
         ConfirmationRequest capturedRequest = requestCaptor.getValue();

@@ -35,6 +35,7 @@ public class OrderSnapshotServiceImpl implements OrderSnapshotService {
         orderSnapshot.setProduct(data.product());
         orderSnapshot.setQuantityLiters(data.quantityLiters());
         orderSnapshot.setConfirmationStatus(ConfirmationStatus.SENT);
+        orderSnapshot.setPriceDisplayText(data.priceDisplayText());
 
         return orderSnapshotRepository.save(orderSnapshot);
     }
@@ -48,6 +49,7 @@ public class OrderSnapshotServiceImpl implements OrderSnapshotService {
         orderSnapshot.setProduct(data.product());
         orderSnapshot.setQuantityLiters(data.quantityLiters());
         orderSnapshot.setConfirmationStatus(ConfirmationStatus.SENT);
+        orderSnapshot.setPriceDisplayText(data.priceDisplayText());
 
         return orderSnapshotRepository.save(orderSnapshot);
     }
@@ -59,8 +61,11 @@ public class OrderSnapshotServiceImpl implements OrderSnapshotService {
                 && Objects.equals(orderSnapshot.getCustomerPhoneNumber(), data.customerPhoneNumber())
                 && Objects.equals(orderSnapshot.getDeliveryAddress(), data.deliveryAddress())
                 && Objects.equals(orderSnapshot.getProduct(), data.product())
-                && Objects.equals(orderSnapshot.getQuantityLiters(), data.quantityLiters());
+                && Objects.equals(orderSnapshot.getQuantityLiters(), data.quantityLiters())
+                && Objects.equals(orderSnapshot.getPriceDisplayText(), data.priceDisplayText());
+
     }
+
     @Override
     public OrderSnapshot updateStatus(OrderSnapshot orderSnapshot, ConfirmationStatus status) {
         orderSnapshot.setConfirmationStatus(status);

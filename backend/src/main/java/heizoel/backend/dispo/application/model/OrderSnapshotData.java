@@ -7,6 +7,7 @@ public record OrderSnapshotData(
         String customerPhoneNumber,
         String deliveryAddress,
         String product,
-        Integer quantityLiters
+        Integer quantityLiters,
+        String priceDisplayText
 ) {
 }

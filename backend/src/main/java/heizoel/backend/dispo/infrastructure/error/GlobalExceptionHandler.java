@@ -1,5 +1,6 @@
 package heizoel.backend.dispo.infrastructure.error;
 
+import heizoel.backend.exceptions.dispo.DispoCallbackFailedException;
 import heizoel.backend.exceptions.notification.EmailSendingException;
 import heizoel.backend.exceptions.customer.ConfirmationRequestExpiredException;
 import heizoel.backend.exceptions.customer.ConfirmationRequestInactiveException;
@@ -14,7 +15,6 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.mail.MailException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -86,15 +86,16 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.NOT_FOUND, "NOT_FOUND", "Resource was not found.", req.getRequestURI());
     }
 
-    @ExceptionHandler(MailException.class)
-    ResponseEntity<ErrorResponseDto> handleMailException(MailException ex, HttpServletRequest request) {
-        return respond(HttpStatus.BAD_GATEWAY, "EMAIL_SENDING_FAILED", "The confirmation e-mail could not be sent.", request.getRequestURI());
-    }
-
     @ExceptionHandler(SmsSendingException.class)
     ResponseEntity<ErrorResponseDto> smsSendingFailed(SmsSendingException e, HttpServletRequest req
     ) {
         return respond(HttpStatus.BAD_GATEWAY, "SMS_SENDING_FAILED", e.getMessage(), req.getRequestURI());
+    }
+
+    @ExceptionHandler(DispoCallbackFailedException.class)
+    ResponseEntity<ErrorResponseDto> dispoCallbackFailed(DispoCallbackFailedException e, HttpServletRequest req
+    ) {
+       return respond(HttpStatus.BAD_GATEWAY, "DISPO_CALLBACK_FAILED", e.getMessage(), req.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)

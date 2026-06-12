@@ -9,14 +9,14 @@ import heizoel.backend.dispo.application.interfaces.DispoConfirmationService;
 import heizoel.backend.dispo.application.interfaces.OrderSnapshotService;
 import heizoel.backend.dispo.application.model.ConfirmationRequestData;
 import heizoel.backend.dispo.application.model.OrderSnapshotData;
-import heizoel.backend.dispo.application.model.command.DispoConfirmationCreationResult;
+import heizoel.backend.dispo.application.model.DispoConfirmationCreationResult;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
 import heizoel.backend.exceptions.dispo.InvalidDeliveryWindowException;
 import heizoel.backend.exceptions.dispo.MissingDigitalContactException;
-import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
+import heizoel.backend.notification.application.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
 
     private final OrderSnapshotService orderSnapshotService;
     private final ConfirmationRequestService confirmationRequestService;
-    private final ConfirmationNotificationService notificationService;
+    private final NotificationService notificationService;
     private final ConfirmationWorkflowService confirmationWorkflowService;
 
     @Override
@@ -51,7 +51,8 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
                 request.customerPhoneNumber(),
                 request.deliveryAddress(),
                 request.product(),
-                request.quantityLiters()
+                request.quantityLiters(),
+                request.priceDisplayText()
         );
 
         ConfirmationRequestData requestData = new ConfirmationRequestData(
