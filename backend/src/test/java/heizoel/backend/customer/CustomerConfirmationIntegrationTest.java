@@ -250,7 +250,8 @@ class CustomerConfirmationIntegrationTest {
                 3000,
                 LocalDate.of(2026, 6, 12),
                 LocalTime.of(10, 0),
-                LocalTime.of(11, 0)
+                LocalTime.of(11, 0),
+                1
         );
 
         mockMvc.perform(post("/api/dispo/confirmation-requests")
