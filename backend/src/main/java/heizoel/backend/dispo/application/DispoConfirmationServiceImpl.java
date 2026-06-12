@@ -16,7 +16,7 @@ import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
 import heizoel.backend.exceptions.dispo.InvalidDeliveryWindowException;
 import heizoel.backend.exceptions.dispo.MissingDigitalContactException;
-import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
+import heizoel.backend.notification.application.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
 
     private final OrderSnapshotService orderSnapshotService;
     private final ConfirmationRequestService confirmationRequestService;
-    private final ConfirmationNotificationService notificationService;
+    private final NotificationService notificationService;
     private final ConfirmationWorkflowService confirmationWorkflowService;
 
     @Override

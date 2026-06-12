@@ -1,4 +1,4 @@
-package heizoel.backend.customer.application;
+package heizoel.backend.customer.application.domain_service;
 
 
 import heizoel.backend.customer.application.interfaces.CustomerResponseService;

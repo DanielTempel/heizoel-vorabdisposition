@@ -2,7 +2,7 @@ package heizoel.backend.camunda;
 
 import heizoel.backend.dispo.application.interfaces.DispoStatusCallbackService;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
-import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
+import heizoel.backend.notification.application.interfaces.NotificationService;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,14 +70,14 @@ class ConfirmationFlowIntegrationTest {
     @MockitoBean
     DispoStatusCallbackService dispoStatusCallbackService;
     @MockitoBean
-    ConfirmationNotificationService confirmationNotificationService;
+    NotificationService notificationService;
 
     @MockitoBean
     JavaMailSender javaMailSender;
 
     @BeforeEach
     void resetMocks() {
-        reset(dispoStatusCallbackService, confirmationNotificationService);
+        reset(dispoStatusCallbackService, notificationService);
     }
 
     @Test

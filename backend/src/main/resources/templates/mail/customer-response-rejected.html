@@ -1,9 +1,8 @@
-```html
 <!DOCTYPE html>
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Ihr Lieferfenster</title>
+    <title>Rückmeldung erhalten</title>
 </head>
 
 <body style="margin:0; padding:0; background-color:#f3f5f7; font-family:Arial, Helvetica, sans-serif; color:#1f2937;">
@@ -21,7 +20,7 @@
                         <table width="100%" cellpadding="0" cellspacing="0">
                             <tr>
                                 <td style="font-size:14px; color:#d1d5db;">
-                                    Lieferinformation
+                                    Rückmeldung erhalten
                                 </td>
                                 <td align="right" style="font-size:22px; font-weight:700;">
                                     MINOVA
@@ -41,18 +40,17 @@
                         </p>
 
                         <p style="margin:0 0 24px 0; font-size:16px; line-height:1.6;">
-                            für Ihre Lieferung wurde folgendes Zeitfenster vorgesehen.
-                            Bitte prüfen Sie kurz, ob dieser Zeitraum für Sie passt.
+                            vielen Dank. Wir haben Ihre Rückmeldung erhalten.
                         </p>
 
-                        <!-- Main delivery window box -->
+                        <!-- Status box -->
                         <table width="100%" cellpadding="0" cellspacing="0"
-                               style="background-color:#eef6ff; border:2px solid #1f6feb; border-radius:10px; margin:0 0 28px 0;">
+                               style="background-color:#fff7ed; border:2px solid #f97316; border-radius:10px; margin:0 0 28px 0;">
                             <tr>
                                 <td style="padding:24px; text-align:center;">
 
-                                    <p style="margin:0 0 8px 0; font-size:13px; color:#1f6feb; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">
-                                        Vorgeschlagenes Lieferfenster
+                                    <p style="margin:0 0 8px 0; font-size:13px; color:#f97316; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">
+                                        Liefertermin abgelehnt
                                     </p>
 
                                     <p style="margin:0 0 10px 0; font-size:26px; line-height:1.3; font-weight:700; color:#111827;"
@@ -60,35 +58,13 @@
                                         12.06.2026
                                     </p>
 
-                                    <p style="margin:0; font-size:30px; line-height:1.25; font-weight:700; color:#1f6feb;">
+                                    <p style="margin:0; font-size:30px; line-height:1.25; font-weight:700; color:#f97316;">
                                         <span th:text="${deliveryWindowStart}">10:00</span>
                                         -
                                         <span th:text="${deliveryWindowEnd}">11:00</span>
                                         Uhr
                                     </p>
 
-                                </td>
-                            </tr>
-                        </table>
-
-                        <!-- CTA -->
-                        <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 30px 0;">
-                            <tr>
-                                <td align="center">
-                                    <a th:href="${confirmationUrl}"
-                                       href="http://localhost:3000/confirmation/example-token"
-                                       style="display:inline-block;
-                                              min-width:260px;
-                                              padding:14px 24px;
-                                              background-color:#1f6feb;
-                                              color:#ffffff;
-                                              text-decoration:none;
-                                              border-radius:8px;
-                                              font-size:16px;
-                                              font-weight:700;
-                                              text-align:center;">
-                                        Lieferfenster beantworten
-                                    </a>
                                 </td>
                             </tr>
                         </table>
@@ -107,7 +83,14 @@
                                     <table width="100%" cellpadding="0" cellspacing="0" style="font-size:14px; line-height:1.6;">
 
                                         <tr>
-                                            <td style="padding:5px 0; width:140px; color:#6b7280;">Adresse</td>
+                                            <td style="padding:5px 0; width:140px; color:#6b7280;">Auftrag</td>
+                                            <td style="padding:5px 0; color:#111827;" th:text="${externalOrderId}">
+                                                A-1024
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td style="padding:5px 0; color:#6b7280;">Adresse</td>
                                             <td style="padding:5px 0; color:#111827;" th:text="${deliveryAddress}">
                                                 Beispielstraße 12, 97070 Würzburg
                                             </td>
@@ -139,37 +122,31 @@
                             </tr>
                         </table>
 
+                        <p style="margin:0 0 22px 0; font-size:15px; line-height:1.6; color:#374151;">
+                            Unsere Disposition prüft Ihre Rückmeldung. Ein Ersatztermin wird nicht automatisch geplant.
+                        </p>
 
-                        <div style="margin: 24px 0; padding: 16px; background-color: #fff3cd; border-radius: 8px;">
-                            <p style="margin: 0 0 8px 0;">
-                                <strong>Bitte antworten Sie bis spätestens:</strong>
-                            </p>
-                            <p style="margin: 0; font-size: 20px; font-weight: bold;">
-                                <span th:text="${responseDeadline}">11.06.2026, 18:30 Uhr</span>
-                            </p>
-                        </div>
-
-
-                        <!-- Short note -->
-                        <table width="100%" cellpadding="0" cellspacing="0"
-                               style="background-color:#fff7ed; border:1px solid #fed7aa; border-radius:8px; margin:0 0 26px 0;">
+                        <!-- CTA -->
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 30px 0;">
                             <tr>
-                                <td style="padding:14px 16px; font-size:14px; line-height:1.5; color:#7c2d12;">
-                                    Bitte beantworten Sie die Anfrage möglichst zeitnah, damit wir Ihre Lieferung zuverlässig einplanen können.
+                                <td align="center">
+                                    <a th:href="${confirmationUrl}"
+                                       href="http://localhost:3000/confirmation/example-token"
+                                       style="display:inline-block;
+                                              min-width:260px;
+                                              padding:14px 24px;
+                                              background-color:#1f6feb;
+                                              color:#ffffff;
+                                              text-decoration:none;
+                                              border-radius:8px;
+                                              font-size:16px;
+                                              font-weight:700;
+                                              text-align:center;">
+                                        Rückmeldung öffnen
+                                    </a>
                                 </td>
                             </tr>
                         </table>
-
-                        <!-- Minimal delivery hints -->
-                        <p style="margin:0 0 10px 0; font-size:15px; color:#111827; font-weight:700;">
-                            Hinweise zur Lieferung
-                        </p>
-
-                        <ul style="margin:0 0 26px 0; padding-left:20px; font-size:14px; line-height:1.6; color:#374151;">
-                            <li>Bitte stellen Sie sicher, dass die Lieferadresse gut erreichbar ist.</li>
-                            <li>Bitte halten Sie den Zugang zur Lieferstelle frei.</li>
-                            <li>Besondere Hinweise können Sie über die Antwortseite mitteilen.</li>
-                        </ul>
 
 
                         <p style="margin:0; font-size:15px; line-height:1.6;">
@@ -197,4 +174,3 @@
 
 </body>
 </html>
-```

@@ -2,7 +2,7 @@ package heizoel.backend.camunda;
 
 import heizoel.backend.dispo.application.interfaces.DispoStatusCallbackService;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
-import heizoel.backend.notification.application.interfaces.ConfirmationNotificationService;
+import heizoel.backend.notification.application.interfaces.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
@@ -75,7 +75,7 @@ class DispoCallbackRetryIntegrationTest {
     DispoStatusCallbackService dispoStatusCallbackService;
 
     @MockitoBean
-    ConfirmationNotificationService notificationService;
+    NotificationService notificationService;
 
     @BeforeEach
     void resetMocks() {
