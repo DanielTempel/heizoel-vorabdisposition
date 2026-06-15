@@ -111,6 +111,7 @@ class DispoControllerIntegrationTest {
         assertThat(orderSnapshot.getDeliveryAddress()).isEqualTo("Beispielstrase 12, 97070 Wurzburg");
         assertThat(orderSnapshot.getProduct()).isEqualTo("Heizol");
         assertThat(orderSnapshot.getQuantityLiters()).isEqualTo(3000);
+        assertThat(orderSnapshot.getPriceDisplayText()).isEqualTo("100 EUR");
         assertThat(orderSnapshot.getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
 
         assertThat(confirmationRequest.getOrderSnapshot().getId()).isEqualTo(orderSnapshot.getId());
@@ -119,6 +120,7 @@ class DispoControllerIntegrationTest {
         assertThat(confirmationRequest.getDeliveryDate()).hasToString("2026-06-12");
         assertThat(confirmationRequest.getDeliveryWindowStart()).hasToString("10:00");
         assertThat(confirmationRequest.getDeliveryWindowEnd()).hasToString("11:00");
+        assertThat(confirmationRequest.getResponseDeadlineHours()).isEqualTo(24);
         assertThat(confirmationRequest.isActive()).isTrue();
         assertThat(confirmationRequest.getSentAt()).isNotNull();
         assertThat(confirmationRequest.getExpiresAt()).isAfter(confirmationRequest.getSentAt());
@@ -149,11 +151,13 @@ class DispoControllerIntegrationTest {
         assertThat(orderSnapshot.getCustomerName()).isEqualTo("Max Muller");
         assertThat(orderSnapshot.getCustomerEmail()).isNull();
         assertThat(orderSnapshot.getCustomerPhoneNumber()).isEqualTo("+491701234567");
+        assertThat(orderSnapshot.getPriceDisplayText()).isEqualTo("100 EUR");
         assertThat(orderSnapshot.getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
 
         assertThat(confirmationRequest.getOrderSnapshot().getId()).isEqualTo(orderSnapshot.getId());
         assertThat(confirmationRequest.getToken()).isNotBlank();
         assertThat(confirmationRequest.getCommunicationChannel()).isEqualTo(CommunicationChannel.SMS);
+        assertThat(confirmationRequest.getResponseDeadlineHours()).isEqualTo(24);
         assertThat(confirmationRequest.isActive()).isTrue();
 
         Mockito.verify(notificationService, times(1))
@@ -182,6 +186,80 @@ class DispoControllerIntegrationTest {
         assertThat(confirmationRequests.get(0).isActive()).isTrue();
 
         Mockito.verify(notificationService, times(1))
+                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+    }
+
+    @Test
+    void createConfirmationRequest_sameAsConfirmedRequest_returnsOkAndDoesNotCreateSecondConfirmationRequest() throws Exception {
+        mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(emailRequest("A-1024", "10:00", "11:00")))
+                .andExpect(status().isCreated());
+
+        markLatestRequestInactiveWithStatus("A-1024", ConfirmationStatus.CONFIRMED);
+
+        mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(emailRequest("A-1024", "10:00", "11:00")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
+                .andExpect(jsonPath("$.confirmationStatus").value("CONFIRMED"));
+
+        assertThat(orderSnapshotRepository.findAll()).hasSize(1);
+        assertThat(confirmationRequestRepository.findAll()).hasSize(1);
+
+        Mockito.verify(notificationService, times(1))
+                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+    }
+
+    @Test
+    void createConfirmationRequest_sameAsRejectedRequest_returnsOkAndDoesNotCreateSecondConfirmationRequest() throws Exception {
+        mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(emailRequest("A-1024", "10:00", "11:00")))
+                .andExpect(status().isCreated());
+
+        markLatestRequestInactiveWithStatus("A-1024", ConfirmationStatus.REJECTED);
+
+        mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(emailRequest("A-1024", "10:00", "11:00")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
+                .andExpect(jsonPath("$.confirmationStatus").value("REJECTED"));
+
+        assertThat(orderSnapshotRepository.findAll()).hasSize(1);
+        assertThat(confirmationRequestRepository.findAll()).hasSize(1);
+
+        Mockito.verify(notificationService, times(1))
+                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+    }
+
+    @Test
+    void createConfirmationRequest_sameAsNoResponseRequest_createsNewConfirmationRequest() throws Exception {
+        mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(emailRequest("A-1024", "10:00", "11:00")))
+                .andExpect(status().isCreated());
+
+        markLatestRequestInactiveWithStatus("A-1024", ConfirmationStatus.NO_RESPONSE);
+
+        mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(emailRequest("A-1024", "10:00", "11:00")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
+                .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
+
+        List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
+
+        assertThat(orderSnapshotRepository.findAll()).hasSize(1);
+        assertThat(confirmationRequests).hasSize(2);
+        assertThat(confirmationRequests)
+                .filteredOn(ConfirmationRequest::isActive)
+                .hasSize(1);
+
+        Mockito.verify(notificationService, times(2))
                 .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
     }
 
@@ -363,7 +441,9 @@ class DispoControllerIntegrationTest {
                 3000,
                 "2026-06-12",
                 deliveryWindowStart,
-                deliveryWindowEnd
+                deliveryWindowEnd,
+                24,
+                "100 EUR"
         ));
     }
 
@@ -381,7 +461,9 @@ class DispoControllerIntegrationTest {
                 3000,
                 "2026-06-12",
                 "10:00",
-                "11:00"
+                "11:00",
+                24,
+                "100 EUR"
         ));
     }
 
@@ -397,7 +479,9 @@ class DispoControllerIntegrationTest {
                 3000,
                 "2026-06-12",
                 "10:00",
-                "11:00"
+                "11:00",
+                24,
+                "100 EUR"
         ));
     }
 
@@ -413,7 +497,9 @@ class DispoControllerIntegrationTest {
                 3000,
                 "2026-06-12",
                 "10:00",
-                "11:00"
+                "11:00",
+                24,
+                "100 EUR"
         ));
     }
 
@@ -429,8 +515,29 @@ class DispoControllerIntegrationTest {
                 3000,
                 "2026-06-12",
                 "10:00",
-                "11:00"
+                "11:00",
+                24,
+                "100 EUR"
         ));
+    }
+
+    private void markLatestRequestInactiveWithStatus(
+            String externalOrderId,
+            ConfirmationStatus status
+    ) {
+        OrderSnapshot orderSnapshot = orderSnapshotRepository
+                .findByExternalOrderId(externalOrderId)
+                .orElseThrow();
+
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository
+                .findTopByOrderSnapshotOrderByIdDesc(orderSnapshot)
+                .orElseThrow();
+
+        confirmationRequest.setActive(false);
+        confirmationRequestRepository.save(confirmationRequest);
+
+        orderSnapshot.setConfirmationStatus(status);
+        orderSnapshotRepository.save(orderSnapshot);
     }
 
     private record TestDispoRequest(
@@ -444,7 +551,9 @@ class DispoControllerIntegrationTest {
             Integer quantityLiters,
             String deliveryDate,
             String deliveryWindowStart,
-            String deliveryWindowEnd
+            String deliveryWindowEnd,
+            Integer responseDeadlineHours,
+            String priceDisplayText
     ) {
     }
 }

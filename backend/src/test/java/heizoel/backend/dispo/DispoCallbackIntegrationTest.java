@@ -254,7 +254,9 @@ class DispoCallbackIntegrationTest {
                                   "quantityLiters": 3000,
                                   "deliveryDate": "2026-06-12",
                                   "deliveryWindowStart": "%s",
-                                  "deliveryWindowEnd": "%s"
+                                  "deliveryWindowEnd": "%s",
+                                  "responseDeadlineHours": 24,
+                                  "priceDisplayText": "100 EUR"
                                 }
                                 """.formatted(
                                 externalOrderId,
@@ -281,7 +283,9 @@ class DispoCallbackIntegrationTest {
                                   "quantityLiters": 3000,
                                   "deliveryDate": "2026-06-12",
                                   "deliveryWindowStart": "%s",
-                                  "deliveryWindowEnd": "%s"
+                                  "deliveryWindowEnd": "%s",
+                                  "responseDeadlineHours": 24,
+                                  "priceDisplayText": "100 EUR"
                                 }
                                 """.formatted(
                                 externalOrderId,

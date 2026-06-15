@@ -63,7 +63,6 @@ class CustomerConfirmationIntegrationTest {
         registry.add("camunda.bpm.deployment-resource-pattern[0]", () -> "classpath*:processes/*.bpmn");
         registry.add("camunda.bpm.job-execution.enabled", () -> "false");
 
-        registry.add("heizoel.confirmation.response-deadline", () -> "PT24H");
         registry.add("heizoel.confirmation.frontend-url", () -> "http://localhost:3000");
         registry.add("heizoel.confirmation.dispo-url", () -> "http://localhost:8090/api/dispo/confirmation-status-updates");
     }
@@ -115,7 +114,8 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.quantityLiters").value(3000))
                 .andExpect(jsonPath("$.deliveryDate").value("2026-06-12"))
                 .andExpect(jsonPath("$.deliveryWindowStart").value("10:00:00"))
-                .andExpect(jsonPath("$.deliveryWindowEnd").value("11:00:00"));
+                .andExpect(jsonPath("$.deliveryWindowEnd").value("11:00:00"))
+                .andExpect(jsonPath("$.priceDisplayText").value("100 EUR"));
     }
 
     @Test
@@ -251,7 +251,8 @@ class CustomerConfirmationIntegrationTest {
                 LocalDate.of(2026, 6, 12),
                 LocalTime.of(10, 0),
                 LocalTime.of(11, 0),
-                1
+                1,
+                "100 EUR"
         );
 
         mockMvc.perform(post("/api/dispo/confirmation-requests")

@@ -59,7 +59,6 @@ class DispoCallbackRetryIntegrationTest {
         registry.add("camunda.bpm.deployment-resource-pattern[0]", () -> "classpath*:processes/*.bpmn");
         registry.add("camunda.bpm.job-execution.enabled", () -> "true");
 
-        registry.add("heizoel.confirmation.response-deadline", () -> "PT2S");
     }
 
     @MockitoBean
@@ -200,6 +199,8 @@ class DispoCallbackRetryIntegrationTest {
         createDispoConfirmationRequest(externalOrderId)
                 .andExpect(status().isCreated());
 
+        expireLatestConfirmationRequest(externalOrderId);
+
         await()
                 .atMost(Duration.ofSeconds(45))
                 .pollInterval(Duration.ofSeconds(1))
@@ -251,7 +252,9 @@ class DispoCallbackRetryIntegrationTest {
                           "quantityLiters": 3000,
                           "deliveryDate": "2026-06-12",
                           "deliveryWindowStart": "10:00",
-                          "deliveryWindowEnd": "11:00"
+                          "deliveryWindowEnd": "11:00",
+                          "responseDeadlineHours": 1,
+                          "priceDisplayText": "100 EUR"
                         }
                         """.formatted(externalOrderId)));
     }
@@ -269,6 +272,32 @@ class DispoCallbackRetryIntegrationTest {
                 ORDER BY cr.id DESC
                 LIMIT 1
                 """, String.class, externalOrderId);
+    }
+
+    private void expireLatestConfirmationRequest(String externalOrderId) {
+        Long confirmationRequestId = jdbcTemplate.queryForObject("""
+                SELECT cr.id
+                FROM confirmation_request cr
+                JOIN order_snapshot os ON os.id = cr.order_snapshot_id
+                WHERE os.external_order_id = ?
+                ORDER BY cr.id DESC
+                LIMIT 1
+                """, Long.class, externalOrderId);
+
+        jdbcTemplate.update("""
+                UPDATE confirmation_request
+                SET expires_at = NOW() - INTERVAL '1 second'
+                WHERE id = ?
+                """, confirmationRequestId);
+
+        jdbcTemplate.update("""
+                UPDATE act_ru_job j
+                SET duedate_ = NOW() - INTERVAL '1 second'
+                FROM act_ru_variable v
+                WHERE v.proc_inst_id_ = j.process_instance_id_
+                  AND v.name_ = 'confirmationRequestId'
+                  AND v.long_ = ?
+                """, confirmationRequestId);
     }
 
     private String getConfirmationStatus(String externalOrderId) {

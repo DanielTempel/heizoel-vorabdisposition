@@ -10,10 +10,10 @@ import heizoel.backend.dispo.application.interfaces.OrderSnapshotService;
 import heizoel.backend.dispo.application.model.ConfirmationRequestData;
 import heizoel.backend.dispo.application.model.OrderSnapshotData;
 import heizoel.backend.dispo.application.model.DispoConfirmationCreationResult;
+import heizoel.backend.dispo.domain.ConfirmationStatus;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
-import heizoel.backend.dispo.domain.ConfirmationStatus;
 import heizoel.backend.exceptions.dispo.InvalidDeliveryWindowException;
 import heizoel.backend.exceptions.dispo.MissingDigitalContactException;
 import heizoel.backend.notification.application.interfaces.NotificationService;
@@ -74,7 +74,9 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
         if (latestRequest.isPresent()
                 && orderSnapshotService.hasSameData(orderSnapshot, orderData)
                 && confirmationRequestService.hasSameData(latestRequest.get(), requestData)
-                && isFinalCustomerStatus(orderSnapshot.getConfirmationStatus())) {
+                && (latestRequest.get().isActive()
+                || orderSnapshot.getConfirmationStatus() == ConfirmationStatus.CONFIRMED
+                || orderSnapshot.getConfirmationStatus() == ConfirmationStatus.REJECTED)) {
 
             return new DispoConfirmationCreationResult(
                     new DispoConfirmationResponseDto(
@@ -131,10 +133,5 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
-    }
-
-    private boolean isFinalCustomerStatus(ConfirmationStatus status) {
-        return status == ConfirmationStatus.CONFIRMED
-                || status == ConfirmationStatus.REJECTED;
     }
 }

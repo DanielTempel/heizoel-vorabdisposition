@@ -59,7 +59,6 @@ class ConfirmationNotificationTest {
          */
         registry.add("camunda.bpm.job-execution.enabled", () -> "false");
 
-        registry.add("heizoel.confirmation.response-deadline", () -> "PT24H");
         registry.add("heizoel.confirmation.frontend-url", () -> "http://localhost:3000");
         registry.add("heizoel.confirmation.dispo-url", () -> "http://localhost:8090/api/dispo/confirmation-status-updates");
 
@@ -221,7 +220,9 @@ class ConfirmationNotificationTest {
                           "quantityLiters": 3000,
                           "deliveryDate": "2026-06-12",
                           "deliveryWindowStart": "10:00",
-                          "deliveryWindowEnd": "11:00"
+                          "deliveryWindowEnd": "11:00",
+                          "responseDeadlineHours": 24,
+                          "priceDisplayText": "100 EUR"
                         }
                         """.formatted(
                         externalOrderId,
