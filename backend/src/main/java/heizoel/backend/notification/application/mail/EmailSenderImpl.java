@@ -10,6 +10,7 @@ import heizoel.backend.notification.infrastructure.MailProperties;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -93,12 +94,16 @@ public class EmailSenderImpl implements EmailSender {
     ) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(message, true,"UTF-8");
 
             helper.setFrom(mailProperties.getFrom());
             helper.setTo(orderSnapshot.getCustomerEmail());
             helper.setSubject(subject);
             helper.setText(htmlBody, true);
+            helper.addInline(
+                    "minovaLogo",
+                    new ClassPathResource("assets/minova-logo.png")
+            );
 
             mailSender.send(message);
 

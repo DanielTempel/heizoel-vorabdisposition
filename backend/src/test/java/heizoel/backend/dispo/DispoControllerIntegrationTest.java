@@ -425,6 +425,77 @@ class DispoControllerIntegrationTest {
         Mockito.verifyNoInteractions(notificationService);
     }
 
+    @Test
+    void createConfirmationRequest_zeroResponseDeadlineHours_returnsValidationError() throws Exception {
+        mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(emailRequestWithResponseDeadlineHours("A-DEADLINE-ZERO", 0)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Response deadline in hours must be greater than 0."))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.path").value("/api/dispo/confirmation-requests"));
+
+        assertThat(orderSnapshotRepository.findAll()).isEmpty();
+        assertThat(confirmationRequestRepository.findAll()).isEmpty();
+
+        Mockito.verifyNoInteractions(notificationService);
+    }
+
+    @Test
+    void createConfirmationRequest_negativeResponseDeadlineHours_returnsValidationError() throws Exception {
+        mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(emailRequestWithResponseDeadlineHours("A-DEADLINE-NEGATIVE", -1)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Response deadline in hours must be greater than 0."))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.path").value("/api/dispo/confirmation-requests"));
+
+        assertThat(orderSnapshotRepository.findAll()).isEmpty();
+        assertThat(confirmationRequestRepository.findAll()).isEmpty();
+
+        Mockito.verifyNoInteractions(notificationService);
+    }
+
+    @Test
+    void createConfirmationRequest_tooLargeResponseDeadlineHours_returnsValidationError() throws Exception {
+        mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(emailRequestWithResponseDeadlineHours("A-DEADLINE-TOO-LARGE", 169)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Response deadline must not exceed 168 hours."))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.path").value("/api/dispo/confirmation-requests"));
+
+        assertThat(orderSnapshotRepository.findAll()).isEmpty();
+        assertThat(confirmationRequestRepository.findAll()).isEmpty();
+
+        Mockito.verifyNoInteractions(notificationService);
+    }
+
+    @Test
+    void createConfirmationRequest_maxResponseDeadlineHours_createsRequest() throws Exception {
+        mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(emailRequestWithResponseDeadlineHours("A-DEADLINE-MAX", 168)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.externalOrderId").value("A-DEADLINE-MAX"))
+                .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
+
+        List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
+
+        assertThat(confirmationRequests).hasSize(1);
+        assertThat(confirmationRequests.get(0).getResponseDeadlineHours()).isEqualTo(168);
+        assertThat(confirmationRequests.get(0).getExpiresAt())
+                .isEqualTo(confirmationRequests.get(0).getSentAt().plusSeconds(168L * 60 * 60));
+
+        Mockito.verify(notificationService, times(1))
+                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+    }
+
     private String emailRequest(
             String externalOrderId,
             String deliveryWindowStart,
@@ -443,6 +514,27 @@ class DispoControllerIntegrationTest {
                 deliveryWindowStart,
                 deliveryWindowEnd,
                 24,
+                "100 EUR"
+        ));
+    }
+
+    private String emailRequestWithResponseDeadlineHours(
+            String externalOrderId,
+            Integer responseDeadlineHours
+    ) throws Exception {
+        return objectMapper.writeValueAsString(new TestDispoRequest(
+                externalOrderId,
+                "Max Muller",
+                "daniel@example.com",
+                null,
+                CommunicationChannel.EMAIL,
+                "Beispielstrase 12, 97070 Wurzburg",
+                "Heizol",
+                3000,
+                "2026-06-12",
+                "10:00",
+                "11:00",
+                responseDeadlineHours,
                 "100 EUR"
         ));
     }

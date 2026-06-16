@@ -99,7 +99,7 @@ public class ThymeleafConfirmationMailRenderer {
     private String formatDeadline(ConfirmationRequest confirmationRequest) {
         return confirmationRequest.getExpiresAt()
                 .atZone(ZoneId.of("Europe/Berlin"))
-                .format(   DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm 'Uhr'", Locale.GERMANY));
+                .format(DateTimeFormatter.ofPattern("dd.MM.yyyy, H 'Uhr'", Locale.GERMANY));
     }
 
 }

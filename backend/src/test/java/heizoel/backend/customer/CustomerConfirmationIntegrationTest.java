@@ -29,6 +29,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -226,6 +227,112 @@ class CustomerConfirmationIntegrationTest {
     }
 
     @Test
+    void shouldReturnGoneWhenCustomerAnswersExpiredRequest() throws Exception {
+        String externalOrderId = "A-3006";
+
+        createDispoConfirmationRequest(externalOrderId);
+
+        String token = findActiveTokenByExternalOrderId(externalOrderId);
+        expireRequest(token);
+
+        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isGone())
+                .andExpect(jsonPath("$.code").value("CONFIRMATION_REQUEST_EXPIRED"))
+                .andExpect(jsonPath("$.status").value(410))
+                .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/confirm"));
+
+        OrderSnapshot orderSnapshot = orderSnapshotRepository
+                .findByExternalOrderId(externalOrderId)
+                .orElseThrow();
+
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository
+                .findByToken(token)
+                .orElseThrow();
+
+        assertThat(orderSnapshot.getConfirmationStatus())
+                .isEqualTo(ConfirmationStatus.SENT);
+        assertThat(confirmationRequest.isActive()).isTrue();
+        assertThat(customerResponseRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void shouldReturnConflictWhenCustomerAnswersInactiveRequest() throws Exception {
+        String externalOrderId = "A-3007";
+
+        createDispoConfirmationRequest(externalOrderId);
+
+        String token = findActiveTokenByExternalOrderId(externalOrderId);
+        markRequestInactive(token);
+
+        mockMvc.perform(post("/api/customer/confirmations/{token}/reject", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFIRMATION_REQUEST_INACTIVE"))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/reject"));
+
+        OrderSnapshot orderSnapshot = orderSnapshotRepository
+                .findByExternalOrderId(externalOrderId)
+                .orElseThrow();
+
+        assertThat(orderSnapshot.getConfirmationStatus())
+                .isEqualTo(ConfirmationStatus.SENT);
+        assertThat(customerResponseRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void shouldAcceptCustomerAnswerWithoutRequestBody() throws Exception {
+        String externalOrderId = "A-3008";
+
+        createDispoConfirmationRequest(externalOrderId);
+
+        String token = findActiveTokenByExternalOrderId(externalOrderId);
+
+        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+
+        var customerResponses = customerResponseRepository.findAll();
+
+        assertThat(customerResponses).hasSize(1);
+        assertThat(customerResponses.get(0).getComment()).isNull();
+    }
+
+    @Test
+    void shouldReturnValidationErrorWhenCustomerCommentIsTooLong() throws Exception {
+        String externalOrderId = "A-3009";
+
+        createDispoConfirmationRequest(externalOrderId);
+
+        String token = findActiveTokenByExternalOrderId(externalOrderId);
+        String tooLongComment = "x".repeat(2001);
+
+        mockMvc.perform(post("/api/customer/confirmations/{token}/reject", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CustomerAnswerRequestDto(tooLongComment))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Customer comment must not exceed 2000 characters."))
+                .andExpect(jsonPath("$.status").value(400));
+
+        OrderSnapshot orderSnapshot = orderSnapshotRepository
+                .findByExternalOrderId(externalOrderId)
+                .orElseThrow();
+
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository
+                .findByToken(token)
+                .orElseThrow();
+
+        assertThat(orderSnapshot.getConfirmationStatus())
+                .isEqualTo(ConfirmationStatus.SENT);
+        assertThat(confirmationRequest.isActive()).isTrue();
+        assertThat(customerResponseRepository.findAll()).isEmpty();
+    }
+
+    @Test
     void createDispoConfirmationRequest_shouldUseNotificationService() throws Exception {
         String externalOrderId = "A-3005";
 
@@ -272,5 +379,23 @@ class CustomerConfirmationIntegrationTest {
                 .findTopByOrderSnapshotOrderByIdDesc(orderSnapshot)
                 .orElseThrow()
                 .getToken();
+    }
+
+    private void expireRequest(String token) {
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository
+                .findByToken(token)
+                .orElseThrow();
+
+        confirmationRequest.setExpiresAt(Instant.now().minusSeconds(1));
+        confirmationRequestRepository.save(confirmationRequest);
+    }
+
+    private void markRequestInactive(String token) {
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository
+                .findByToken(token)
+                .orElseThrow();
+
+        confirmationRequest.setActive(false);
+        confirmationRequestRepository.save(confirmationRequest);
     }
 }
