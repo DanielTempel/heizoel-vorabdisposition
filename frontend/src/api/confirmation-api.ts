@@ -17,6 +17,7 @@ const mockConfirmationPreview: CustomerConfirmationPreview = {
   deliveryDate: '2026-06-12',
   deliveryWindowStart: '10:00:00',
   deliveryWindowEnd: '11:00:00',
+  priceDisplayText: '100 EUR',
   confirmationStatus: 'SENT',
 }
 

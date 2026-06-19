@@ -7,6 +7,7 @@ export type CustomerConfirmationPreview = {
   deliveryDate: string
   deliveryWindowStart: string
   deliveryWindowEnd: string
+  priceDisplayText: string | null
   confirmationStatus: ConfirmationStatus
 }
 

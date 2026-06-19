@@ -229,6 +229,14 @@ export function ConfirmationPage() {
                 <strong>Menge:</strong>{' '}
                 {confirmation.quantityLiters.toLocaleString('de-DE')} Liter
               </p>
+              {confirmation.priceDisplayText ? (
+                <>
+                  <Separator />
+                  <p>
+                    <strong>Preis:</strong> {confirmation.priceDisplayText}
+                  </p>
+                </>
+              ) : null}
             </div>
           </section>
 

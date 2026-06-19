@@ -69,6 +69,14 @@ export function SuccessState({
               <strong>Produkt / Menge:</strong> {confirmation.product} -{' '}
               {confirmation.quantityLiters.toLocaleString('de-DE')} Liter
             </p>
+            {confirmation.priceDisplayText ? (
+              <>
+                <Separator />
+                <p>
+                  <strong>Preis:</strong> {confirmation.priceDisplayText}
+                </p>
+              </>
+            ) : null}
             {!isRejected && trackingInfo !== null && !trackingInfo.trackingAvailable ? (
               <>
                 <Separator />
