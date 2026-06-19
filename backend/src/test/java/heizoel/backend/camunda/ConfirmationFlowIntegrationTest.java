@@ -1,7 +1,10 @@
 package heizoel.backend.camunda;
 
+import heizoel.backend.camunda.application.interfaces.NoResponseTimeoutService;
 import heizoel.backend.dispo.application.interfaces.DispoStatusCallbackService;
 import heizoel.backend.dispo.domain.ConfirmationStatus;
+import heizoel.backend.location.application.interfaces.GeocodingClient;
+import heizoel.backend.location.domain.GeoCoordinate;
 import heizoel.backend.notification.application.interfaces.NotificationService;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +29,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -66,6 +70,9 @@ class ConfirmationFlowIntegrationTest {
     @Autowired
     JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    NoResponseTimeoutService noResponseTimeoutService;
+
     @MockitoBean
     DispoStatusCallbackService dispoStatusCallbackService;
     @MockitoBean
@@ -74,9 +81,14 @@ class ConfirmationFlowIntegrationTest {
     @MockitoBean
     JavaMailSender javaMailSender;
 
+    @MockitoBean
+    GeocodingClient geocodingClient;
+
     @BeforeEach
     void resetMocks() {
-        reset(dispoStatusCallbackService, notificationService);
+        reset(dispoStatusCallbackService, notificationService, geocodingClient);
+        when(geocodingClient.geocode(anyString()))
+                .thenReturn(java.util.Optional.of(new GeoCoordinate(9.9372D, 49.7935D)));
     }
 
     @Test
@@ -85,7 +97,6 @@ class ConfirmationFlowIntegrationTest {
 
         createDispoConfirmationRequest(externalOrderId)
                 .andExpect(status().isCreated());
-
         expireLatestConfirmationRequest(externalOrderId);
 
         await()
@@ -214,12 +225,16 @@ class ConfirmationFlowIntegrationTest {
                           "customerEmail": "daniel@example.com",
                           "customerPhoneNumber": null,
                           "deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
+                          "locationX": 9.8820,
+                          "locationY": 49.8166,
+                          "targetLocationX": 9.9372,
+                          "targetLocationY": 49.7935,
                           "product": "Heizol",
                           "quantityLiters": 3000,
                           "deliveryDate": "2026-06-12",
                           "deliveryWindowStart": "10:00",
                           "deliveryWindowEnd": "11:00",
-                          "responseDeadlineHours": 1,
+                          "responseDeadlineHours": 24,
                           "priceDisplayText": "100 EUR"
                         }
                         """.formatted(
@@ -255,18 +270,11 @@ class ConfirmationFlowIntegrationTest {
 
         jdbcTemplate.update("""
                 UPDATE confirmation_request
-                SET expires_at = NOW() - INTERVAL '1 second'
+                SET expires_at = CURRENT_TIMESTAMP - INTERVAL '1 second'
                 WHERE id = ?
                 """, confirmationRequestId);
 
-        jdbcTemplate.update("""
-                UPDATE act_ru_job j
-                SET duedate_ = NOW() - INTERVAL '1 second'
-                FROM act_ru_variable v
-                WHERE v.proc_inst_id_ = j.process_instance_id_
-                  AND v.name_ = 'confirmationRequestId'
-                  AND v.long_ = ?
-                """, confirmationRequestId);
+        noResponseTimeoutService.handleTimeout(confirmationRequestId);
     }
 
     private String getConfirmationStatus(String externalOrderId) {

@@ -11,22 +11,23 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 const mockConfirmationPreview: CustomerConfirmationPreview = {
   externalOrderId: 'A-3002',
   customerName: 'Max Müller',
-  deliveryAddress: 'Beispielstraße 12, 97070 Würzburg',
+  deliveryAddress: 'Domstraße 40, 97070 Würzburg',
   product: 'Heizöl Standard',
   quantityLiters: 3000,
   deliveryDate: '2026-06-12',
   deliveryWindowStart: '10:00:00',
   deliveryWindowEnd: '11:00:00',
+  confirmationStatus: 'SENT',
 }
 
 function getApiMode(): ConfirmationApiMode {
   const mode = import.meta.env.VITE_CONFIRMATION_API_MODE
 
-  if (mode === 'backend') {
-    return 'backend'
+  if (mode === 'mock') {
+    return 'mock'
   }
 
-  return 'mock'
+  return 'backend'
 }
 
 function delay(ms: number) {
@@ -35,7 +36,7 @@ function delay(ms: number) {
 
 async function handleBackendResponse(response: Response) {
   if (response.ok) {
-    return
+    return response
   }
 
   throw new Error(`Backend request failed with status ${response.status}`)
@@ -49,16 +50,15 @@ export async function getConfirmationPreview(
 
     await delay(300)
 
-    return mockConfirmationPreview
+    return { ...mockConfirmationPreview }
   }
 
   const response = await fetch(
     `${apiBaseUrl}/api/customer/confirmations/${token}`,
   )
 
-  await handleBackendResponse(response)
-
-  return response.json() as Promise<CustomerConfirmationPreview>
+  return (await handleBackendResponse(response))
+    .json() as Promise<CustomerConfirmationPreview>
 }
 
 export async function confirmDelivery(
@@ -69,6 +69,7 @@ export async function confirmDelivery(
     console.log('Using mock confirm:', { token, request })
 
     await delay(300)
+    mockConfirmationPreview.confirmationStatus = 'CONFIRMED'
     return
   }
 
@@ -94,6 +95,7 @@ export async function rejectDelivery(
     console.log('Using mock reject:', { token, request })
 
     await delay(300)
+    mockConfirmationPreview.confirmationStatus = 'REJECTED'
     return
   }
 

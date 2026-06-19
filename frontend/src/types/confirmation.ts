@@ -7,7 +7,14 @@ export type CustomerConfirmationPreview = {
   deliveryDate: string
   deliveryWindowStart: string
   deliveryWindowEnd: string
+  confirmationStatus: ConfirmationStatus
 }
+
+export type ConfirmationStatus =
+  | 'SENT'
+  | 'CONFIRMED'
+  | 'REJECTED'
+  | 'NO_RESPONSE'
 
 export type CustomerAnswerRequest = {
   customerComment?: string

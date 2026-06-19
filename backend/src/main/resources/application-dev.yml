@@ -30,6 +30,7 @@ heizoel:
   confirmation:
     frontend-url: http://localhost:3000
     dispo-url: http://localhost:8090/api/dispo/confirmation-status-updates
+    dispo-tracking-url: http://localhost:8090/api/dispo/confirmation-status-updates/tracking/orders
 
 logging:
   level:

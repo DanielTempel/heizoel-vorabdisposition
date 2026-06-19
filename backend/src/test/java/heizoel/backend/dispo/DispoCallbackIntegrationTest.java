@@ -8,6 +8,8 @@ import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.domain.repository.ConfirmationRequestRepository;
 import heizoel.backend.dispo.domain.repository.OrderSnapshotRepository;
+import heizoel.backend.location.application.interfaces.GeocodingClient;
+import heizoel.backend.location.domain.GeoCoordinate;
 import heizoel.backend.notification.application.interfaces.NotificationService;
 import heizoel.backend.notification.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,13 +79,18 @@ class DispoCallbackIntegrationTest {
     @MockitoBean
     private NotificationService notificationService;
 
+    @MockitoBean
+    private GeocodingClient geocodingClient;
+
     @BeforeEach
     void setUp() {
         customerResponseRepository.deleteAll();
         confirmationRequestRepository.deleteAll();
         orderSnapshotRepository.deleteAll();
 
-        reset(dispoStatusCallbackService, notificationService);
+        reset(dispoStatusCallbackService, notificationService, geocodingClient);
+        when(geocodingClient.geocode(any()))
+                .thenReturn(java.util.Optional.of(new GeoCoordinate(9.9372D, 49.7935D)));
     }
 
     @Test
@@ -250,6 +257,10 @@ class DispoCallbackIntegrationTest {
                                   "customerPhoneNumber": null,
                                   "communicationChannel": "EMAIL",
                                   "deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
+                                  "locationX": 9.8820,
+                                  "locationY": 49.8166,
+                                  "targetLocationX": 9.9372,
+                                  "targetLocationY": 49.7935,
                                   "product": "Heizol",
                                   "quantityLiters": 3000,
                                   "deliveryDate": "2026-06-12",
@@ -279,6 +290,10 @@ class DispoCallbackIntegrationTest {
                                   "customerPhoneNumber": "+491701234567",
                                   "communicationChannel": "SMS",
                                   "deliveryAddress": "Beispielstrase 12, 97070 Wurzburg",
+                                  "locationX": 9.8820,
+                                  "locationY": 49.8166,
+                                  "targetLocationX": 9.9372,
+                                  "targetLocationY": 49.7935,
                                   "product": "Heizol",
                                   "quantityLiters": 3000,
                                   "deliveryDate": "2026-06-12",

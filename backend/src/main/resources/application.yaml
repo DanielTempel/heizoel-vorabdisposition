@@ -29,7 +29,19 @@ heizoel:
   confirmation:
     frontend-url: http://localhost:3000
     dispo-url: http://localhost:8090/api/dispo/confirmation-status-updates
+    dispo-tracking-url: http://localhost:8090/api/dispo/confirmation-status-updates/tracking/orders
     sms-provider-url: http://localhost:8091/api/sms/messages
+  location:
+    geocoding:
+      enabled: true
+      provider: nominatim
+      base-url: https://nominatim.openstreetmap.org
+      search-path: /search
+      user-agent: heizoel-vorabdisposition/1.0
+      country-code: de
+      accept-language: de,en
+      result-limit: 1
+      cache-ttl-minutes: 60
 
   mail:
     from: no-reply@heizoel.local
