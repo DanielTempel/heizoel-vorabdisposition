@@ -1,0 +1,252 @@
+\documentclass[12pt,a4paper]{article}
+
+% ------------------------------------------------
+% Packages
+% ------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[german]{babel}
+
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{parskip}
+\usepackage{xcolor}
+
+% ------------------------------------------------
+% Header / Footer
+% ------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Projektplan}
+\rhead{\thepage}
+\geometry{a4paper, margin=1in}
+
+% ------------------------------------------------
+% Document
+% ------------------------------------------------
+\begin{document}
+
+% ------------------------------------------------
+% Deckblatt
+% ------------------------------------------------
+\begin{titlepage}
+    \centering
+
+    \vspace*{3cm}
+
+    {\Huge \textbf{PROJEKTPLAN}}\\[1.5cm]
+
+    {\LARGE Workflowbasierte Rückbestätigung}\\[0.3cm]
+    {\LARGE von Lieferterminen}\\[3cm]
+
+    {\Large Projektarbeit}\\[2cm]
+
+    {\large
+    MINOVA / THWS
+    }\\[1cm]
+
+    {\large
+    \today
+    }
+
+    \vfill
+
+\end{titlepage}
+
+% ------------------------------------------------
+\tableofcontents
+\newpage
+
+% ------------------------------------------------
+\section{Einleitung}
+
+Im aktuellen DISPO-Prozess werden Liefertermine bzw. Lieferoptionen manuell mit Kunden abgestimmt. 
+Dieser Ablauf ist zeitintensiv, fehleranfällig und bei steigender Auftragszahl schwer skalierbar.
+
+Ziel des Projekts ist die Entwicklung eines prototypischen Systems zur workflowbasierten Rückbestätigung von Lieferterminen. 
+Das System unterstützt die Disposition bei der strukturierten Einholung und Verarbeitung von Kundenrückmeldungen zu vorgeschlagenen Lieferoptionen.
+
+Die Prozesslogik wird mithilfe von BPMN 2.0 modelliert und durch die Workflow-Engine Camunda ausgeführt.
+
+% ------------------------------------------------
+\section{Projektziel}
+
+Das Projekt verfolgt folgende Ziele:
+
+\begin{itemize}
+    \item Erfassung und Anzeige relevanter Bestell- und Auftragsdaten
+    \item Darstellung von durch die Disposition vorgeschlagenen Lieferoptionen
+    \item Digitale Kommunikation mit Kunden
+    \item Verarbeitung von Kundenreaktionen wie Bestätigung, Ablehnung oder ausbleibende Antwort
+    \item Workflowgesteuerte Prozessausführung mit Camunda
+    \item Übergabe bestätigter Aufträge an die Disposition
+    \item Verbesserung der Transparenz und Nachverfolgbarkeit
+\end{itemize}
+
+% ------------------------------------------------
+\section{Projektphasen und Meilensteine}
+
+\begin{longtable}{p{4.5cm} p{6cm} p{3cm} p{2cm}}
+\toprule
+\textbf{Phase} & \textbf{Beschreibung} & \textbf{Zeitraum} & \textbf{Meilenstein} \\
+\midrule
+
+P1: Projektdefinition und Analyse 
+& Projektidee abstimmen, Anforderungen analysieren und Projektumfang definieren 
+& 28.04--04.05 
+& M1 \\
+
+P2: Planung und Grundstruktur des Systems 
+& Lastenheft, Pflichtenheft und Projektplan erstellen sowie erste Backend- und Frontendstruktur aufsetzen 
+& 05.05--11.05 
+& M2 \\
+
+P3: Architektur und Schnittstellen 
+& Systemarchitektur, DISPO-Schnittstelle, Datenmodell und Backend-Grundstruktur definieren 
+& 12.05--25.05 
+& M3 \\
+
+P4: Weiterentwicklung von Backend und Workflow 
+& Backend, Frontend und Camunda-Workflow funktional erweitern 
+& 26.05--22.06 
+& M4 \\
+
+P5: End-to-End-Prozess 
+& Durchgängigen Prozess von Auftrag über Kundenrückmeldung bis Statusänderung umsetzen 
+& 23.06--06.07 
+& M5 \\
+
+P6: Testphase und Fehlerbehebung 
+& Systemtests durchführen, Fehler identifizieren und beheben 
+& 07.07--20.07 
+& M6 \\
+
+P7: Finalisierung des Prototyps 
+& Prototyp stabilisieren, Demo vorbereiten und finale Anpassungen durchführen 
+& 21.07--03.08 
+& M7 \\
+
+P8: Dokumentation und Präsentation 
+& Projektdokumentation und Abschlusspräsentation erstellen 
+& 04.08--16.09 
+& M8 \\
+
+\bottomrule
+\end{longtable}
+
+% ------------------------------------------------
+\section{Meilensteine}
+
+\begin{longtable}{p{3cm} p{11cm}}
+\toprule
+\textbf{Meilenstein} & \textbf{Beschreibung} \\
+\midrule
+
+M1 & Projekt bestätigt und Projektumfang definiert \\
+
+M2 & Lastenheft, Pflichtenheft und Projektplan abgeschlossen; erste Version von Backend und Frontend erstellt \\
+
+M3 & Systemarchitektur und DISPO-Schnittstelle definiert; Backend-Grundstruktur implementiert \\
+
+M4 & Backend, Frontend und Workflow erweitert \\
+
+M5 & End-to-End-Prozess funktionsfähig \\
+
+M6 & Tests abgeschlossen und Fehler behoben \\
+
+M7 & Prototyp abgeschlossen \\
+
+M8 & Dokumentation und Abschlusspräsentation abgeschlossen \\
+
+\bottomrule
+\end{longtable}
+
+% ------------------------------------------------
+\section{Zeitplan}
+
+Der Projektzeitplan orientiert sich an den definierten Projektphasen und Meilensteinen. 
+Die einzelnen Phasen bauen aufeinander auf und führen schrittweise zur Fertigstellung des Prototyps sowie zur Abschlusspräsentation.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{assets/projectplan.png}
+    \caption{Projektphasen und Meilensteine}
+    \label{fig:projektplan}
+\end{figure}
+
+% ------------------------------------------------
+\section{Systemarchitektur}
+
+Das System besteht aus folgenden Komponenten:
+
+\begin{itemize}
+    \item Frontend (Web UI)
+    \item Backend-Service
+    \item Camunda Workflow Engine
+    \item PostgreSQL Datenbank
+    \item E-Mail Kommunikationsschnittstelle
+\end{itemize}
+
+% ------------------------------------------------
+\section{Technologien}
+
+\begin{itemize}
+    \item BPMN 2.0
+    \item Camunda
+    \item REST APIs
+    \item PostgreSQL
+    \item Java oder Node.js
+    \item HTML/CSS/JavaScript
+\end{itemize}
+
+% ------------------------------------------------
+\section{Rollen}
+
+\begin{itemize}
+    \item Disponent
+    \item Kunde
+    \item System
+\end{itemize}
+
+% ------------------------------------------------
+\section{Qualitätssicherung}
+
+Zur Sicherstellung der Qualität werden folgende Maßnahmen durchgeführt:
+
+\begin{itemize}
+    \item Funktionstests
+    \item Integrationstests
+    \item Prozesssimulationen
+    \item Validierung der BPMN-Prozesse
+    \item Fehleranalyse und Fehlerbehebung
+\end{itemize}
+
+% ------------------------------------------------
+\section{Akzeptanzkriterien}
+
+Das Projekt gilt als erfolgreich abgeschlossen, wenn:
+
+\begin{itemize}
+    \item Kundenreaktionen korrekt verarbeitet werden
+    \item Statusänderungen nachvollziehbar gespeichert werden
+    \item der End-to-End-Prozess funktionsfähig ist
+    \item BPMN-Prozesse in Camunda erfolgreich ausgeführt werden
+    \item Frontend und Backend korrekt kommunizieren
+\end{itemize}
+
+% ------------------------------------------------
+\section{Erwartetes Ergebnis}
+
+Am Ende des Projekts soll ein funktionsfähiger Prototyp eines workflowbasierten Systems zur Rückbestätigung von Lieferterminen vorliegen. 
+
+Das System soll Kundenrückmeldungen strukturiert verarbeiten und bestätigte Aufträge transparent für die Disposition bereitstellen.
+
+% ------------------------------------------------
+\end{document}

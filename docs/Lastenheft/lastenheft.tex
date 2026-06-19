@@ -1,0 +1,159 @@
+\documentclass[12pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[german]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{parskip}
+
+\geometry{a4paper, margin=1in}
+
+\begin{document}
+
+% ------------------------------------------------
+% Deckblatt
+% ------------------------------------------------
+\begin{titlepage}
+    \centering
+
+    \vspace*{3cm}
+
+    {\Huge \textbf{LASTENHEFT}}\\[1.5cm]
+
+    {\LARGE Workflow-basierte Rückbestätigung}\\[0.3cm]
+    {\LARGE von Lieferterminen}\\[3cm]
+
+    {\Large Projektarbeit}\\[2cm]
+
+    {\large
+    MINOVA / THWS
+    }\\[1cm]
+
+    {\large
+    \today
+    }
+
+    \vfill
+
+\end{titlepage}
+\tableofcontents
+\newpage
+
+%--------------------------------------------------
+\section{Einleitung}
+\subsection{Ziel des Dokuments}
+Dieses Lastenheft beschreibt die fachlichen Anforderungen an ein System zur automatisierten Lieferterminplanung und -bestätigung. Ziel ist es, den bestehenden manuellen Prozess zu digitalisieren und effizienter zu gestalten.
+
+\subsection{Projektübersicht}
+Im aktuellen Prozess werden Liefertermine telefonisch durch Disponenten mit Kunden abgestimmt. Dieser Ansatz ist zeitaufwendig, fehleranfällig und nicht skalierbar.
+
+Ziel des Projekts ist die Entwicklung eines prototypischen Systems, das diesen Prozess automatisiert. Das System unterstützt die Disposition bei der strukturierten Einholung und Verarbeitung von Kundenrückmeldungen zu vorgeschlagenen Lieferterminen.
+%--------------------------------------------------
+\section{Ist-Zustand}
+Der aktuelle Prozess basiert auf manueller Kommunikation per Telefon zwischen Disponenten und Kunden.
+
+Probleme:
+\begin{itemize}
+    \item Hoher Zeitaufwand für Terminabstimmungen
+    \item Fehleranfälligkeit durch manuelle Eingaben
+    \item Keine transparente Nachverfolgung von Statusänderungen
+    \item Schlechte Skalierbarkeit bei wachsender Auftragszahl
+\end{itemize}
+
+%--------------------------------------------------
+\section{Zielbestimmung}
+\subsection{Muss-Ziele}
+\begin{itemize}
+    \item Digitale Benachrichtigung von Kunden (E-Mail, WhatsApp oder Weblink)
+    \item Verarbeitung von Kundenreaktionen (Bestätigung, Ablehnung, keine Antwort)
+    \item Speicherung aller Statusänderungen im System
+\end{itemize}
+
+\subsection{Kann-Ziele}
+\begin{itemize}
+    \item Integration zusätzlicher Kommunikationskanäle
+    \item Erweiterte Monitoring- und Reporting-Funktionen
+\end{itemize}
+
+%--------------------------------------------------
+\section{Produkt-Einsatz}
+\subsection{Anwendungsbereiche}
+Das System wird im Bereich der Disposition zur Planung und Bestätigung von Lieferterminen eingesetzt.
+
+\subsection{Zielgruppen}
+\begin{itemize}
+    \item Disponenten
+    \item Kunden
+\end{itemize}
+
+\subsection{Betriebsbedingungen}
+\begin{itemize}
+    \item Webbasierte Anwendung
+    \item Zugriff über Desktop und mobile Endgeräte
+    \item Für den Betrieb des Systems ist eine aktive Internetverbindung erforderlich.
+\end{itemize}
+
+%--------------------------------------------------
+\section{Funktionale Anforderungen}
+\begin{longtable}{|l|p{10cm}|}
+\hline
+ID & Beschreibung \\
+\hline
+F1 & Das System zeigt bestehende Aufträge mit geplantem Lieferdatum, geplantem Lieferfenster und zugeordneter Tour an \\
+F2 & Der Disponent kann für einen ausgewählten Auftrag manuell eine Rückbestätigungsanfrage starten \\
+F3 & Das System versendet die Rückbestätigungsanfrage primär per E-Mail \\
+F4 & Der Kunde kann das vorgeschlagene Lieferfenster bestätigen oder ablehnen \\
+F5 & Das System speichert die Kundenantwort und aktualisiert den Rückbestätigungsstatus des Auftrags \\
+F6 & Wenn innerhalb der definierten Frist keine gültige Antwort eingeht, setzt das System den Status auf "keine Rückmeldung" \\
+F7 & Abgelehnte Aufträge und Aufträge ohne Rückmeldung werden dem Disponenten als problemastische Fälle angezeigt \\
+F8 & Der Disponent kann problemastische Fälle manuell weiterbearbeiten, z.B telefonisch klären, neues Lieferfenster festlegen oder Auftrag verschieben \\
+F9 & Das System stellt eine Tourübersicht bereit, in der die Rückbestätigungsstatus der Aufträge sichtbar sind \\
+F10 & Das System stellt sicher, dass pro Anfrage nur eine gültige Antwort statuswirksam gespeichert wird \\
+\hline
+\end{longtable}
+
+%--------------------------------------------------
+\section{Nicht-funktionale Anforderungen}
+\begin{itemize}
+    \item Performance: Reaktionszeit unter 2 Sekunden für Benutzeraktionen
+    \item Sicherheit: DSGVO-konforme Verarbeitung personenbezogener Daten
+    \item Usability: Intuitive Benutzeroberfläche
+    \item Skalierbarkeit: Erweiterbar für größere Datenmengen
+\end{itemize}
+
+%--------------------------------------------------
+\section{Daten}
+\subsection{Zu speichernde Daten}
+\begin{itemize}
+    \item Auftragsdaten
+    \item Kundendaten
+    \item Liefertermine und Zeitfenster
+    \item Statusinformationen
+\end{itemize}
+
+%--------------------------------------------------
+\section{Systemgrenzen}
+Das System interagiert mit einem DISPO-System, übernimmt jedoch nicht dessen vollständige Funktionalität.
+
+%--------------------------------------------------
+\section{Randbedingungen}
+\begin{itemize}
+    \item Verwendung von BPMN 2.0 zur Modellierung
+    \item Einsatz von Camunda als Workflow-Engine
+    \item Entwicklung eines Prototyps
+    \item Begrenzte Projektlaufzeit
+\end{itemize}
+
+%--------------------------------------------------
+\section{Akzeptanzkriterien}
+\begin{itemize}
+    \item Korrekte Verarbeitung aller Kundenreaktionen
+    \item Erfolgreiche Modellierung und Ausführung in Camunda
+    \item Funktionierendes Frontend zur Prozesssteuerung
+\end{itemize}
+
+%--------------------------------------------------
+
+\end{document}
