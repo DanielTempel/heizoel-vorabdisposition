@@ -47,6 +47,7 @@ public record DispoConfirmationRequestDto(
         Integer responseDeadlineHours,
 
         @Size(max = 100, message = "Price display text must not exceed 100 characters.")
+        @NotNull(message = "Price is required.")
         String priceDisplayText
 ) {
 }
