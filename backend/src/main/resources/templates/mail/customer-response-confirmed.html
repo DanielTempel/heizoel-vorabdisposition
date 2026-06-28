@@ -47,9 +47,6 @@
                                style="background-color:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; margin:0 0 24px 0;">
                             <tr>
                                 <td align="center" style="padding:26px 20px;">
-                                    <p style="margin:0 0 8px 0; font-size:13px; color:#0f766e; font-weight:700; text-transform:uppercase;">
-                                        Ihre Antwort
-                                    </p>
                                     <p style="margin:0; font-size:32px; line-height:1.25; font-weight:700; color:#0f766e;">
                                         Liefertermin bestätigt
                                     </p>
@@ -72,13 +69,13 @@
                             </tr>
                             <tr>
                                 <td style="padding:11px 14px; border-bottom:1px solid #e5e7eb; color:#6b7280;">Lieferdatum</td>
-                                <td style="padding:11px 14px; border-bottom:1px solid #e5e7eb; color:#111827;" th:text="${deliveryDate}">
+                                <td style="padding:11px 14px; border-bottom:1px solid #e5e7eb; color:#111827; font-weight:600;" th:text="${deliveryDate}">
                                     12.06.2026
                                 </td>
                             </tr>
                             <tr>
                                 <td style="padding:11px 14px; border-bottom:1px solid #e5e7eb; color:#6b7280;">Zeitfenster</td>
-                                <td style="padding:11px 14px; border-bottom:1px solid #e5e7eb; color:#111827;">
+                                <td style="padding:11px 14px; border-bottom:1px solid #e5e7eb; color:#111827; font-weight:600;">
                                     <span th:text="${deliveryWindowStart}">10:00</span>
                                     -
                                     <span th:text="${deliveryWindowEnd}">11:00</span>
@@ -105,7 +102,7 @@
                             </tr>
                             <tr th:if="${priceDisplayText != null and !#strings.isEmpty(priceDisplayText)}">
                                 <td style="padding:11px 14px; color:#6b7280;">Preis</td>
-                                <td style="padding:11px 14px; color:#111827; font-weight:600;" th:text="${priceDisplayText}">
+                                <td style="padding:11px 14px; color:#111827;" th:text="${priceDisplayText}">
                                     112,50 € / 100 Liter
                                 </td>
                             </tr>
