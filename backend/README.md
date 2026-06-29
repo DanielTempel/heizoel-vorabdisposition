@@ -7,7 +7,7 @@ The backend receives confirmation requests from a DISPO system, sends confirmati
 
 ## Tech Stack
 
-* Java 25
+* Java 17
 * Spring Boot 3.5
 * PostgreSQL 16
 * Flyway
@@ -139,9 +139,8 @@ heizoel:
   confirmation:
     frontend-url: http://localhost:3000
     dispo-url: http://localhost:8090/api/dispo/confirmation-status-updates
-
-  sms:
-    provider-url: http://localhost:8091/api/sms/send
+    dispo-tracking-url: http://localhost:8090/api/dispo/confirmation-status-updates/tracking/orders
+    sms-provider-url: http://localhost:8091/api/sms/messages
 
   mail:
     from: no-reply@heizoel.local
@@ -152,18 +151,41 @@ logging:
     org.hibernate.orm.jdbc.bind: trace
 ```
 
+### `application-prod.yml`
+
+The production profile uses environment variables for database and SMTP credentials as well as external frontend and DISPO callback URLs. No production credentials are stored in the repository.
+
+Important environment variables include:
+
+```text
+DB_URL
+DB_USERNAME
+DB_PASSWORD
+MAIL_USERNAME
+MAIL_PASSWORD
+MAIL_FROM
+FRONTEND_URL
+DISPO_CALLBACK_URL
+```
+
+The DISPO tracking URL and SMS provider URL currently use shared defaults unless explicitly overridden in deployment configuration.
+
 ---
 
 ## Important Configuration Values
 
 | Property / Field                    | Meaning                                                       |
 | ----------------------------------- | ------------------------------------------------------------- |
-| `heizoel.confirmation.frontend-url` | Base URL used for customer confirmation links                 |
-| `heizoel.confirmation.dispo-url`    | DISPO callback endpoint                                       |
-| `heizoel.sms.provider-url`          | SMS provider or SMS mock endpoint                             |
-| `spring.mail.host`                  | SMTP host                                                     |
-| `spring.mail.port`                  | SMTP port                                                     |
-| `responseDeadlineHours`             | DISPO request field defining how long the customer may answer |
+| `heizoel.confirmation.frontend-url`       | Base URL used for customer confirmation links                 |
+| `heizoel.confirmation.dispo-url`          | DISPO callback endpoint                                       |
+| `heizoel.confirmation.dispo-tracking-url` | DISPO driver-location endpoint base URL                       |
+| `heizoel.confirmation.sms-provider-url`   | SMS provider or SMS mock endpoint                             |
+| `heizoel.location.geocoding.enabled`      | Enables or disables address geocoding                         |
+| `heizoel.location.geocoding.base-url`     | Geocoding provider base URL                                   |
+| `heizoel.location.geocoding.cache-ttl-minutes` | Geocoding result cache duration                           |
+| `spring.mail.host`                        | SMTP host                                                     |
+| `spring.mail.port`                        | SMTP port                                                     |
+| `responseDeadlineHours`                   | DISPO request field defining how long the customer may answer |
 
 Important: the customer response deadline is not a global backend timeout anymore. DISPO provides the deadline per request using `responseDeadlineHours`. The backend stores it in `confirmation_request.response_deadline_hours` and passes the corresponding duration to the Camunda timeout workflow.
 
@@ -325,7 +347,8 @@ POST /api/dispo/confirmation-requests
   "deliveryDate": "2026-06-12",
   "deliveryWindowStart": "10:00",
   "deliveryWindowEnd": "11:00",
-  "responseDeadlineHours": 24
+  "responseDeadlineHours": 24,
+  "priceDisplayText": "112,50 EUR / 100 Liter"
 }
 ```
 
@@ -344,7 +367,8 @@ POST /api/dispo/confirmation-requests
   "deliveryDate": "2026-06-12",
   "deliveryWindowStart": "10:00",
   "deliveryWindowEnd": "11:00",
-  "responseDeadlineHours": 24
+  "responseDeadlineHours": 24,
+  "priceDisplayText": "112,50 EUR / 100 Liter"
 }
 ```
 
@@ -364,6 +388,7 @@ POST /api/dispo/confirmation-requests
 | `201 Created`     | New confirmation request created and message sent   |
 | `200 OK`          | Duplicate unchanged request; no second message sent |
 | `400 Bad Request` | Validation error                                    |
+| `422 Unprocessable Entity` | Required e-mail address or phone number is missing |
 | `502 Bad Gateway` | E-mail/SMS sending failed                           |
 
 ---
@@ -386,11 +411,51 @@ Example response:
   "deliveryDate": "2026-06-12",
   "deliveryWindowStart": "10:00:00",
   "deliveryWindowEnd": "11:00:00",
+  "priceDisplayText": "112,50 EUR / 100 Liter",
   "confirmationStatus": "SENT"
 }
 ```
 
 The `confirmationStatus` allows the frontend to show whether the request is still open, already confirmed, rejected, or marked as no-response.
+
+---
+
+## Customer Gets Tracking Information
+
+Tracking information is available on the delivery date.
+
+```http
+GET /api/customer/confirmations/{token}/tracking-info
+```
+
+Example response:
+
+```json
+{
+  "trackingAvailable": true,
+  "targetLocationX": 9.9372,
+  "targetLocationY": 49.7935
+}
+```
+
+`targetLocationX` represents longitude and `targetLocationY` represents latitude. The delivery address is resolved through the configured geocoding provider and cached for the configured TTL.
+
+## Customer Gets Driver Location
+
+```http
+GET /api/customer/confirmations/{token}/driver-location
+```
+
+Example response:
+
+```json
+{
+  "locationX": 9.8820,
+  "locationY": 49.8166
+}
+```
+
+The backend requests the current driver location from the configured DISPO tracking endpoint. The endpoint returns `404 Not Found` when tracking is not available for the delivery date or no driver location is available.
 
 ---
 
@@ -509,6 +574,8 @@ Relevant comparison data includes:
 
 If confirmation-relevant data changes, the previous request is marked inactive and a new confirmation request is created.
 
+An unchanged active request is treated as a duplicate. Unchanged requests that have already reached `CONFIRMED` or `REJECTED` are also returned without creating a second request. After `NO_RESPONSE`, DISPO may send the same data again; in that case the backend creates a new active confirmation request and resets the order status to `SENT`.
+
 ---
 
 ## Customer Link Behavior
@@ -546,8 +613,10 @@ Common error codes:
 | Code                               | HTTP Status | Meaning                               |
 | ---------------------------------- | ----------: | ------------------------------------- |
 | `VALIDATION_ERROR`                 |         400 | Invalid request data                  |
+| `MISSING_DIGITAL_CONTACT`          |         422 | Required channel contact is missing   |
 | `EMAIL_SENDING_FAILED`             |         502 | Confirmation e-mail could not be sent |
 | `SMS_SENDING_FAILED`               |         502 | Confirmation SMS could not be sent    |
+| `DISPO_CALLBACK_FAILED`            |         502 | DISPO callback could not be sent       |
 | `CONFIRMATION_REQUEST_NOT_FOUND`   |         404 | Token does not exist                  |
 | `CONFIRMATION_REQUEST_INACTIVE`    |         409 | Request is no longer active           |
 | `CONFIRMATION_REQUEST_EXPIRED`     |         410 | Request has expired                   |
@@ -705,7 +774,8 @@ SELECT
     customer_phone_number,
     delivery_address,
     product,
-    quantity_liters
+    quantity_liters,
+    price_display_text
 FROM order_snapshot
 ORDER BY id DESC;
 ```
@@ -753,6 +823,7 @@ SELECT
     os.delivery_address,
     os.product,
     os.quantity_liters,
+    os.price_display_text,
     cr.id AS confirmation_request_id,
     cr.active,
     cr.communication_channel,
@@ -783,9 +854,10 @@ Frontend flow:
 GET /api/customer/confirmations/{token}
 ```
 
-3. Show the delivery information and current confirmation status.
-4. Let the customer confirm or reject if the request is still open.
-5. Submit one of:
+3. Show the delivery information, price (when present), and current confirmation status.
+4. On the delivery date, optionally load tracking information and poll the driver-location endpoint.
+5. Let the customer confirm or reject if the request is still open.
+6. Submit one of:
 
 ```http
 POST /api/customer/confirmations/{token}/confirm
@@ -821,7 +893,7 @@ The frontend should handle these statuses:
 
 * Real external DISPO system is represented by a local DISPO Mock.
 * Real SMS provider is represented by a local SMS Mock.
-* Real SMTP provider is not configured yet; Mailpit is used locally.
+* Mailpit is used for local SMTP testing; the production profile expects externally supplied SMTP credentials.
 * WhatsApp integration is not implemented yet.
 * Token is stored as plain text for MVP.
 * Authentication/authorization is not part of the MVP.
