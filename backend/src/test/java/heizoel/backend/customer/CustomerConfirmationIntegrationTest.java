@@ -8,9 +8,8 @@ import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
 import heizoel.backend.dispo.domain.entity.OrderSnapshot;
 import heizoel.backend.dispo.domain.repository.ConfirmationRequestRepository;
 import heizoel.backend.dispo.domain.repository.OrderSnapshotRepository;
-import heizoel.backend.location.application.interfaces.DriverLocationService;
 import heizoel.backend.location.application.interfaces.GeocodingClient;
-import heizoel.backend.location.domain.DriverLocation;
+import heizoel.backend.location.application.interfaces.LocationTrackingService;
 import heizoel.backend.location.domain.GeoCoordinate;
 import heizoel.backend.notification.application.interfaces.NotificationService;
 import heizoel.backend.notification.domain.CommunicationChannel;
@@ -78,7 +77,7 @@ class CustomerConfirmationIntegrationTest {
     NotificationService notificationService;
 
     @MockitoBean
-    DriverLocationService driverLocationService;
+    LocationTrackingService locationTrackingService;
 
     @MockitoBean
     GeocodingClient geocodingClient;
@@ -104,11 +103,10 @@ class CustomerConfirmationIntegrationTest {
         confirmationRequestRepository.deleteAll();
         orderSnapshotRepository.deleteAll();
 
-        Mockito.reset(notificationService, driverLocationService, geocodingClient);
-        when(driverLocationService.getDriverLocation(any()))
+        Mockito.reset(notificationService, locationTrackingService, geocodingClient);
+        when(locationTrackingService.getDriverLocation(any()))
                 .thenAnswer(invocation -> {
-                    String externalOrderId = invocation.getArgument(0, String.class);
-                    return java.util.Optional.of(new DriverLocation(externalOrderId, 9.8820D, 49.8166D));
+                    return java.util.Optional.of(new GeoCoordinate(9.8820D, 49.8166D));
                 });
         when(geocodingClient.geocode(any()))
                 .thenReturn(java.util.Optional.of(new GeoCoordinate(9.9372D, 49.7935D)));

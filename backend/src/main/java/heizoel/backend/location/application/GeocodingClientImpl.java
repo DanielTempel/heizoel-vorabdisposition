@@ -1,14 +1,16 @@
 package heizoel.backend.location.application;
 
 import heizoel.backend.location.application.interfaces.GeocodingClient;
+import heizoel.backend.location.application.mapper.GeoCoordinateMapper;
+import heizoel.backend.location.application.support.RemoteCallExecutor;
 import heizoel.backend.location.domain.GeoCoordinate;
 import heizoel.backend.location.infrastructure.LocationGeocodingProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -22,34 +24,20 @@ public class GeocodingClientImpl implements GeocodingClient {
 
     private final RestClient.Builder restClientBuilder;
     private final LocationGeocodingProperties properties;
+    private final RemoteCallExecutor remoteCallExecutor;
+    private final GeoCoordinateMapper geoCoordinateMapper;
 
     @Override
     public Optional<GeoCoordinate> geocode(String normalizedAddress) {
-        if (!properties.isEnabled() || normalizedAddress == null || normalizedAddress.isBlank()) {
+        if (!properties.isEnabled() || !StringUtils.hasText(normalizedAddress)) {
             return Optional.empty();
         }
 
-        try {
-            NominatimSearchResult[] response = restClientBuilder.build()
-                    .get()
-                    .uri(buildSearchUri(normalizedAddress))
-                    .accept(MediaType.APPLICATION_JSON)
-                    .header("User-Agent", properties.getUserAgent())
-                    .header("Accept-Language", properties.getAcceptLanguage())
-                    .retrieve()
-                    .body(NominatimSearchResult[].class);
-
-            if (response == null || response.length == 0) {
-                return Optional.empty();
-            }
-
-            return Arrays.stream(response)
-                    .findFirst()
-                    .flatMap(this::toCoordinate);
-        } catch (RestClientException exception) {
-            log.warn("Geocoding request failed for address={}", normalizedAddress, exception);
-            return Optional.empty();
-        }
+        return remoteCallExecutor.execute(
+                        () -> fetchSearchResults(normalizedAddress),
+                        exception -> log.warn("Geocoding request failed for address={}", normalizedAddress, exception)
+                )
+                .flatMap(this::toFirstCoordinate);
     }
 
     private URI buildSearchUri(String normalizedAddress) {
@@ -69,16 +57,34 @@ public class GeocodingClientImpl implements GeocodingClient {
         return builder.encode().build().toUri();
     }
 
-    private Optional<GeoCoordinate> toCoordinate(NominatimSearchResult result) {
-        try {
-            return Optional.of(new GeoCoordinate(
-                    Double.parseDouble(result.lon()),
-                    Double.parseDouble(result.lat())
-            ));
-        } catch (NumberFormatException exception) {
-            log.warn("Geocoding returned invalid coordinates lat={} lon={}", result.lat(), result.lon());
+    private NominatimSearchResult[] fetchSearchResults(String normalizedAddress) {
+        return restClientBuilder.build()
+                .get()
+                .uri(buildSearchUri(normalizedAddress))
+                .accept(MediaType.APPLICATION_JSON)
+                .header("User-Agent", properties.getUserAgent())
+                .header("Accept-Language", properties.getAcceptLanguage())
+                .retrieve()
+                .body(NominatimSearchResult[].class);
+    }
+
+    private Optional<GeoCoordinate> toFirstCoordinate(NominatimSearchResult[] response) {
+        if (response.length == 0) {
             return Optional.empty();
         }
+
+        return Arrays.stream(response)
+                .findFirst()
+                .flatMap(this::toCoordinate);
+    }
+
+    private Optional<GeoCoordinate> toCoordinate(NominatimSearchResult result) {
+        Optional<GeoCoordinate> coordinate = geoCoordinateMapper.fromStrings(result.lon(), result.lat());
+        if (coordinate.isEmpty()) {
+            log.warn("Geocoding returned invalid coordinates lat={} lon={}", result.lat(), result.lon());
+        }
+
+        return coordinate;
     }
 
     private record NominatimSearchResult(

@@ -7,6 +7,7 @@ import heizoel.backend.location.infrastructure.LocationGeocodingProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -32,7 +33,7 @@ public class DeliveryAddressCoordinateResolverImpl implements DeliveryAddressCoo
         String cacheKey = addressNormalizer.cacheKey(deliveryAddress);
         String geocodingQuery = addressNormalizer.toGeocodingQuery(deliveryAddress);
 
-        if (cacheKey.isBlank() || geocodingQuery.isBlank()) {
+        if (!StringUtils.hasText(cacheKey) || !StringUtils.hasText(geocodingQuery)) {
             return Optional.empty();
         }
 

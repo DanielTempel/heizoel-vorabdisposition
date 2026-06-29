@@ -1,11 +1,10 @@
 package heizoel.backend.location.api;
 
-import heizoel.backend.dispo.application.interfaces.ConfirmationRequestService;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
-import heizoel.backend.exceptions.customer.ConfirmationRequestNotFoundException;
 import heizoel.backend.location.api.dto.DriverLocationResponseDto;
+import heizoel.backend.location.api.mapper.LocationResponseMapper;
+import heizoel.backend.location.api.resolver.ConfirmationRequestResolver;
 import heizoel.backend.location.application.interfaces.LocationTrackingService;
-import heizoel.backend.location.domain.DriverLocation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -22,18 +21,16 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class DriverLocationController {
 
-    private final ConfirmationRequestService confirmationRequestService;
+    private final ConfirmationRequestResolver confirmationRequestResolver;
     private final LocationTrackingService locationTrackingService;
+    private final LocationResponseMapper locationResponseMapper;
 
     @GetMapping("/{token}/driver-location")
     @Transactional(readOnly = true)
     public ResponseEntity<DriverLocationResponseDto> getDriverLocation(
             @PathVariable String token
     ) {
-        ConfirmationRequest confirmationRequest = confirmationRequestService.findByToken(token)
-                .orElseThrow(() -> new ConfirmationRequestNotFoundException(
-                        "Confirmation request was not found."
-                ));
+        ConfirmationRequest confirmationRequest = confirmationRequestResolver.resolveByToken(token);
 
         if (!confirmationRequest.getDeliveryDate().isEqual(LocalDate.now())) {
             return ResponseEntity.notFound().build();
@@ -41,17 +38,10 @@ public class DriverLocationController {
 
         return locationTrackingService
                 .getDriverLocation(confirmationRequest.getOrderSnapshot().getExternalOrderId())
-                .map(this::toResponse)
+                .map(locationResponseMapper::toDriverLocationResponse)
                 .map(response -> ResponseEntity.ok()
                         .cacheControl(CacheControl.noStore())
                         .body(response))
                 .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    private DriverLocationResponseDto toResponse(DriverLocation driverLocation) {
-        return new DriverLocationResponseDto(
-                driverLocation.locationX(),
-                driverLocation.locationY()
-        );
     }
 }

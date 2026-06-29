@@ -1,9 +1,9 @@
 package heizoel.backend.location.api;
 
-import heizoel.backend.dispo.application.interfaces.ConfirmationRequestService;
 import heizoel.backend.dispo.domain.entity.ConfirmationRequest;
-import heizoel.backend.exceptions.customer.ConfirmationRequestNotFoundException;
 import heizoel.backend.location.api.dto.TrackingInfoResponseDto;
+import heizoel.backend.location.api.mapper.LocationResponseMapper;
+import heizoel.backend.location.api.resolver.ConfirmationRequestResolver;
 import heizoel.backend.location.application.interfaces.DeliveryAddressCoordinateResolver;
 import heizoel.backend.location.domain.GeoCoordinate;
 import lombok.RequiredArgsConstructor;
@@ -22,18 +22,16 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class TrackingInfoController {
 
-    private final ConfirmationRequestService confirmationRequestService;
+    private final ConfirmationRequestResolver confirmationRequestResolver;
     private final DeliveryAddressCoordinateResolver deliveryAddressCoordinateResolver;
+    private final LocationResponseMapper locationResponseMapper;
 
     @GetMapping("/{token}/tracking-info")
     @Transactional(readOnly = true)
     public ResponseEntity<TrackingInfoResponseDto> getTrackingInfo(
             @PathVariable String token
     ) {
-        ConfirmationRequest confirmationRequest = confirmationRequestService.findByToken(token)
-                .orElseThrow(() -> new ConfirmationRequestNotFoundException(
-                        "Confirmation request was not found."
-                ));
+        ConfirmationRequest confirmationRequest = confirmationRequestResolver.resolveByToken(token);
 
         boolean trackingAvailable = confirmationRequest.getDeliveryDate().isEqual(LocalDate.now());
         GeoCoordinate targetCoordinate = trackingAvailable
@@ -44,10 +42,9 @@ public class TrackingInfoController {
 
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noStore())
-                .body(new TrackingInfoResponseDto(
+                .body(locationResponseMapper.toTrackingInfoResponse(
                         trackingAvailable,
-                        targetCoordinate != null ? targetCoordinate.longitude() : null,
-                        targetCoordinate != null ? targetCoordinate.latitude() : null
+                        targetCoordinate
                 ));
     }
 }
