@@ -1,4 +1,5 @@
 import type {
+  ConfirmationStatus,
   CustomerAnswerRequest,
   CustomerConfirmationPreview,
 } from '../types/confirmation'
@@ -8,18 +9,20 @@ type ConfirmationApiMode = 'mock' | 'backend'
 const apiMode = getApiMode()
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
-const mockConfirmationPreview: CustomerConfirmationPreview = {
+const baseMockConfirmationPreview: CustomerConfirmationPreview = {
   externalOrderId: 'A-3002',
   customerName: 'Max Müller',
-  deliveryAddress: 'Domstraße 40, 97070 Würzburg',
+  deliveryAddress: 'Domstrasse 40, 97070 Würzburg',
   product: 'Heizöl Standard',
   quantityLiters: 3000,
-  deliveryDate: '2026-06-12',
+  deliveryDate: '2026-06-29',
   deliveryWindowStart: '10:00:00',
   deliveryWindowEnd: '11:00:00',
   priceDisplayText: '100 EUR',
   confirmationStatus: 'SENT',
 }
+
+const mockConfirmationStatusByToken = new Map<string, ConfirmationStatus>()
 
 function getApiMode(): ConfirmationApiMode {
   const mode = import.meta.env.VITE_CONFIRMATION_API_MODE
@@ -33,6 +36,40 @@ function getApiMode(): ConfirmationApiMode {
 
 function delay(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms))
+}
+
+function getInitialMockStatus(token: string): ConfirmationStatus {
+  switch (token) {
+    case 'mock-confirmed':
+    case 'mock-no-tracking':
+    case 'mock-arrived':
+    case 'mock-driver-error':
+      return 'CONFIRMED'
+    case 'mock-rejected':
+      return 'REJECTED'
+    case 'mock-no-response':
+    case 'mock-expired':
+      return 'NO_RESPONSE'
+    default:
+      return 'SENT'
+  }
+}
+
+function getMockConfirmationPreview(token: string): CustomerConfirmationPreview {
+  if (token === 'mock-error') {
+    throw new Error('Mock confirmation request failed')
+  }
+
+  const confirmationStatus =
+    mockConfirmationStatusByToken.get(token) ?? getInitialMockStatus(token)
+
+  return {
+    ...baseMockConfirmationPreview,
+    externalOrderId: token.startsWith('mock-')
+      ? token.toUpperCase().replaceAll('-', '_')
+      : baseMockConfirmationPreview.externalOrderId,
+    confirmationStatus,
+  }
 }
 
 async function handleBackendResponse(response: Response) {
@@ -51,7 +88,7 @@ export async function getConfirmationPreview(
 
     await delay(300)
 
-    return { ...mockConfirmationPreview }
+    return getMockConfirmationPreview(token)
   }
 
   const response = await fetch(
@@ -70,7 +107,7 @@ export async function confirmDelivery(
     console.log('Using mock confirm:', { token, request })
 
     await delay(300)
-    mockConfirmationPreview.confirmationStatus = 'CONFIRMED'
+    mockConfirmationStatusByToken.set(token, 'CONFIRMED')
     return
   }
 
@@ -96,7 +133,7 @@ export async function rejectDelivery(
     console.log('Using mock reject:', { token, request })
 
     await delay(300)
-    mockConfirmationPreview.confirmationStatus = 'REJECTED'
+    mockConfirmationStatusByToken.set(token, 'REJECTED')
     return
   }
 

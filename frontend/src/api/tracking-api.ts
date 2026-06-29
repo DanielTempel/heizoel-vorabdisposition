@@ -11,14 +11,14 @@ const mockTrackingInfo: TrackingInfo = {
   targetLocationY: 49.7935,
 }
 
-const mockDriverRoute = [
+const mockDriverRoute: DriverLocation[] = [
   { locationX: 9.882, locationY: 49.8166 },
   { locationX: 9.8974, locationY: 49.8108 },
   { locationX: 9.9149, locationY: 49.804 },
   { locationX: 9.9281, locationY: 49.7975 },
 ]
 
-let mockDriverRouteIndex = 0
+const mockDriverRouteIndexByToken = new Map<string, number>()
 
 function getApiMode(): TrackingApiMode {
   const mode = import.meta.env.VITE_CONFIRMATION_API_MODE
@@ -32,6 +32,40 @@ function getApiMode(): TrackingApiMode {
 
 function delay(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms))
+}
+
+function getMockTrackingInfo(token: string): TrackingInfo {
+  if (token === 'mock-no-tracking') {
+    return {
+      trackingAvailable: false,
+      targetLocationX: null,
+      targetLocationY: null,
+    }
+  }
+
+  return { ...mockTrackingInfo }
+}
+
+function getMockDriverLocation(token: string): DriverLocation {
+  if (token === 'mock-driver-error') {
+    throw new Error('Mock driver location request failed')
+  }
+
+  if (token === 'mock-arrived') {
+    return {
+      locationX: mockTrackingInfo.targetLocationX ?? 9.9372,
+      locationY: mockTrackingInfo.targetLocationY ?? 49.7935,
+    }
+  }
+
+  const routeIndex = mockDriverRouteIndexByToken.get(token) ?? 0
+  const currentLocation = mockDriverRoute[routeIndex]
+  mockDriverRouteIndexByToken.set(
+    token,
+    (routeIndex + 1) % mockDriverRoute.length,
+  )
+
+  return currentLocation
 }
 
 async function handleBackendResponse(response: Response) {
@@ -48,10 +82,7 @@ export async function getDriverLocation(token: string): Promise<DriverLocation> 
 
     await delay(300)
 
-    const currentLocation = mockDriverRoute[mockDriverRouteIndex]
-    mockDriverRouteIndex = (mockDriverRouteIndex + 1) % mockDriverRoute.length
-
-    return currentLocation
+    return getMockDriverLocation(token)
   }
 
   const response = await fetch(
@@ -70,7 +101,7 @@ export async function getTrackingInfo(token: string): Promise<TrackingInfo> {
 
     await delay(300)
 
-    return { ...mockTrackingInfo }
+    return getMockTrackingInfo(token)
   }
 
   const response = await fetch(

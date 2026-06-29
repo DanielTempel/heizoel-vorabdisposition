@@ -29,7 +29,11 @@ import { SuccessState } from './components/success-state'
 type PageStatus = 'loading' | 'ready' | 'submitting' | 'success' | 'error'
 
 function isResolvedConfirmationStatus(status: ConfirmationStatus) {
-  return status === 'CONFIRMED' || status === 'REJECTED'
+  return (
+    status === 'CONFIRMED' ||
+    status === 'REJECTED' ||
+    status === 'NO_RESPONSE'
+  )
 }
 
 function getTokenFromPath() {

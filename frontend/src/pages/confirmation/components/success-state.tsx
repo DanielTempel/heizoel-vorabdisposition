@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { formatDate, formatTime } from '../../../lib/format-delivery'
 import type {
@@ -26,16 +26,24 @@ export function SuccessState({
   isTrackingRefreshing,
   onRefreshTracking,
 }: SuccessStateProps) {
+  const isNoResponse = confirmation.confirmationStatus === 'NO_RESPONSE'
   const resolvedAnswerType =
     answerType ??
     (confirmation.confirmationStatus === 'REJECTED' ? 'reject' : 'confirm')
-  const isRejected = resolvedAnswerType === 'reject'
-  const statusText =
-    isRejected
+  const isRejected =
+    confirmation.confirmationStatus === 'REJECTED' ||
+    resolvedAnswerType === 'reject'
+  const statusEyebrow = isNoResponse
+    ? 'Anfrage abgelaufen'
+    : 'Rückmeldung erhalten'
+  const statusText = isNoResponse
+    ? 'Die Antwortfrist für diesen Liefertermin ist abgelaufen.'
+    : isRejected
       ? 'Der Liefertermin wurde abgelehnt.'
       : 'Der Liefertermin wurde bestätigt.'
 
   const hasTrackingData =
+    !isNoResponse &&
     trackingInfo !== null &&
     trackingInfo.trackingAvailable &&
     trackingInfo.targetLocationX !== null &&
@@ -47,7 +55,7 @@ export function SuccessState({
         <Card className="rounded-3xl p-4 sm:p-8">
           <CardHeader className="flex flex-col items-center gap-3 px-0 text-center">
             <p className="text-xs font-semibold uppercase text-muted-foreground">
-              Rückmeldung erhalten
+              {statusEyebrow}
             </p>
             <CardTitle className="max-w-2xl text-2xl font-semibold">
               {statusText}
@@ -77,7 +85,10 @@ export function SuccessState({
                 </p>
               </>
             ) : null}
-            {!isRejected && trackingInfo !== null && !trackingInfo.trackingAvailable ? (
+            {!isRejected &&
+            !isNoResponse &&
+            trackingInfo !== null &&
+            !trackingInfo.trackingAvailable ? (
               <>
                 <Separator />
                 <Alert className="border-red-300 bg-red-50 p-5 shadow-sm">
@@ -90,7 +101,9 @@ export function SuccessState({
             ) : null}
 
             <p className="mt-8 text-center font-semibold">
-              Sie können dieses Fenster nun schließen.
+              {hasTrackingData
+                ? 'Sie können den Lieferstatus auf dieser Seite verfolgen.'
+                : 'Sie können dieses Fenster nun schließen.'}
             </p>
           </CardContent>
         </Card>
