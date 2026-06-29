@@ -1,0 +1,10 @@
+\babel@toc {ngerman}{}\relax 
+\contentsline {section}{\numberline {1}Einleitung}{3}{section.1}%
+\contentsline {section}{\numberline {2}Zielsetzung des Projekts}{3}{section.2}%
+\contentsline {section}{\numberline {3}Projektumfang}{3}{section.3}%
+\contentsline {section}{\numberline {4}Arbeitspakete mit Zeitaufwand}{4}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Zusammenfassung nach Bereichen}{4}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Einordnung des Zeitaufwands}{4}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Abgrenzung}{5}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Reflexion des Projektverlaufs}{5}{section.5}%
+\contentsline {section}{\numberline {6}Fazit}{5}{section.6}%

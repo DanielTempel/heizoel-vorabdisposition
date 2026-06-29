@@ -1,0 +1,205 @@
+\documentclass[
+12pt,
+a4paper,
+oneside
+]{article}
+
+% -------------------------------------------------
+% Sprache, Kodierung, Schrift
+% -------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage{lmodern}
+
+% -------------------------------------------------
+% Seitenlayout
+% -------------------------------------------------
+\usepackage[
+left=2.5cm,
+right=2.5cm,
+top=2.5cm,
+bottom=2.5cm
+]{geometry}
+
+\usepackage{setspace}
+\onehalfspacing
+
+% -------------------------------------------------
+% Tabellen und Listen
+% -------------------------------------------------
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{enumitem}
+
+% -------------------------------------------------
+% Farben und Links
+% -------------------------------------------------
+\usepackage{xcolor}
+\usepackage[
+colorlinks=true,
+linkcolor=black,
+urlcolor=blue,
+citecolor=black
+]{hyperref}
+
+% -------------------------------------------------
+% Kopf- und Fußzeile
+% -------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Digitale Rückbestätigung geplanter Heizöl-Lieferungen}
+\rhead{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% -------------------------------------------------
+% Titelinformationen
+% -------------------------------------------------
+\title{
+	\textbf{Wissenschaftliches Arbeiten}\\[0.4cm]
+	\large Digitale Rückbestätigung geplanter Heizöl-Lieferungen
+}
+
+\author{
+	Daniel Tempel\\
+	Technische Hochschule Würzburg-Schweinfurt\\
+	Studiengang Informatik
+}
+
+\date{\today}
+
+% -------------------------------------------------
+% Dokument
+% -------------------------------------------------
+\begin{document}
+	
+	\maketitle
+	
+	\thispagestyle{empty}
+	
+	\vspace{1cm}
+	
+	\begin{abstract}
+		Diese Ausarbeitung dokumentiert die im Projekt durchgeführten Arbeitsschritte,
+		die fachliche und technische Umsetzung sowie den geschätzten Zeitaufwand.
+		Der Schwerpunkt liegt auf der digitalen Rückbestätigung geplanter Heizöl-Lieferungen,
+		der Backend-Integration, der Kundenkommunikation und der projektbezogenen Dokumentation.
+	\end{abstract}
+	
+	\newpage
+	
+	\tableofcontents
+	
+	\newpage
+	
+	% -------------------------------------------------
+	% Hauptteil
+	% -------------------------------------------------
+	
+	\section{Einleitung}
+	
+	Im Rahmen des Projekts wurde ein Prototyp zur digitalen Rückbestätigung geplanter
+	Heizöl-Lieferungen entwickelt. Ziel war es, den bisherigen manuellen Abstimmungsprozess
+	zwischen Disposition und Kunde digital zu unterstützen.
+	
+	Der Prototyp ersetzt nicht die Disposition selbst. Die fachliche Entscheidung über
+	Tourenplanung, Verschiebungen und Sonderfälle bleibt weiterhin beim Disponenten.
+	Das System unterstützt lediglich die strukturierte Einholung, Speicherung und
+	Weitergabe von Kundenrückmeldungen.
+	
+	\section{Zielsetzung des Projekts}
+	
+	Ziel des Projekts ist die Reduktion manueller Telefonabstimmungen durch eine digitale
+	Rückbestätigung. Kunden erhalten eine Nachricht mit einem Link zur Bestätigungsseite
+	und können dort das geplante Lieferfenster bestätigen oder ablehnen.
+	
+	Das Backend übernimmt dabei folgende Aufgaben:
+	
+	\begin{itemize}
+		\item Entgegennahme von Rückbestätigungsanfragen aus dem DISPO-System,
+		\item Validierung der Liefer- und Kundendaten,
+		\item Speicherung eines Auftragssnapshots,
+		\item Erzeugung eines tokenbasierten Bestätigungslinks,
+		\item Versand der Nachricht per E-Mail oder SMS,
+		\item Verarbeitung der Kundenantwort,
+		\item Statusaktualisierung,
+		\item Rückmeldung des Ergebnisses an das DISPO-System,
+		\item Timeout-Verarbeitung bei ausbleibender Kundenantwort.
+	\end{itemize}
+	
+	\section{Projektumfang}
+	
+	Der entwickelte Prototyp bildet den Kernprozess der digitalen Rückbestätigung ab.
+	Dazu gehören die Anfrage durch das DISPO-System, die digitale Kommunikation mit dem
+	Kunden, die Statusverarbeitung und die technische Rückmeldung an das DISPO-System.
+	
+	Nicht Bestandteil des MVP sind eine automatische Tourenplanung, eine automatische
+	Routenoptimierung, eine automatische Neuvergabe von Lieferfenstern sowie eine
+	vollständig produktive Anbindung externer Systeme.
+	
+
+
+\section{Arbeitspakete mit Zeitaufwand}
+
+Die folgende \"Ubersicht dokumentiert den gesch\"atzten Zeitaufwand f\"ur die im Projekt bearbeiteten Arbeitspakete. Die Werte stellen keine minutengenaue Zeiterfassung dar, sondern eine realistische nachtr\"agliche Aufwandssch\"atzung. Ber\"ucksichtigt wurden fachliche Analyse, Abstimmungen, Architektur, Implementierung, automatisierte und manuelle Tests, Debugging, Dokumentation sowie die Vorbereitung der Demonstration.
+
+Der Gesamtaufwand betr\"agt insgesamt ca. \textbf{300 Stunden}. Die Sch\"atzung umfasst den Backend- und Kommunikationsanteil, die Camunda-Prozesse, die lokale Infrastruktur sowie die dazugeh\"origen Tests und Dokumentationsarbeiten.
+
+\subsection{Zusammenfassung nach Bereichen}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{p{0.72\textwidth}r}
+		\hline
+		\textbf{Bereich} & \textbf{Aufwand} \\
+		\hline
+		Fachliche Analyse und Anforderungsabgrenzung & 18 h \\
+		Abstimmungen, Besprechungen und Projektplanung & 20 h \\
+		Backend-Architektur und Grundkonfiguration & 14 h \\
+		Datenmodell, Persistenz und Flyway-Migrationen & 14 h \\
+		DISPO-API, Validierung, Duplicate-Handling und Antwortfrist & 24 h \\
+		Customer-API, Token-Flow und Statuslogik & 22 h \\
+		E-Mail-Versand, Templates, Mailpit und Gmail-SMTP & 28 h \\
+		SMS-Versand und SMS-Mock & 12 h \\
+		Camunda Timeout, DISPO-Callback und Retry-Verhalten & 28 h \\
+		Docker Compose, Profile und lokale Mock-Systeme & 14 h \\
+		Automatisierte Unit-, Integrations- und Workflow-Tests & 38 h \\
+		Manuelle End-to-End-Tests, Debugging und Refactoring & 28 h \\
+		Technische und fachliche Dokumentation & 14 h \\
+		Pr\"asentationsvorbereitung und Demo-Flow & 8 h \\
+		\hline
+		\textbf{Gesamt} & \textbf{300 h} \\
+		\hline
+	\end{tabular}
+	\caption{Zusammenfassung der Arbeitspakete mit gesch\"atztem Zeitaufwand}
+\end{table}
+
+\subsection{Einordnung des Zeitaufwands}
+
+Der gr\"o{\ss}te Teil des Aufwands entstand durch die Kombination aus fachlicher Prozesslogik, technischer Integration und Qualit\"atssicherung. Besonders relevant waren das Duplicate-Handling, die tokenbasierte Kundenantwort, die zeitabh\"angige Statusverarbeitung sowie die Camunda-Prozesse f\"ur Timeout und wiederholbare DISPO-Callbacks.
+
+Ein weiterer Schwerpunkt lag auf der Kundenkommunikation. Dazu geh\"orten die initiale E-Mail, Follow-up-E-Mails, Preis- und Fristdarstellung, MINOVA-Branding, Mailpit- und Gmail-Tests sowie der SMS-Kanal mit lokalem Mock-Service.
+
+Der vergleichsweise hohe Test- und Debugging-Anteil ergibt sich aus den vielen beteiligten Komponenten: PostgreSQL, Flyway, Camunda, REST-Clients, Mailversand, Mock-Systeme und Docker-Infrastruktur. Neben automatisierten Unit-, Integrations- und Workflow-Tests wurden die zentralen Abl\"aufe wiederholt manuell als End-to-End-Szenarien gepr\"uft. Dokumentation und Pr\"asentation sind bewusst kompakter angesetzt und bilden nur den tats\"achlich notwendigen Aufwand f\"ur technische Beschreibung, Projektausarbeitung und Demo-Vorbereitung ab.
+
+\subsection{Abgrenzung}
+
+Nicht oder nur eingeschränkt Bestandteil dieser Aufwandsschätzung sind produktionsreife Erweiterungen wie ein echter SMS-Provider, eine echte produktive DISPO-Anbindung, Authentifizierung und Autorisierung, vollständige Secrets-Verwaltung, Monitoring, Kubernetes-Deployment oder eine vollständige produktive Mail-Domain mit SPF, DKIM und DMARC. Diese Punkte wurden im MVP entweder durch Mock-Komponenten ersetzt oder als spätere Erweiterung betrachtet.
+
+	
+	\section{Reflexion des Projektverlaufs}
+	
+	% Platzhalter für spätere Ergänzung:
+	% Hier können später Probleme, technische Entscheidungen, Änderungen im Projektverlauf
+	% und gelernte Aspekte beschrieben werden.
+	
+	\section{Fazit}
+	
+	% Platzhalter für spätere Ergänzung:
+	% Hier kann später zusammengefasst werden, was erreicht wurde,
+	% welche Einschränkungen bestehen und welche Erweiterungen sinnvoll wären.
+	
+\end{document}
