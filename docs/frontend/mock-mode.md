@@ -36,7 +36,7 @@ Die Mock-Variable auskommentieren oder entfernen:
 
 Nach einem Neustart des Frontends wird wieder der Backend-Modus verwendet.
 
-## Verfuegbare Mock-URLs
+## Verfügbare Mock-URLs
 
 Diese URLs können im Mock-Modus direkt im Browser geöffnet werden:
 
