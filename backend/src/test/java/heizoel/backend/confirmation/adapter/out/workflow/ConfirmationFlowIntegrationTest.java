@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.adapter.out.workflow;
 
-import heizoel.backend.confirmation.application.port.in.NoResponseTimeoutService;
+import heizoel.backend.confirmation.application.port.in.HandleNoResponseTimeoutUseCase;
 import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackService;
 import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
 import heizoel.backend.confirmation.application.port.out.GeocodingClient;
@@ -72,7 +72,7 @@ class ConfirmationFlowIntegrationTest {
     JdbcTemplate jdbcTemplate;
 
     @Autowired
-    NoResponseTimeoutService noResponseTimeoutService;
+    HandleNoResponseTimeoutUseCase handleNoResponseTimeoutUseCase;
 
     @MockitoBean
     DispoStatusCallbackService dispoStatusCallbackService;
@@ -170,9 +170,9 @@ class ConfirmationFlowIntegrationTest {
 
         String token = getLatestToken(externalOrderId);
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token)
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content("{\"responseType\":\"CONFIRM\"}"))
                 .andExpect(status().isNoContent());
 
         assertThat(getConfirmationStatus(externalOrderId))
@@ -218,10 +218,11 @@ class ConfirmationFlowIntegrationTest {
 
         String token = getLatestToken(externalOrderId);
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/reject", token)
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
+                                  "responseType": "REJECT",
                                   "customerComment": "Bitte erst ab 15 Uhr."
                                 }
                                 """))
@@ -313,7 +314,7 @@ class ConfirmationFlowIntegrationTest {
                 WHERE id = ?
                 """, confirmationRequestId);
 
-        noResponseTimeoutService.handleTimeout(confirmationRequestId);
+        handleNoResponseTimeoutUseCase.handleTimeout(confirmationRequestId);
     }
 
     private String getConfirmationStatus(String externalOrderId) {
@@ -361,7 +362,7 @@ class ConfirmationFlowIntegrationTest {
                 """, String.class, externalOrderId);
     }
 
-    private ArgumentMatcher<heizoel.backend.confirmation.adapter.out.dispo.dto.DispoConfirmationStatusUpdateDto>
+    private ArgumentMatcher<heizoel.backend.confirmation.application.port.out.DispoStatusCallbackRequest>
     statusUpdateFor(String externalOrderId, ConfirmationStatus confirmationStatus) {
         return update ->
                 update != null

@@ -1,7 +1,7 @@
-package heizoel.backend.confirmation.application.service;
+package heizoel.backend.confirmation.application.usecase;
 
 import heizoel.backend.confirmation.application.port.out.DispoCallbackWorkflowService;
-import heizoel.backend.confirmation.application.port.in.NoResponseTimeoutService;
+import heizoel.backend.confirmation.application.port.in.HandleNoResponseTimeoutUseCase;
 import heizoel.backend.confirmation.application.port.out.CustomerResponseService;
 import heizoel.backend.confirmation.application.port.out.ConfirmationRequestService;
 import heizoel.backend.confirmation.application.port.out.OrderSnapshotService;
@@ -17,7 +17,7 @@ import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
-public class NoResponseTimeoutServiceImpl implements NoResponseTimeoutService {
+public class HandleNoResponseTimeoutUseCaseImpl implements HandleNoResponseTimeoutUseCase {
 
     private final ConfirmationRequestService confirmationRequestService;
     private final OrderSnapshotService orderSnapshotService;

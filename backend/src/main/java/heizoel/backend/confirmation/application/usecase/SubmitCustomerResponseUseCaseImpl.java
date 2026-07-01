@@ -1,22 +1,21 @@
-package heizoel.backend.confirmation.application.service;
+package heizoel.backend.confirmation.application.usecase;
 
-
-import heizoel.backend.confirmation.application.port.out.DispoCallbackWorkflowService;
-import heizoel.backend.confirmation.adapter.in.web.customer.dto.CustomerConfirmationPreviewDto;
-import heizoel.backend.confirmation.application.port.in.CustomerConfirmationService;
-import heizoel.backend.confirmation.application.port.out.CustomerResponseService;
-import heizoel.backend.confirmation.domain.model.CustomerResponseType;
+import heizoel.backend.confirmation.application.port.in.SubmitCustomerResponseCommand;
+import heizoel.backend.confirmation.application.port.in.SubmitCustomerResponseUseCase;
 import heizoel.backend.confirmation.application.port.out.ConfirmationRequestService;
+import heizoel.backend.confirmation.application.port.out.CustomerResponseService;
+import heizoel.backend.confirmation.application.port.out.DispoCallbackWorkflowService;
+import heizoel.backend.confirmation.application.port.out.NotificationService;
 import heizoel.backend.confirmation.application.port.out.OrderSnapshotService;
-import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestExpiredException;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestInactiveException;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.confirmation.domain.exception.CustomerResponseAlreadyExistsException;
+import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
+import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
+import heizoel.backend.confirmation.domain.model.CustomerResponseType;
+import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import heizoel.backend.shared.exception.EmailSendingException;
-import heizoel.backend.confirmation.application.port.out.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,7 @@ import java.time.Instant;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class CustomerConfirmationServiceImpl implements CustomerConfirmationService {
+public class SubmitCustomerResponseUseCaseImpl implements SubmitCustomerResponseUseCase {
 
     private final ConfirmationRequestService confirmationRequestService;
     private final OrderSnapshotService orderSnapshotService;
@@ -36,49 +35,18 @@ public class CustomerConfirmationServiceImpl implements CustomerConfirmationServ
     private final NotificationService notificationService;
 
     @Override
-    @Transactional(readOnly = true)
-    public CustomerConfirmationPreviewDto getConfirmationPreview(String token) {
-
-        ConfirmationRequest confirmationRequest = confirmationRequestService.findByToken(token)
-                .orElseThrow(() -> new ConfirmationRequestNotFoundException(
-                        "Confirmation request was not found."
-                ));
-        OrderSnapshot orderSnapshot = confirmationRequest.getOrderSnapshot();
-
-        return new CustomerConfirmationPreviewDto(
-                orderSnapshot.getExternalOrderId(),
-                orderSnapshot.getCustomerName(),
-                orderSnapshot.getDeliveryAddress(),
-                orderSnapshot.getProduct(),
-                orderSnapshot.getQuantityLiters(),
-                confirmationRequest.getDeliveryDate(),
-                confirmationRequest.getDeliveryWindowStart(),
-                confirmationRequest.getDeliveryWindowEnd(),
-                orderSnapshot.getPriceDisplayText(),
-                orderSnapshot.getConfirmationStatus()
-        );
-    }
-
-
-    @Override
     @Transactional
-    public void confirm(String token, String customerComment) {
-        submitCustomerResponse(
-                token,
-                CustomerResponseType.CONFIRM,
-                ConfirmationStatus.CONFIRMED,
-                customerComment
-        );
-    }
+    public void submitCustomerResponse(SubmitCustomerResponseCommand command) {
+        ConfirmationStatus confirmationStatus = switch (command.responseType()) {
+            case CONFIRM -> ConfirmationStatus.CONFIRMED;
+            case REJECT -> ConfirmationStatus.REJECTED;
+        };
 
-    @Override
-    @Transactional
-    public void reject(String token, String customerComment) {
         submitCustomerResponse(
-                token,
-                CustomerResponseType.REJECT,
-                ConfirmationStatus.REJECTED,
-                customerComment
+                command.token(),
+                command.responseType(),
+                confirmationStatus,
+                command.customerComment()
         );
     }
 
@@ -149,6 +117,4 @@ public class CustomerConfirmationServiceImpl implements CustomerConfirmationServ
 
         return confirmationRequest;
     }
-
 }
-

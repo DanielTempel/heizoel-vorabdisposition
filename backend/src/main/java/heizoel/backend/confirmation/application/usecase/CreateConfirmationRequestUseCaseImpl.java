@@ -1,15 +1,14 @@
-package heizoel.backend.confirmation.application.service;
+package heizoel.backend.confirmation.application.usecase;
 
 
 import heizoel.backend.confirmation.application.port.out.ConfirmationWorkflowService;
-import heizoel.backend.confirmation.adapter.in.web.dispo.dto.DispoConfirmationRequestDto;
-import heizoel.backend.confirmation.adapter.in.web.dispo.dto.DispoConfirmationResponseDto;
 import heizoel.backend.confirmation.application.port.out.ConfirmationRequestService;
-import heizoel.backend.confirmation.application.port.in.DispoConfirmationService;
+import heizoel.backend.confirmation.application.port.in.CreateConfirmationRequestCommand;
+import heizoel.backend.confirmation.application.port.in.CreateConfirmationRequestResult;
+import heizoel.backend.confirmation.application.port.in.CreateConfirmationRequestUseCase;
 import heizoel.backend.confirmation.application.port.out.OrderSnapshotService;
 import heizoel.backend.confirmation.application.model.ConfirmationRequestData;
 import heizoel.backend.confirmation.application.model.OrderSnapshotData;
-import heizoel.backend.confirmation.application.model.DispoConfirmationCreationResult;
 import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
 import heizoel.backend.confirmation.domain.model.CommunicationChannel;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
@@ -27,7 +26,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class DispoConfirmationServiceImpl implements DispoConfirmationService {
+public class CreateConfirmationRequestUseCaseImpl implements CreateConfirmationRequestUseCase {
 
     private static final ZoneId DELIVERY_ZONE = ZoneId.of("Europe/Berlin");
 
@@ -38,28 +37,28 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
 
     @Override
     @Transactional
-    public DispoConfirmationCreationResult createConfirmationRequest(DispoConfirmationRequestDto request) {
+    public CreateConfirmationRequestResult createConfirmationRequest(CreateConfirmationRequestCommand command) {
 
-        validateDeliveryWindow(request);
-        validateCommunicationChannel(request);
+        validateDeliveryWindow(command);
+        validateCommunicationChannel(command);
 
         OrderSnapshotData orderData = new OrderSnapshotData(
-                request.externalOrderId(),
-                request.customerName(),
-                request.customerEmail(),
-                request.customerPhoneNumber(),
-                request.deliveryAddress(),
-                request.product(),
-                request.quantityLiters(),
-                request.priceDisplayText()
+                command.externalOrderId(),
+                command.customerName(),
+                command.customerEmail(),
+                command.customerPhoneNumber(),
+                command.deliveryAddress(),
+                command.product(),
+                command.quantityLiters(),
+                command.priceDisplayText()
         );
 
         ConfirmationRequestData requestData = new ConfirmationRequestData(
-                request.deliveryDate(),
-                request.deliveryWindowStart(),
-                request.deliveryWindowEnd(),
-                request.communicationChannel(),
-                request.responseDeadlineHours()
+                command.deliveryDate(),
+                command.deliveryWindowStart(),
+                command.deliveryWindowEnd(),
+                command.communicationChannel(),
+                command.responseDeadlineHours()
         );
 
         Optional<OrderSnapshot> existingOrder = orderSnapshotService.findByExternalOrderId(orderData.externalOrderId());
@@ -77,11 +76,9 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
                 || orderSnapshot.getConfirmationStatus() == ConfirmationStatus.CONFIRMED
                 || orderSnapshot.getConfirmationStatus() == ConfirmationStatus.REJECTED)) {
 
-            return new DispoConfirmationCreationResult(
-                    new DispoConfirmationResponseDto(
-                            orderSnapshot.getExternalOrderId(),
-                            orderSnapshot.getConfirmationStatus()
-                    ),
+            return new CreateConfirmationRequestResult(
+                    orderSnapshot.getExternalOrderId(),
+                    orderSnapshot.getConfirmationStatus(),
                     false
             );
         }
@@ -94,7 +91,7 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
         return createNewConfirmation(updatedOrderSnapshot, requestData);
     }
 
-    private DispoConfirmationCreationResult createNewConfirmation(
+    private CreateConfirmationRequestResult createNewConfirmation(
             OrderSnapshot orderSnapshot,
             ConfirmationRequestData requestData
     ) {
@@ -105,24 +102,22 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
 
         confirmationWorkflowService.startTimeoutProcess(confirmationRequest);
 
-        return new DispoConfirmationCreationResult(
-                new DispoConfirmationResponseDto(
-                        orderSnapshot.getExternalOrderId(),
-                        orderSnapshot.getConfirmationStatus()
-                ),
+        return new CreateConfirmationRequestResult(
+                orderSnapshot.getExternalOrderId(),
+                orderSnapshot.getConfirmationStatus(),
                 true
         );
     }
 
-    private void validateDeliveryWindow(DispoConfirmationRequestDto request) {
-        if (!request.deliveryWindowStart().isBefore(request.deliveryWindowEnd())) {
+    private void validateDeliveryWindow(CreateConfirmationRequestCommand command) {
+        if (!command.deliveryWindowStart().isBefore(command.deliveryWindowEnd())) {
             throw new InvalidDeliveryWindowException(
                     "Delivery window start must be before delivery window end."
             );
         }
 
-        Instant deliveryStartsAt = request.deliveryDate()
-                .atTime(request.deliveryWindowStart())
+        Instant deliveryStartsAt = command.deliveryDate()
+                .atTime(command.deliveryWindowStart())
                 .atZone(DELIVERY_ZONE)
                 .toInstant();
 
@@ -133,16 +128,16 @@ public class DispoConfirmationServiceImpl implements DispoConfirmationService {
         }
     }
 
-    private void validateCommunicationChannel(DispoConfirmationRequestDto request) {
-        if (request.communicationChannel() == CommunicationChannel.EMAIL
-                && isBlank(request.customerEmail())) {
+    private void validateCommunicationChannel(CreateConfirmationRequestCommand command) {
+        if (command.communicationChannel() == CommunicationChannel.EMAIL
+                && isBlank(command.customerEmail())) {
             throw new MissingDigitalContactException(
                     "Customer e-mail is required when communication channel is EMAIL."
             );
         }
 
-        if (request.communicationChannel() == CommunicationChannel.SMS
-                && isBlank(request.customerPhoneNumber())) {
+        if (command.communicationChannel() == CommunicationChannel.SMS
+                && isBlank(command.customerPhoneNumber())) {
             throw new MissingDigitalContactException(
                     "Customer phone number is required when communication channel is SMS."
             );

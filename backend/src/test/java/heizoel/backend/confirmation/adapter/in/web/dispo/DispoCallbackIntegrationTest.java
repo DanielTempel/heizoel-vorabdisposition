@@ -1,7 +1,7 @@
 package heizoel.backend.confirmation.adapter.in.web.dispo;
 
 import heizoel.backend.confirmation.adapter.out.persistence.CustomerResponseRepository;
-import heizoel.backend.confirmation.adapter.out.dispo.dto.DispoConfirmationStatusUpdateDto;
+import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackRequest;
 import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackService;
 import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
@@ -105,10 +105,11 @@ class DispoCallbackIntegrationTest {
 
         String token = findActiveToken(externalOrderId);
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token)
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
+                                  "responseType": "CONFIRM",
                                   "customerComment": "Bitte 30 Minuten vorher anrufen."
                                 }
                                 """))
@@ -135,10 +136,11 @@ class DispoCallbackIntegrationTest {
 
         String token = findActiveToken(externalOrderId);
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/reject", token)
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
+                                  "responseType": "REJECT",
                                   "customerComment": "Bitte erst ab 15 Uhr."
                                 }
                                 """))
@@ -167,12 +169,13 @@ class DispoCallbackIntegrationTest {
 
         doThrow(new RuntimeException("DISPO unavailable"))
                 .when(dispoStatusCallbackService)
-                .sendStatusUpdate(any(DispoConfirmationStatusUpdateDto.class));
+                .sendStatusUpdate(any(DispoStatusCallbackRequest.class));
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token)
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
+                                  "responseType": "CONFIRM",
                                   "customerComment": "Test comment"
                                 }
                                 """))
@@ -196,7 +199,7 @@ class DispoCallbackIntegrationTest {
                 .isTrue();
 
         verify(dispoStatusCallbackService, timeout(1000))
-                .sendStatusUpdate(any(DispoConfirmationStatusUpdateDto.class));
+                .sendStatusUpdate(any(DispoStatusCallbackRequest.class));
     }
 
     @Test
@@ -209,10 +212,11 @@ class DispoCallbackIntegrationTest {
 
         String token = findActiveToken(externalOrderId);
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token)
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
+                                  "responseType": "CONFIRM",
                                   "customerComment": "SMS confirmation works."
                                 }
                                 """))
@@ -322,7 +326,7 @@ class DispoCallbackIntegrationTest {
         return confirmationRequest.getToken();
     }
 
-    private ArgumentMatcher<DispoConfirmationStatusUpdateDto> statusUpdateMatches(
+    private ArgumentMatcher<DispoStatusCallbackRequest> statusUpdateMatches(
             String externalOrderId,
             ConfirmationStatus confirmationStatus,
             String customerComment

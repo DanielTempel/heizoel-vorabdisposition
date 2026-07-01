@@ -1,7 +1,10 @@
 package heizoel.backend.confirmation.adapter.in.web.customer;
 
-import heizoel.backend.confirmation.adapter.in.web.customer.dto.CustomerAnswerRequestDto;
-import heizoel.backend.confirmation.application.port.in.CustomerConfirmationService;
+import heizoel.backend.confirmation.adapter.in.web.customer.dto.CustomerResponseRequestDto;
+import heizoel.backend.confirmation.application.port.in.SubmitCustomerResponseCommand;
+import heizoel.backend.confirmation.application.port.in.SubmitCustomerResponseUseCase;
+import heizoel.backend.confirmation.application.port.in.GetConfirmationPreviewResult;
+import heizoel.backend.confirmation.application.port.in.GetConfirmationPreviewUseCase;
 import heizoel.backend.confirmation.adapter.in.web.customer.dto.CustomerConfirmationPreviewDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,33 +16,43 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CustomerConfirmationController {
 
-    private final CustomerConfirmationService customerConfirmationService;
+    private final SubmitCustomerResponseUseCase submitCustomerResponseUseCase;
+    private final GetConfirmationPreviewUseCase getConfirmationPreviewUseCase;
 
     @GetMapping("/{token}")
     public CustomerConfirmationPreviewDto getConfirmationPreview(
             @PathVariable String token
-
     ) {
-        return customerConfirmationService.getConfirmationPreview(token);
+        GetConfirmationPreviewResult result =
+                getConfirmationPreviewUseCase.getConfirmationPreview(token);
+
+        return new CustomerConfirmationPreviewDto(
+                result.externalOrderId(),
+                result.customerName(),
+                result.deliveryAddress(),
+                result.product(),
+                result.quantityLiters(),
+                result.deliveryDate(),
+                result.deliveryWindowStart(),
+                result.deliveryWindowEnd(),
+                result.priceDisplayText(),
+                result.confirmationStatus()
+        );
     }
 
-    @PostMapping("/{token}/confirm")
-    public ResponseEntity<Void> confirm(
+    @PostMapping("/{token}/response")
+    public ResponseEntity<Void> submitResponse(
             @PathVariable String token,
-            @Valid @RequestBody(required = false) CustomerAnswerRequestDto request
+            @Valid @RequestBody CustomerResponseRequestDto request
     ) {
-        String customerComment = request != null ? request.customerComment() : null;
-        customerConfirmationService.confirm(token, customerComment);
-        return ResponseEntity.noContent().build();
-    }
+        submitCustomerResponseUseCase.submitCustomerResponse(
+                new SubmitCustomerResponseCommand(
+                        token,
+                        request.responseType(),
+                        request.customerComment()
+                )
+        );
 
-    @PostMapping("/{token}/reject")
-    public ResponseEntity<Void> reject(
-            @PathVariable String token,
-            @Valid @RequestBody(required = false) CustomerAnswerRequestDto request
-    ) {
-        String customerComment = request != null ? request.customerComment() : null;
-        customerConfirmationService.reject(token, customerComment);
         return ResponseEntity.noContent().build();
     }
 }

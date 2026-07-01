@@ -1,9 +1,10 @@
 package heizoel.backend.confirmation.adapter.in.web.customer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import heizoel.backend.confirmation.adapter.in.web.customer.dto.CustomerAnswerRequestDto;
+import heizoel.backend.confirmation.adapter.in.web.customer.dto.CustomerResponseRequestDto;
 import heizoel.backend.confirmation.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
+import heizoel.backend.confirmation.domain.model.CustomerResponseType;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import heizoel.backend.confirmation.adapter.out.persistence.ConfirmationRequestRepository;
@@ -174,11 +175,12 @@ class CustomerConfirmationIntegrationTest {
 
         String token = findActiveTokenByExternalOrderId(externalOrderId);
 
-        CustomerAnswerRequestDto request = new CustomerAnswerRequestDto(
+        CustomerResponseRequestDto request = new CustomerResponseRequestDto(
+                CustomerResponseType.CONFIRM,
                 "Bitte 30 Minuten vorher anrufen."
         );
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token)
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent())
@@ -217,11 +219,12 @@ class CustomerConfirmationIntegrationTest {
 
         String token = findActiveTokenByExternalOrderId(externalOrderId);
 
-        CustomerAnswerRequestDto request = new CustomerAnswerRequestDto(
+        CustomerResponseRequestDto request = new CustomerResponseRequestDto(
+                CustomerResponseType.REJECT,
                 "Bitte erst ab 15 Uhr."
         );
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/reject", token)
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent())
@@ -255,14 +258,18 @@ class CustomerConfirmationIntegrationTest {
 
         String token = findActiveTokenByExternalOrderId(externalOrderId);
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token))
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"responseType\":\"CONFIRM\"}"))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token))
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"responseType\":\"CONFIRM\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("CONFIRMATION_REQUEST_INACTIVE"))
                 .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/confirm"));
+                .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/response"));
     }
 
     @Test
@@ -282,13 +289,13 @@ class CustomerConfirmationIntegrationTest {
         String token = findActiveTokenByExternalOrderId(externalOrderId);
         expireRequest(token);
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token)
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content("{\"responseType\":\"CONFIRM\"}"))
                 .andExpect(status().isGone())
                 .andExpect(jsonPath("$.code").value("CONFIRMATION_REQUEST_EXPIRED"))
                 .andExpect(jsonPath("$.status").value(410))
-                .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/confirm"));
+                .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/response"));
 
         OrderSnapshot orderSnapshot = orderSnapshotRepository
                 .findByExternalOrderId(externalOrderId)
@@ -313,13 +320,13 @@ class CustomerConfirmationIntegrationTest {
         String token = findActiveTokenByExternalOrderId(externalOrderId);
         markRequestInactive(token);
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/reject", token)
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content("{\"responseType\":\"REJECT\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("CONFIRMATION_REQUEST_INACTIVE"))
                 .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/reject"));
+                .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/response"));
 
         OrderSnapshot orderSnapshot = orderSnapshotRepository
                 .findByExternalOrderId(externalOrderId)
@@ -331,14 +338,16 @@ class CustomerConfirmationIntegrationTest {
     }
 
     @Test
-    void shouldAcceptCustomerAnswerWithoutRequestBody() throws Exception {
+    void shouldAcceptCustomerAnswerWithoutComment() throws Exception {
         String externalOrderId = "A-3008";
 
         createDispoConfirmationRequest(externalOrderId);
 
         String token = findActiveTokenByExternalOrderId(externalOrderId);
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/confirm", token))
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"responseType\":\"CONFIRM\"}"))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
@@ -349,6 +358,16 @@ class CustomerConfirmationIntegrationTest {
     }
 
     @Test
+    void submitResponse_returnsValidationErrorWhenResponseTypeIsMissing() throws Exception {
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", "any-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("Response type is required."))
+                .andExpect(jsonPath("$.status").value(400));
+    }
+    @Test
     void shouldReturnValidationErrorWhenCustomerCommentIsTooLong() throws Exception {
         String externalOrderId = "A-3009";
 
@@ -357,9 +376,9 @@ class CustomerConfirmationIntegrationTest {
         String token = findActiveTokenByExternalOrderId(externalOrderId);
         String tooLongComment = "x".repeat(2001);
 
-        mockMvc.perform(post("/api/customer/confirmations/{token}/reject", token)
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new CustomerAnswerRequestDto(tooLongComment))))
+                        .content(objectMapper.writeValueAsString(new CustomerResponseRequestDto(CustomerResponseType.REJECT, tooLongComment))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.message").value("Customer comment must not exceed 2000 characters."))

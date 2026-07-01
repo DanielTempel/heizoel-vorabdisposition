@@ -1,6 +1,5 @@
 package heizoel.backend.confirmation.domain.model;
 
-import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

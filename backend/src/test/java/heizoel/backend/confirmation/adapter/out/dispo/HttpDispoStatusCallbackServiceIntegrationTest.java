@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.adapter.out.dispo;
 
-import heizoel.backend.confirmation.adapter.out.dispo.dto.DispoConfirmationStatusUpdateDto;
+import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackRequest;
 import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
 import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
 import heizoel.backend.confirmation.infrastructure.config.DispoCallbackHttpConfig;
@@ -49,7 +49,7 @@ class HttpDispoStatusCallbackServiceIntegrationTest {
                         """))
                 .andRespond(withNoContent());
 
-        service.sendStatusUpdate(new DispoConfirmationStatusUpdateDto(
+        service.sendStatusUpdate(new DispoStatusCallbackRequest(
                 "A-CB-1",
                 ConfirmationStatus.CONFIRMED,
                 "Bitte 30 Minuten vorher anrufen."
@@ -64,7 +64,7 @@ class HttpDispoStatusCallbackServiceIntegrationTest {
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withServerError());
 
-        assertThatThrownBy(() -> service.sendStatusUpdate(new DispoConfirmationStatusUpdateDto(
+        assertThatThrownBy(() -> service.sendStatusUpdate(new DispoStatusCallbackRequest(
                 "A-CB-2",
                 ConfirmationStatus.REJECTED,
                 "Passt nicht."

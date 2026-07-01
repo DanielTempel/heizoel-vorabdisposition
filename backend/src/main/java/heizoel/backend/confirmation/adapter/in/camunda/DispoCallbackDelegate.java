@@ -1,7 +1,7 @@
 package heizoel.backend.confirmation.adapter.in.camunda;
 
-import heizoel.backend.confirmation.adapter.out.dispo.dto.DispoConfirmationStatusUpdateDto;
-import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackService;
+import heizoel.backend.confirmation.application.port.in.SendDispoStatusCallbackCommand;
+import heizoel.backend.confirmation.application.port.in.SendDispoStatusCallbackUseCase;
 import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
 import lombok.RequiredArgsConstructor;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
@@ -12,29 +12,20 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DispoCallbackDelegate implements JavaDelegate {
 
-    private final DispoStatusCallbackService dispoStatusCallbackService;
+    private static final String VAR_EXTERNAL_ORDER_ID = "externalOrderId";
+    private static final String VAR_CONFIRMATION_STATUS = "confirmationStatus";
+    private static final String VAR_CUSTOMER_COMMENT = "customerComment";
+
+    private final SendDispoStatusCallbackUseCase sendDispoStatusCallbackUseCase;
 
     @Override
     public void execute(DelegateExecution execution) {
-
-        String externalOrderId =
-                (String) execution.getVariable("externalOrderId");
-
-        ConfirmationStatus confirmationStatus = ConfirmationStatus.valueOf(
-                (String) execution.getVariable("confirmationStatus")
+        SendDispoStatusCallbackCommand command = new SendDispoStatusCallbackCommand(
+                (String) execution.getVariable(VAR_EXTERNAL_ORDER_ID),
+                ConfirmationStatus.valueOf((String) execution.getVariable(VAR_CONFIRMATION_STATUS)),
+                (String) execution.getVariable(VAR_CUSTOMER_COMMENT)
         );
 
-        String customerComment =
-                (String) execution.getVariable("customerComment");
-
-        DispoConfirmationStatusUpdateDto statusUpdate =
-                new DispoConfirmationStatusUpdateDto(
-                        externalOrderId,
-                        confirmationStatus,
-                        customerComment
-                );
-
-        dispoStatusCallbackService.sendStatusUpdate(statusUpdate);
+        sendDispoStatusCallbackUseCase.sendDispoStatusCallback(command);
     }
 }
-

@@ -2,8 +2,6 @@ package heizoel.backend.confirmation.adapter.in.web.customer;
 
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.adapter.in.web.customer.dto.TrackingInfoResponseDto;
-import heizoel.backend.confirmation.adapter.in.web.customer.LocationResponseMapper;
-import heizoel.backend.confirmation.adapter.in.web.customer.ConfirmationRequestResolver;
 import heizoel.backend.confirmation.application.port.out.DeliveryAddressCoordinateResolver;
 import heizoel.backend.confirmation.domain.model.GeoCoordinate;
 import lombok.RequiredArgsConstructor;

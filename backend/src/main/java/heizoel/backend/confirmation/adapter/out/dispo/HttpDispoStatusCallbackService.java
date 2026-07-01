@@ -1,7 +1,7 @@
 package heizoel.backend.confirmation.adapter.out.dispo;
 
-
 import heizoel.backend.confirmation.adapter.out.dispo.dto.DispoConfirmationStatusUpdateDto;
+import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackRequest;
 import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackService;
 import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
 import heizoel.backend.shared.exception.DispoCallbackFailedException;
@@ -18,23 +18,26 @@ public class HttpDispoStatusCallbackService implements DispoStatusCallbackServic
     private final ConfirmationProperties properties;
 
     @Override
-    public void sendStatusUpdate(DispoConfirmationStatusUpdateDto statusUpdate) {
+    public void sendStatusUpdate(DispoStatusCallbackRequest request) {
+        DispoConfirmationStatusUpdateDto dto = new DispoConfirmationStatusUpdateDto(
+                request.externalOrderId(),
+                request.confirmationStatus(),
+                request.customerComment()
+        );
+
         try {
             restClient.post()
                     .uri(properties.getDispoUrl())
-                    .body(statusUpdate)
+                    .body(dto)
                     .retrieve()
                     .toBodilessEntity();
         } catch (RestClientException ex) {
             throw new DispoCallbackFailedException(
                     "DISPO callback failed for externalOrderId="
-                            + statusUpdate.externalOrderId()
+                            + request.externalOrderId()
                             + ", status="
-                            + statusUpdate.confirmationStatus()
+                            + request.confirmationStatus()
             );
         }
     }
-
-
 }
-

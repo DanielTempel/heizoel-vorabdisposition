@@ -459,41 +459,22 @@ The backend requests the current driver location from the configured DISPO track
 
 ---
 
-## Customer Confirms Delivery Window
+## Customer Submits Response
 
 ```http
-POST /api/customer/confirmations/{token}/confirm
+POST /api/customer/confirmations/{token}/response
 ```
 
-Optional body:
+Required body:
 
 ```json
 {
+  "responseType": "CONFIRM",
   "customerComment": "Bitte 30 Minuten vorher anrufen."
 }
 ```
 
-Success:
-
-```http
-204 No Content
-```
-
----
-
-## Customer Rejects Delivery Window
-
-```http
-POST /api/customer/confirmations/{token}/reject
-```
-
-Optional body:
-
-```json
-{
-  "customerComment": "Der Termin passt leider nicht."
-}
-```
+`responseType` accepts `CONFIRM` or `REJECT`. `customerComment` is optional.
 
 Success:
 
@@ -590,7 +571,7 @@ The frontend should use the token to load confirmation data from the backend.
 
 If the customer already answered, the backend can still return the confirmation data together with the current status. This allows the frontend to show the customer what was already submitted.
 
-If the request is no longer usable for submitting a new answer, the confirm/reject endpoint rejects the submission.
+If the request is no longer usable for submitting a new answer, the response endpoint rejects the submission.
 
 ---
 
@@ -686,10 +667,16 @@ abc123
 GET http://localhost:8080/api/customer/confirmations/{token}
 ```
 
-### 6. Confirm Without Frontend
+### 6. Submit Customer Response Without Frontend
 
 ```http
-POST http://localhost:8080/api/customer/confirmations/{token}/confirm
+POST http://localhost:8080/api/customer/confirmations/{token}/response
+```
+
+```json
+{
+  "responseType": "CONFIRM"
+}
 ```
 
 Expected:
@@ -860,14 +847,14 @@ GET /api/customer/confirmations/{token}
 6. Submit one of:
 
 ```http
-POST /api/customer/confirmations/{token}/confirm
-POST /api/customer/confirmations/{token}/reject
+POST /api/customer/confirmations/{token}/response
 ```
 
-The request body is optional:
+The request body is required; `customerComment` is optional:
 
 ```json
 {
+  "responseType": "CONFIRM",
   "customerComment": "Optional customer comment"
 }
 ```

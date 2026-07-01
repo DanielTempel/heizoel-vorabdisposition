@@ -4,6 +4,7 @@ import heizoel.backend.confirmation.application.port.out.DispoCallbackWorkflowSe
 import heizoel.backend.confirmation.application.port.out.CustomerResponseService;
 import heizoel.backend.confirmation.application.port.out.ConfirmationRequestService;
 import heizoel.backend.confirmation.application.port.out.OrderSnapshotService;
+import heizoel.backend.confirmation.application.usecase.HandleNoResponseTimeoutUseCaseImpl;
 import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
@@ -21,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class NoResponseTimeoutServiceImplTest {
+class HandleNoResponseTimeoutUseCaseImplTest {
 
     @Mock
     ConfirmationRequestService confirmationRequestService;
@@ -36,7 +37,7 @@ class NoResponseTimeoutServiceImplTest {
     DispoCallbackWorkflowService dispoCallbackWorkflowService;
 
     @InjectMocks
-    NoResponseTimeoutServiceImpl service;
+    HandleNoResponseTimeoutUseCaseImpl service;
 
     @Test
     void handleTimeout_doesNothingWhenRequestIsInactive() {

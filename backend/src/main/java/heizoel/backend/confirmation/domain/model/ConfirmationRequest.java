@@ -1,7 +1,5 @@
 package heizoel.backend.confirmation.domain.model;
 
-
-import heizoel.backend.confirmation.domain.model.CommunicationChannel;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
