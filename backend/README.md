@@ -187,7 +187,7 @@ The DISPO tracking URL and SMS provider URL currently use shared defaults unless
 | `spring.mail.port`                        | SMTP port                                                     |
 | `responseDeadlineHours`                   | DISPO request field defining how long the customer may answer |
 
-Important: the customer response deadline is not a global backend timeout anymore. DISPO provides the deadline per request using `responseDeadlineHours`. The backend stores it in `confirmation_request.response_deadline_hours` and passes the corresponding duration to the Camunda timeout workflow.
+Important: the customer response deadline is not a global backend timeout anymore. DISPO provides the requested deadline per request using `responseDeadlineHours`. The backend stores the requested hours in `confirmation_request.response_deadline_hours` and calculates the effective `expires_at`. If the requested deadline would be after the beginning of the delivery window, `expires_at` is capped at the delivery-window start. A delivery window that has already started is rejected with `400 Bad Request`. Camunda receives the effective absolute expiration timestamp and schedules the timeout job for that exact moment.
 
 ---
 

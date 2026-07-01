@@ -23,7 +23,7 @@
             <bpmn:incoming>Flow_Start_To_Timer</bpmn:incoming>
             <bpmn:outgoing>Flow_Timer_To_NoResponse</bpmn:outgoing>
             <bpmn:timerEventDefinition>
-                <bpmn:timeDuration>${responseDeadline}</bpmn:timeDuration>
+                <bpmn:timeDate>${responseDeadlineAt}</bpmn:timeDate>
             </bpmn:timerEventDefinition>
         </bpmn:intermediateCatchEvent>
 

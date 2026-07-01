@@ -1,0 +1,22 @@
+package heizoel.backend.confirmation.application.port.out;
+
+import heizoel.backend.confirmation.domain.model.CustomerResponseType;
+import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
+import heizoel.backend.confirmation.domain.model.OrderSnapshot;
+
+public interface EmailSender {
+
+    void sendConfirmationRequest(
+            OrderSnapshot orderSnapshot,
+            ConfirmationRequest confirmationRequest
+    );
+
+    void sendCustomerResponseReceived(
+            OrderSnapshot orderSnapshot,
+            ConfirmationRequest confirmationRequest,
+            CustomerResponseType responseType
+    );
+
+
+}
+
