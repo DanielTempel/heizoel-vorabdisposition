@@ -60,6 +60,7 @@ function createMarkerIcon(kind: 'vehicle' | 'destination') {
     className: '',
     html: renderToStaticMarkup(
       <div
+        data-testid={kind === 'vehicle' ? 'vehicle-marker' : 'destination-marker'}
         style={{
           alignItems: 'center',
           background: palette.background,
@@ -198,6 +199,7 @@ export function TrackingMapCard({
             </CardTitle>
           </div>
           <div
+            data-testid="tracking-status-badge"
             className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${
               hasArrived
                 ? 'bg-emerald-600 text-white'
@@ -232,7 +234,10 @@ export function TrackingMapCard({
 
       <CardContent className="p-4 sm:p-6">
         <div className="overflow-hidden rounded-[1.75rem] border border-stone-200 bg-[radial-gradient(circle_at_top,#fffdf5,transparent_48%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] p-3">
-          <div className="h-[360px] overflow-hidden rounded-[1.35rem] border border-stone-200">
+          <div
+            className="h-[360px] overflow-hidden rounded-[1.35rem] border border-stone-200"
+            data-testid="tracking-map"
+          >
             <MapContainer
               className="h-full w-full"
               center={destinationPosition}
