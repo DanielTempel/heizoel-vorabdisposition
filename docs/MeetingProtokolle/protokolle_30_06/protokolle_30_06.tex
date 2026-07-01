@@ -1,0 +1,143 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[german]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{longtable}
+\usepackage{setspace}
+\usepackage{parskip}
+
+\begin{document}
+
+% ---------------------------
+% Deckblatt
+% ---------------------------
+
+\begin{titlepage}
+    \centering
+
+    \vspace*{3cm}
+
+    {\Huge \textbf{Meetingprotokoll}}\\[0.5cm]
+    {\Large Technisches Projektmeeting}\\[2cm]
+
+    \rule{12cm}{0.5pt}\\[0.5cm]
+
+    {\Large Projektarbeit}\\[0.3cm]
+    {\large 30. Juni 2026}
+
+    \rule{12cm}{0.5pt}
+
+    \vfill
+
+    {\large THWS / MINOVA}\\
+
+\end{titlepage}
+
+% ---------------------------
+% Inhaltsverzeichnis
+% ---------------------------
+
+\tableofcontents
+\newpage
+
+% ---------------------------
+% Inhalt
+% ---------------------------
+
+\section{Allgemeine Informationen}
+
+\begin{tabular}{ll}
+\textbf{Datum:} & 30.06.2026 \\
+\textbf{Art des Meetings:} & Technisches Projektmeeting / Code-Review \\
+\textbf{Nächstes Meeting:} & 20.07.2026 von 09:00 bis 10:00 Uhr \\
+\end{tabular}
+
+\vspace{1cm}
+
+\section{Projektstatus}
+
+Im Rahmen des Meetings wurde der aktuelle technische Stand des Projekts gemeinsam mit Herrn Professor Peter Braun besprochen. Der Schwerpunkt lag auf der Bewertung der bestehenden Backend-Architektur, der Struktur des Quellcodes sowie der Qualitätssicherung durch automatisierte Tests.
+
+Dabei wurden verschiedene Verbesserungsvorschläge für die Architektur und den Aufbau des Projekts diskutiert.
+
+\vspace{0.5cm}
+
+\section{Besprochene Punkte}
+
+Während des Meetings wurden folgende technische Themen besprochen:
+
+\begin{itemize}[leftmargin=1.2cm]
+
+\item Einige Fragen zum aktuellen Quellcode konnten während des Meetings nicht abschließend beantwortet werden. 
+Wesentliche Fragen zum Quellcode sowie zu den Architekturentscheidungen sollen künftig nachvollziehbar und fundiert beantwortet werden können.
+
+\item Es wurde darauf hingewiesen, dass das Projekt insgesamt mehr Umfang und Funktionalität benötigt.
+Das Team soll gemeinsam geeignete Erweiterungsmöglichkeiten erarbeiten.
+
+\item Für den \textbf{20.07.2026 von 09:00 bis 10:00 Uhr} wurde ein weiteres technisches Meeting mit Herrn Professor Peter Braun vereinbart. 
+Vor dem Meeting soll Herr Professor Peter Braun Zugriff auf das GitHub-Repository erhalten. 
+
+\item Vor dem technischen Meeting mit Herrn Professor Peter Braun soll ein weiteres Projektmeeting mit Frau Professorin Saueressig stattfinden.
+Hierfür soll zeitnah ein Terminvorschlag übermittelt werden.
+Ziel des Meetings ist es, mögliche Erweiterungen des Projekts zu besprechen und gemeinsam Ideen für einen größeren Projektumfang zu entwickeln.
+
+\item Die bestehende Backend-Architektur soll entsprechend den Prinzipien der Hexagonal Architecture überarbeitet werden.
+Die Kommunikation mit externen Komponenten soll ausschließlich über geeignete Adapter erfolgen.
+
+\item Zur Verbesserung der Softwarequalität sollen Unit-Tests, Integrationstests sowie End-to-End-Tests implementiert werden.
+Die End-to-End-Tests können mit Playwright umgesetzt werden.
+Im Rahmen der End-to-End-Tests sollen insbesondere die Kartenansicht sowie die E-Mail-Funktionalität einschließlich der enthaltenen Links überprüft werden.
+
+\end{itemize}
+
+\vspace{0.5cm}
+
+\section{Nächste Schritte (bis zum nächsten Meeting)}
+
+\begin{itemize}[leftmargin=1.2cm]
+
+\item Überarbeitung der Backend-Architektur nach den Prinzipien der Hexagonal Architecture.
+
+\item Aufbau einer umfassenden Testabdeckung durch Unit-, Integrations- und End-to-End-Tests.
+
+\item Test der Kartenansicht sowie der E-Mail-Links innerhalb der End-to-End-Tests.
+
+\item GitHub-Repository für Herrn Professor Peter Braun freigeben und Repository-Link versenden.
+
+\item Vorbereitung auf das nächste technische Review sowie die Beantwortung wesentlicher Fragen zum Quellcode.
+
+\end{itemize}
+
+\vspace{0.5cm}
+
+\section{Nächste Projektphase}
+
+Die nächste Projektphase konzentriert sich auf die Verbesserung der Softwarearchitektur und der Codequalität.
+
+Im Mittelpunkt stehen die vollständige Umsetzung der Hexagonal Architecture sowie der Ausbau einer umfassenden automatisierten Teststrategie.
+
+\vspace{0.5cm}
+
+\section{Nächste Meilensteine}
+
+\begin{itemize}[leftmargin=1.2cm]
+
+\item Restrukturierung des Backends gemäß den Prinzipien der Hexagonal Architecture.
+
+\item Vorbereitung des technischen Review-Meetings am 20.07.2026.
+
+\end{itemize}
+
+\vspace{1cm}
+
+\section{Zusammenfassung}
+
+Das Meeting diente der technischen Bewertung des aktuellen Projektstands. Gemeinsam mit Herrn Professor Peter Braun wurden insbesondere die Architektur des Backends, die Struktur des Quellcodes sowie die Qualitätssicherung durch automatisierte Tests diskutiert.
+
+Für die kommende Projektphase wurde vereinbart, die Backend-Architektur konsequent nach den Prinzipien der Hexagonal Architecture zu überarbeiten und eine umfassende Teststrategie mit Unit-, Integrations- und End-to-End-Tests umzusetzen.
+
+\end{document}
