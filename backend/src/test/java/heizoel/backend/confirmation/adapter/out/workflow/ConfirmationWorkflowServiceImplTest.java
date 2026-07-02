@@ -13,7 +13,7 @@ import java.time.Instant;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ConfirmationWorkflowServiceImplTest {
@@ -26,10 +26,10 @@ class ConfirmationWorkflowServiceImplTest {
 
     @Test
     void startTimeoutProcess_passesAbsoluteExpirationToCamunda() {
-        ConfirmationRequest confirmationRequest = new ConfirmationRequest();
-        confirmationRequest.setId(42L);
-        confirmationRequest.setExpiresAt(Instant.parse("2099-06-12T08:00:00Z"));
-        confirmationRequest.setResponseDeadlineHours(168);
+        ConfirmationRequest confirmationRequest = mock(ConfirmationRequest.class);
+        when(confirmationRequest.getId()).thenReturn(42L);
+        when(confirmationRequest.getExpiresAt())
+                .thenReturn(Instant.parse("2099-06-12T08:00:00Z"));
 
         service.startTimeoutProcess(confirmationRequest);
 

@@ -74,23 +74,25 @@ class ThymeleafConfirmationMailRendererTest {
     }
 
     private OrderSnapshot orderSnapshot() {
-        OrderSnapshot orderSnapshot = new OrderSnapshot();
-        orderSnapshot.setCustomerName("Max Muller");
-        orderSnapshot.setExternalOrderId("A-123");
-        orderSnapshot.setDeliveryAddress("Beispielstrasse 12, 97070 Wuerzburg");
-        orderSnapshot.setProduct("Heizoel");
-        orderSnapshot.setQuantityLiters(3000);
-        orderSnapshot.setPriceDisplayText("100 EUR");
-        return orderSnapshot;
+        return OrderSnapshot.create(
+                "A-123", "Max Muller", null, null,
+                "Beispielstrasse 12, 97070 Wuerzburg",
+                "Heizoel", 3000, "100 EUR"
+        );
     }
 
     private ConfirmationRequest confirmationRequest() {
-        ConfirmationRequest confirmationRequest = new ConfirmationRequest();
-        confirmationRequest.setDeliveryDate(LocalDate.of(2026, 6, 12));
-        confirmationRequest.setDeliveryWindowStart(LocalTime.of(10, 0));
-        confirmationRequest.setDeliveryWindowEnd(LocalTime.of(11, 0));
-        confirmationRequest.setExpiresAt(Instant.parse("2026-06-11T16:09:00Z"));
-        return confirmationRequest;
+        return ConfirmationRequest.create(
+                orderSnapshot(),
+                "token",
+                heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel.EMAIL,
+                LocalDate.of(2026, 6, 12),
+                LocalTime.of(10, 0),
+                LocalTime.of(11, 0),
+                Instant.parse("2026-06-11T15:00:00Z"),
+                Instant.parse("2026-06-11T16:09:00Z"),
+                24
+        );
     }
 }
 

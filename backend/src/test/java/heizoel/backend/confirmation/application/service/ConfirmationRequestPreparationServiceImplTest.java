@@ -1,12 +1,14 @@
 package heizoel.backend.confirmation.application.service;
 
 import heizoel.backend.confirmation.application.port.out.TokenService;
+import heizoel.backend.confirmation.application.port.out.ConfirmationRequestRepositoryPort;
+import heizoel.backend.confirmation.application.port.out.OrderSnapshotRepositoryPort;
+import heizoel.backend.confirmation.application.model.ConfirmationRequestCreationResult;
 import heizoel.backend.confirmation.application.model.ConfirmationRequestData;
+import heizoel.backend.confirmation.application.model.OrderSnapshotData;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
-import heizoel.backend.confirmation.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.confirmation.domain.exception.InvalidDeliveryWindowException;
-import heizoel.backend.confirmation.domain.model.CommunicationChannel;
+import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,18 +26,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ConfirmationRequestServiceImplTest {
+class ConfirmationRequestPreparationServiceImplTest {
 
     private static final ZoneId DELIVERY_ZONE = ZoneId.of("Europe/Berlin");
 
     @Mock
-    ConfirmationRequestRepository confirmationRequestRepository;
+    ConfirmationRequestRepositoryPort confirmationRequestRepository;
+
+    @Mock
+    OrderSnapshotRepositoryPort orderSnapshotRepository;
 
     @Mock
     TokenService tokenService;
 
     @InjectMocks
-    ConfirmationRequestServiceImpl service;
+    ConfirmationRequestPreparationServiceImpl service;
 
     @Test
     void create_capsExpirationAtDeliveryWindowStart() {
@@ -43,13 +48,19 @@ class ConfirmationRequestServiceImplTest {
         LocalTime deliveryWindowStart = LocalTime.of(10, 0);
 
         when(tokenService.generateToken()).thenReturn("token");
+        when(orderSnapshotRepository.findByExternalOrderId("ORDER-1"))
+                .thenReturn(java.util.Optional.empty());
+        when(orderSnapshotRepository.save(any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         when(confirmationRequestRepository.save(any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        ConfirmationRequest result = service.create(
-                new OrderSnapshot(),
+        ConfirmationRequestCreationResult creationResult =
+                service.prepareConfirmationRequest(
+                orderData(),
                 requestData(deliveryDate, deliveryWindowStart, 168)
         );
+        ConfirmationRequest result = creationResult.confirmationRequest();
 
         assertThat(result.getExpiresAt()).isEqualTo(
                 deliveryDate.atTime(deliveryWindowStart).atZone(DELIVERY_ZONE).toInstant()
@@ -62,13 +73,17 @@ class ConfirmationRequestServiceImplTest {
         LocalDate deliveryDate = LocalDate.now(DELIVERY_ZONE).plusDays(7);
 
         when(tokenService.generateToken()).thenReturn("token");
+        when(orderSnapshotRepository.findByExternalOrderId("ORDER-1"))
+                .thenReturn(java.util.Optional.empty());
+        when(orderSnapshotRepository.save(any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         when(confirmationRequestRepository.save(any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        ConfirmationRequest result = service.create(
-                new OrderSnapshot(),
+        ConfirmationRequest result = service.prepareConfirmationRequest(
+                orderData(),
                 requestData(deliveryDate, LocalTime.of(10, 0), 1)
-        );
+        ).confirmationRequest();
 
         assertThat(result.getExpiresAt())
                 .isEqualTo(result.getSentAt().plus(Duration.ofHours(1)));
@@ -78,8 +93,13 @@ class ConfirmationRequestServiceImplTest {
     void create_rejectsDeliveryWindowThatAlreadyStarted() {
         LocalDate deliveryDate = LocalDate.now(DELIVERY_ZONE).minusDays(1);
 
-        assertThatThrownBy(() -> service.create(
-                new OrderSnapshot(),
+        when(orderSnapshotRepository.findByExternalOrderId("ORDER-1"))
+                .thenReturn(java.util.Optional.empty());
+        when(orderSnapshotRepository.save(any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertThatThrownBy(() -> service.prepareConfirmationRequest(
+                orderData(),
                 requestData(deliveryDate, LocalTime.of(10, 0), 24)
         ))
                 .isInstanceOf(InvalidDeliveryWindowException.class)
@@ -87,6 +107,19 @@ class ConfirmationRequestServiceImplTest {
 
         verifyNoInteractions(tokenService);
         verify(confirmationRequestRepository, never()).save(any());
+    }
+
+    private OrderSnapshotData orderData() {
+        return new OrderSnapshotData(
+                "ORDER-1",
+                "Customer",
+                "customer@example.com",
+                null,
+                "Address",
+                "Heating oil",
+                1000,
+                "1,000 EUR"
+        );
     }
 
     private ConfirmationRequestData requestData(

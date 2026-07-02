@@ -1,11 +1,8 @@
 package heizoel.backend.confirmation.application.usecase;
 
-import heizoel.backend.confirmation.application.port.out.DispoCallbackWorkflowService;
+import heizoel.backend.confirmation.application.port.out.*;
 import heizoel.backend.confirmation.application.port.in.HandleNoResponseTimeoutUseCase;
-import heizoel.backend.confirmation.application.port.out.CustomerResponseService;
-import heizoel.backend.confirmation.application.port.out.ConfirmationRequestService;
-import heizoel.backend.confirmation.application.port.out.OrderSnapshotService;
-import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
+import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestNotFoundException;
@@ -19,22 +16,23 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class HandleNoResponseTimeoutUseCaseImpl implements HandleNoResponseTimeoutUseCase {
 
-    private final ConfirmationRequestService confirmationRequestService;
-    private final OrderSnapshotService orderSnapshotService;
-    private final CustomerResponseService customerResponseService;
+    private final ConfirmationRequestRepositoryPort confirmationRequestRepository;
+    private final OrderSnapshotRepositoryPort orderSnapshotRepository;
+    private final CustomerResponseRepositoryPort customerResponseRepository;
     private final DispoCallbackWorkflowService dispoCallbackWorkflowService;
 
     @Override
     @Transactional
     public void handleTimeout(Long confirmationRequestId) {
-        ConfirmationRequest confirmationRequest = confirmationRequestService.findById(confirmationRequestId)
+
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository.findById(confirmationRequestId)
                 .orElseThrow(() -> new ConfirmationRequestNotFoundException("Confirmation request was not found."));
 
         if (!confirmationRequest.isActive()) {
             return;
         }
 
-        if (customerResponseService.existsFor(confirmationRequest)) {
+        if (customerResponseRepository.existsByConfirmationRequest(confirmationRequest)) {
             return;
         }
 
@@ -44,8 +42,10 @@ public class HandleNoResponseTimeoutUseCaseImpl implements HandleNoResponseTimeo
 
         OrderSnapshot orderSnapshot = confirmationRequest.getOrderSnapshot();
 
-        confirmationRequestService.markInactive(confirmationRequest);
-        orderSnapshotService.updateStatus(orderSnapshot, ConfirmationStatus.NO_RESPONSE);
+        confirmationRequest.markInactive();
+        confirmationRequestRepository.save(confirmationRequest);
+        orderSnapshot.markNoResponse();
+        orderSnapshotRepository.save(orderSnapshot);
 
         dispoCallbackWorkflowService.startDispoCallbackProcess(
                 orderSnapshot.getExternalOrderId(),

@@ -1,17 +1,17 @@
 package heizoel.backend.confirmation.domain.model;
 
+import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "customer_response")
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CustomerResponse {
 
     @Id
@@ -31,4 +31,19 @@ public class CustomerResponse {
 
     @Column(name = "received_at", nullable = false)
     private Instant receivedAt;
+
+    public static CustomerResponse create(
+            ConfirmationRequest confirmationRequest,
+            CustomerResponseType responseType,
+            String comment,
+            Instant receivedAt
+    ) {
+        CustomerResponse customerResponse = new CustomerResponse();
+        customerResponse.confirmationRequest = confirmationRequest;
+        customerResponse.responseType = responseType;
+        customerResponse.comment = comment;
+        customerResponse.receivedAt = receivedAt;
+        return customerResponse;
+    }
+
 }

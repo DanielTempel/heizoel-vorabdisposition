@@ -3,7 +3,7 @@ package heizoel.backend.confirmation.adapter.in.web.dispo;
 import heizoel.backend.confirmation.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackRequest;
 import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackService;
-import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
+import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import heizoel.backend.confirmation.adapter.out.persistence.ConfirmationRequestRepository;
@@ -11,7 +11,7 @@ import heizoel.backend.confirmation.adapter.out.persistence.OrderSnapshotReposit
 import heizoel.backend.confirmation.application.port.out.GeocodingClient;
 import heizoel.backend.confirmation.domain.model.GeoCoordinate;
 import heizoel.backend.confirmation.application.port.out.NotificationService;
-import heizoel.backend.confirmation.domain.model.CommunicationChannel;
+import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;

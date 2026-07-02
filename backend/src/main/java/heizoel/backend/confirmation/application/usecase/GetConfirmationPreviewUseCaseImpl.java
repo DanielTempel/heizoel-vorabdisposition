@@ -2,7 +2,7 @@ package heizoel.backend.confirmation.application.usecase;
 
 import heizoel.backend.confirmation.application.port.in.GetConfirmationPreviewResult;
 import heizoel.backend.confirmation.application.port.in.GetConfirmationPreviewUseCase;
-import heizoel.backend.confirmation.application.port.out.ConfirmationRequestService;
+import heizoel.backend.confirmation.application.port.out.ConfirmationRequestRepositoryPort;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
@@ -14,12 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class GetConfirmationPreviewUseCaseImpl implements GetConfirmationPreviewUseCase {
 
-    private final ConfirmationRequestService confirmationRequestService;
+    private final ConfirmationRequestRepositoryPort confirmationRequestRepository;
 
     @Override
     @Transactional(readOnly = true)
     public GetConfirmationPreviewResult getConfirmationPreview(String token) {
-        ConfirmationRequest confirmationRequest = confirmationRequestService.findByToken(token)
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository.findByToken(token)
                 .orElseThrow(() -> new ConfirmationRequestNotFoundException(
                         "Confirmation request was not found."
                 ));

@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.adapter.in.web.customer.dto;
 
-import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
+import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

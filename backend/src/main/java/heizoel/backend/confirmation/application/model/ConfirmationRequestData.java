@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.application.model;
 
-import heizoel.backend.confirmation.domain.model.CommunicationChannel;
+import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

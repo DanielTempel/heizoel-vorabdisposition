@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.adapter.in.web.dispo.dto;
 
-import heizoel.backend.confirmation.domain.model.CommunicationChannel;
+import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;

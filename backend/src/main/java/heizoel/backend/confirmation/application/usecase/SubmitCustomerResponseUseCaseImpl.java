@@ -2,18 +2,15 @@ package heizoel.backend.confirmation.application.usecase;
 
 import heizoel.backend.confirmation.application.port.in.SubmitCustomerResponseCommand;
 import heizoel.backend.confirmation.application.port.in.SubmitCustomerResponseUseCase;
-import heizoel.backend.confirmation.application.port.out.ConfirmationRequestService;
-import heizoel.backend.confirmation.application.port.out.CustomerResponseService;
-import heizoel.backend.confirmation.application.port.out.DispoCallbackWorkflowService;
-import heizoel.backend.confirmation.application.port.out.NotificationService;
-import heizoel.backend.confirmation.application.port.out.OrderSnapshotService;
+import heizoel.backend.confirmation.application.port.out.*;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestExpiredException;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestInactiveException;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.confirmation.domain.exception.CustomerResponseAlreadyExistsException;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
-import heizoel.backend.confirmation.domain.model.CustomerResponseType;
+import heizoel.backend.confirmation.domain.model.CustomerResponse;
+import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import heizoel.backend.shared.exception.EmailSendingException;
 import lombok.RequiredArgsConstructor;
@@ -28,9 +25,9 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class SubmitCustomerResponseUseCaseImpl implements SubmitCustomerResponseUseCase {
 
-    private final ConfirmationRequestService confirmationRequestService;
-    private final OrderSnapshotService orderSnapshotService;
-    private final CustomerResponseService customerResponseService;
+    private final ConfirmationRequestRepositoryPort confirmationRequestRepository;
+    private final OrderSnapshotRepositoryPort orderSnapshotRepository;
+    private final CustomerResponseRepositoryPort customerResponseRepository;
     private final DispoCallbackWorkflowService dispoCallbackWorkflowService;
     private final NotificationService notificationService;
 
@@ -58,7 +55,7 @@ public class SubmitCustomerResponseUseCaseImpl implements SubmitCustomerResponse
     ) {
         ConfirmationRequest confirmationRequest = findValidActiveRequest(token);
 
-        if (customerResponseService.existsFor(confirmationRequest)) {
+        if (customerResponseRepository.existsByConfirmationRequest(confirmationRequest)) {
             throw new CustomerResponseAlreadyExistsException(
                     "A customer response already exists for this confirmation request."
             );
@@ -66,14 +63,24 @@ public class SubmitCustomerResponseUseCaseImpl implements SubmitCustomerResponse
 
         OrderSnapshot orderSnapshot = confirmationRequest.getOrderSnapshot();
 
-        customerResponseService.create(
+        CustomerResponse customerResponse = CustomerResponse.create(
                 confirmationRequest,
                 responseType,
-                customerComment
+                customerComment,
+                Instant.now()
         );
+        customerResponseRepository.save(customerResponse);
 
-        confirmationRequestService.markInactive(confirmationRequest);
-        orderSnapshotService.updateStatus(orderSnapshot, confirmationStatus);
+        confirmationRequest.markInactive();
+        confirmationRequestRepository.save(confirmationRequest);
+        switch (confirmationStatus) {
+            case CONFIRMED -> orderSnapshot.markConfirmed();
+            case REJECTED -> orderSnapshot.markRejected();
+            default -> throw new IllegalArgumentException(
+                    "Unsupported customer response status: " + confirmationStatus
+            );
+        }
+        orderSnapshotRepository.save(orderSnapshot);
 
         try {
             notificationService.sendCustomerResponseReceived(
@@ -98,7 +105,7 @@ public class SubmitCustomerResponseUseCaseImpl implements SubmitCustomerResponse
     }
 
     private ConfirmationRequest findValidActiveRequest(String token) {
-        ConfirmationRequest confirmationRequest = confirmationRequestService.findByToken(token)
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository.findByToken(token)
                 .orElseThrow(() -> new ConfirmationRequestNotFoundException(
                         "Confirmation request was not found."
                 ));
@@ -109,7 +116,7 @@ public class SubmitCustomerResponseUseCaseImpl implements SubmitCustomerResponse
             );
         }
 
-        if (confirmationRequest.getExpiresAt().isBefore(Instant.now())) {
+        if (confirmationRequest.isExpiredAt(Instant.now())) {
             throw new ConfirmationRequestExpiredException(
                     "This confirmation request has expired."
             );

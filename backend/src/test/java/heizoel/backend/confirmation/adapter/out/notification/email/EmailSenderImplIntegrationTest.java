@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.adapter.out.notification.email;
 
-import heizoel.backend.confirmation.domain.model.CustomerResponseType;
+import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
@@ -154,25 +154,25 @@ class EmailSenderImplIntegrationTest {
     }
 
     private OrderSnapshot orderSnapshot() {
-        OrderSnapshot orderSnapshot = new OrderSnapshot();
-        orderSnapshot.setExternalOrderId("A-MAIL-1");
-        orderSnapshot.setCustomerName("Max Muller");
-        orderSnapshot.setCustomerEmail("daniel@example.com");
-        orderSnapshot.setDeliveryAddress("Beispielstrasse 12, 97070 Wuerzburg");
-        orderSnapshot.setProduct("Heizoel");
-        orderSnapshot.setQuantityLiters(3000);
-        orderSnapshot.setPriceDisplayText("100 EUR");
-        return orderSnapshot;
+        return OrderSnapshot.create(
+                "A-MAIL-1", "Max Muller", "daniel@example.com", null,
+                "Beispielstrasse 12, 97070 Wuerzburg",
+                "Heizoel", 3000, "100 EUR"
+        );
     }
 
     private ConfirmationRequest confirmationRequest() {
-        ConfirmationRequest confirmationRequest = new ConfirmationRequest();
-        confirmationRequest.setToken("token");
-        confirmationRequest.setDeliveryDate(LocalDate.of(2026, 6, 12));
-        confirmationRequest.setDeliveryWindowStart(LocalTime.of(10, 0));
-        confirmationRequest.setDeliveryWindowEnd(LocalTime.of(11, 0));
-        confirmationRequest.setExpiresAt(Instant.parse("2026-06-11T16:09:00Z"));
-        return confirmationRequest;
+        return ConfirmationRequest.create(
+                orderSnapshot(),
+                "token",
+                heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel.EMAIL,
+                LocalDate.of(2026, 6, 12),
+                LocalTime.of(10, 0),
+                LocalTime.of(11, 0),
+                Instant.parse("2026-06-11T15:00:00Z"),
+                Instant.parse("2026-06-11T16:09:00Z"),
+                24
+        );
     }
 
     @TestConfiguration

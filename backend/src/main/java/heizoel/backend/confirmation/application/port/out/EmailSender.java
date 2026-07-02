@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.application.port.out;
 
-import heizoel.backend.confirmation.domain.model.CustomerResponseType;
+import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 

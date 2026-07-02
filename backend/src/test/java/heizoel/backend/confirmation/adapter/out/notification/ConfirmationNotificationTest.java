@@ -8,7 +8,7 @@ import heizoel.backend.confirmation.application.port.out.GeocodingClient;
 import heizoel.backend.confirmation.domain.model.GeoCoordinate;
 import heizoel.backend.confirmation.application.port.out.EmailSender;
 import heizoel.backend.confirmation.application.port.out.SmsConfirmationSender;
-import heizoel.backend.confirmation.domain.model.CommunicationChannel;
+import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

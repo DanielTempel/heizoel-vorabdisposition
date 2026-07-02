@@ -4,7 +4,7 @@ import heizoel.backend.confirmation.adapter.in.web.dispo.dto.DispoConfirmationRe
 import heizoel.backend.confirmation.adapter.in.web.dispo.dto.DispoConfirmationResponseDto;
 import heizoel.backend.confirmation.application.port.in.CreateConfirmationRequestCommand;
 import heizoel.backend.confirmation.application.port.in.CreateConfirmationRequestResult;
-import heizoel.backend.confirmation.application.port.in.CreateConfirmationRequestUseCase;
+import heizoel.backend.confirmation.application.port.in.DispoConfirmationRequestUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class DispoController {
 
-    private final CreateConfirmationRequestUseCase createConfirmationRequestUseCase;
+    private final DispoConfirmationRequestUseCase dispoConfirmationRequestUseCase;
 
     @PostMapping
     public ResponseEntity<DispoConfirmationResponseDto> createConfirmationRequest(
@@ -42,7 +42,7 @@ public class DispoController {
         );
 
         CreateConfirmationRequestResult result =
-                createConfirmationRequestUseCase.createConfirmationRequest(command);
+                dispoConfirmationRequestUseCase.createConfirmationRequest(command);
 
         HttpStatus status = result.created() ? HttpStatus.CREATED : HttpStatus.OK;
         DispoConfirmationResponseDto response = new DispoConfirmationResponseDto(

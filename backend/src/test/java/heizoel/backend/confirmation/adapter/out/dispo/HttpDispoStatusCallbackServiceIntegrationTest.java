@@ -1,7 +1,7 @@
 package heizoel.backend.confirmation.adapter.out.dispo;
 
 import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackRequest;
-import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
+import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
 import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
 import heizoel.backend.confirmation.infrastructure.config.DispoCallbackHttpConfig;
 import heizoel.backend.shared.exception.DispoCallbackFailedException;

@@ -3,8 +3,8 @@ package heizoel.backend.confirmation.adapter.in.web.customer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import heizoel.backend.confirmation.adapter.in.web.customer.dto.CustomerResponseRequestDto;
 import heizoel.backend.confirmation.adapter.out.persistence.CustomerResponseRepository;
-import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
-import heizoel.backend.confirmation.domain.model.CustomerResponseType;
+import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import heizoel.backend.confirmation.adapter.out.persistence.ConfirmationRequestRepository;
@@ -13,7 +13,6 @@ import heizoel.backend.confirmation.application.port.out.GeocodingClient;
 import heizoel.backend.confirmation.application.port.out.LocationTrackingService;
 import heizoel.backend.confirmation.domain.model.GeoCoordinate;
 import heizoel.backend.confirmation.application.port.out.NotificationService;
-import heizoel.backend.confirmation.domain.model.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -22,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -46,6 +46,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class CustomerConfirmationIntegrationTest {
+
+    @Autowired
+    JdbcTemplate jdbcTemplate;
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
@@ -466,8 +469,11 @@ class CustomerConfirmationIntegrationTest {
                 .findTopByOrderSnapshotOrderByIdDesc(orderSnapshot)
                 .orElseThrow();
 
-        confirmationRequest.setDeliveryDate(deliveryDate);
-        confirmationRequestRepository.save(confirmationRequest);
+        jdbcTemplate.update(
+                "update confirmation_request set delivery_date = ? where id = ?",
+                deliveryDate,
+                confirmationRequest.getId()
+        );
     }
 
     private void expireRequest(String token) {
@@ -475,8 +481,11 @@ class CustomerConfirmationIntegrationTest {
                 .findByToken(token)
                 .orElseThrow();
 
-        confirmationRequest.setExpiresAt(Instant.now().minusSeconds(1));
-        confirmationRequestRepository.save(confirmationRequest);
+        jdbcTemplate.update(
+                "update confirmation_request set expires_at = ? where id = ?",
+                Instant.now().minusSeconds(1),
+                confirmationRequest.getId()
+        );
     }
 
     private void markRequestInactive(String token) {
@@ -484,8 +493,9 @@ class CustomerConfirmationIntegrationTest {
                 .findByToken(token)
                 .orElseThrow();
 
-        confirmationRequest.setActive(false);
-        confirmationRequestRepository.save(confirmationRequest);
+        confirmationRequest.markInactive();
+        ((heizoel.backend.confirmation.application.port.out.ConfirmationRequestRepositoryPort)
+                confirmationRequestRepository).save(confirmationRequest);
     }
 }
 

@@ -1,11 +1,11 @@
 package heizoel.backend.confirmation.application.service;
 
 import heizoel.backend.confirmation.application.port.out.DispoCallbackWorkflowService;
-import heizoel.backend.confirmation.application.port.out.CustomerResponseService;
-import heizoel.backend.confirmation.application.port.out.ConfirmationRequestService;
-import heizoel.backend.confirmation.application.port.out.OrderSnapshotService;
+import heizoel.backend.confirmation.application.port.out.CustomerResponseRepositoryPort;
+import heizoel.backend.confirmation.application.port.out.ConfirmationRequestRepositoryPort;
+import heizoel.backend.confirmation.application.port.out.OrderSnapshotRepositoryPort;
 import heizoel.backend.confirmation.application.usecase.HandleNoResponseTimeoutUseCaseImpl;
-import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
+import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestNotFoundException;
@@ -25,13 +25,13 @@ import static org.mockito.Mockito.*;
 class HandleNoResponseTimeoutUseCaseImplTest {
 
     @Mock
-    ConfirmationRequestService confirmationRequestService;
+    ConfirmationRequestRepositoryPort confirmationRequestRepository;
 
     @Mock
-    OrderSnapshotService orderSnapshotService;
+    OrderSnapshotRepositoryPort orderSnapshotRepository;
 
     @Mock
-    CustomerResponseService customerResponseService;
+    CustomerResponseRepositoryPort customerResponseRepository;
 
     @Mock
     DispoCallbackWorkflowService dispoCallbackWorkflowService;
@@ -43,45 +43,45 @@ class HandleNoResponseTimeoutUseCaseImplTest {
     void handleTimeout_doesNothingWhenRequestIsInactive() {
         ConfirmationRequest confirmationRequest = confirmationRequest(false, Instant.now().minusSeconds(1));
 
-        when(confirmationRequestService.findById(1L))
+        when(confirmationRequestRepository.findById(1L))
                 .thenReturn(Optional.of(confirmationRequest));
 
         service.handleTimeout(1L);
 
-        verifyNoInteractions(customerResponseService, orderSnapshotService, dispoCallbackWorkflowService);
-        verify(confirmationRequestService, never()).markInactive(any());
+        verifyNoInteractions(customerResponseRepository, orderSnapshotRepository, dispoCallbackWorkflowService);
+        verify(confirmationRequestRepository, never()).save(any());
     }
 
     @Test
     void handleTimeout_doesNothingWhenCustomerResponseAlreadyExists() {
         ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now().minusSeconds(1));
 
-        when(confirmationRequestService.findById(1L))
+        when(confirmationRequestRepository.findById(1L))
                 .thenReturn(Optional.of(confirmationRequest));
-        when(customerResponseService.existsFor(confirmationRequest))
+        when(customerResponseRepository.existsByConfirmationRequest(confirmationRequest))
                 .thenReturn(true);
 
         service.handleTimeout(1L);
 
-        verify(customerResponseService).existsFor(confirmationRequest);
-        verifyNoInteractions(orderSnapshotService, dispoCallbackWorkflowService);
-        verify(confirmationRequestService, never()).markInactive(any());
+        verify(customerResponseRepository).existsByConfirmationRequest(confirmationRequest);
+        verifyNoInteractions(orderSnapshotRepository, dispoCallbackWorkflowService);
+        verify(confirmationRequestRepository, never()).save(any());
     }
 
     @Test
     void handleTimeout_doesNothingWhenDeadlineIsStillInTheFuture() {
         ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now().plusSeconds(60));
 
-        when(confirmationRequestService.findById(1L))
+        when(confirmationRequestRepository.findById(1L))
                 .thenReturn(Optional.of(confirmationRequest));
-        when(customerResponseService.existsFor(confirmationRequest))
+        when(customerResponseRepository.existsByConfirmationRequest(confirmationRequest))
                 .thenReturn(false);
 
         service.handleTimeout(1L);
 
-        verify(customerResponseService).existsFor(confirmationRequest);
-        verifyNoInteractions(orderSnapshotService, dispoCallbackWorkflowService);
-        verify(confirmationRequestService, never()).markInactive(any());
+        verify(customerResponseRepository).existsByConfirmationRequest(confirmationRequest);
+        verifyNoInteractions(orderSnapshotRepository, dispoCallbackWorkflowService);
+        verify(confirmationRequestRepository, never()).save(any());
     }
 
     @Test
@@ -89,15 +89,15 @@ class HandleNoResponseTimeoutUseCaseImplTest {
         ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now().minusSeconds(1));
         OrderSnapshot orderSnapshot = confirmationRequest.getOrderSnapshot();
 
-        when(confirmationRequestService.findById(1L))
+        when(confirmationRequestRepository.findById(1L))
                 .thenReturn(Optional.of(confirmationRequest));
-        when(customerResponseService.existsFor(confirmationRequest))
+        when(customerResponseRepository.existsByConfirmationRequest(confirmationRequest))
                 .thenReturn(false);
 
         service.handleTimeout(1L);
 
-        verify(confirmationRequestService).markInactive(confirmationRequest);
-        verify(orderSnapshotService).updateStatus(orderSnapshot, ConfirmationStatus.NO_RESPONSE);
+        verify(confirmationRequestRepository).save(confirmationRequest);
+        verify(orderSnapshotRepository).save(orderSnapshot);
         verify(dispoCallbackWorkflowService).startDispoCallbackProcess(
                 "A-TIMEOUT-1",
                 ConfirmationStatus.NO_RESPONSE,
@@ -107,24 +107,35 @@ class HandleNoResponseTimeoutUseCaseImplTest {
 
     @Test
     void handleTimeout_throwsNotFoundWhenRequestDoesNotExist() {
-        when(confirmationRequestService.findById(1L))
+        when(confirmationRequestRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.handleTimeout(1L))
                 .isInstanceOf(ConfirmationRequestNotFoundException.class)
                 .hasMessage("Confirmation request was not found.");
 
-        verifyNoInteractions(customerResponseService, orderSnapshotService, dispoCallbackWorkflowService);
+        verifyNoInteractions(customerResponseRepository, orderSnapshotRepository, dispoCallbackWorkflowService);
     }
 
     private ConfirmationRequest confirmationRequest(boolean active, Instant expiresAt) {
-        OrderSnapshot orderSnapshot = new OrderSnapshot();
-        orderSnapshot.setExternalOrderId("A-TIMEOUT-1");
-
-        ConfirmationRequest confirmationRequest = new ConfirmationRequest();
-        confirmationRequest.setOrderSnapshot(orderSnapshot);
-        confirmationRequest.setActive(active);
-        confirmationRequest.setExpiresAt(expiresAt);
+        OrderSnapshot orderSnapshot = OrderSnapshot.create(
+                "A-TIMEOUT-1", "Customer", "customer@example.com", null,
+                "Address", "Heating oil", 1000, "1,000 EUR"
+        );
+        ConfirmationRequest confirmationRequest = ConfirmationRequest.create(
+                orderSnapshot,
+                "token",
+                heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel.EMAIL,
+                java.time.LocalDate.now().plusDays(1),
+                java.time.LocalTime.of(10, 0),
+                java.time.LocalTime.of(11, 0),
+                Instant.now(),
+                expiresAt,
+                24
+        );
+        if (!active) {
+            confirmationRequest.markInactive();
+        }
 
         return confirmationRequest;
     }

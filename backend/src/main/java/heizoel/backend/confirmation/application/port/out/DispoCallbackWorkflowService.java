@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.application.port.out;
 
-import heizoel.backend.confirmation.domain.model.ConfirmationStatus;
+import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
 
 public interface DispoCallbackWorkflowService {
 
