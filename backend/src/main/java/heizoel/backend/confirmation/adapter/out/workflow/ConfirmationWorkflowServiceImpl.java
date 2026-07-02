@@ -1,7 +1,7 @@
 package heizoel.backend.confirmation.adapter.out.workflow;
 
 
-import heizoel.backend.confirmation.application.port.out.ConfirmationWorkflowService;
+import heizoel.backend.confirmation.application.port.out.workflow.ConfirmationWorkflowService;
 import lombok.RequiredArgsConstructor;
 import org.camunda.bpm.engine.RuntimeService;
 import org.springframework.stereotype.Service;

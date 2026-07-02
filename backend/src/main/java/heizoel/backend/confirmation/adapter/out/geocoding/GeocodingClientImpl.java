@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.adapter.out.geocoding;
 
-import heizoel.backend.confirmation.application.port.out.GeocodingClient;
+import heizoel.backend.confirmation.application.port.out.location.GeocodingClient;
 import heizoel.backend.confirmation.adapter.out.tracking.GeoCoordinateMapper;
 import heizoel.backend.confirmation.adapter.out.geocoding.RemoteCallExecutor;
 import heizoel.backend.confirmation.domain.model.GeoCoordinate;

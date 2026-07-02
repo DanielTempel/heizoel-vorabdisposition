@@ -1,7 +1,7 @@
 package heizoel.backend.confirmation.adapter.out.geocoding;
 
-import heizoel.backend.confirmation.application.port.out.DeliveryAddressCoordinateResolver;
-import heizoel.backend.confirmation.application.port.out.GeocodingClient;
+import heizoel.backend.confirmation.application.port.out.location.DeliveryAddressCoordinateResolver;
+import heizoel.backend.confirmation.application.port.out.location.GeocodingClient;
 import heizoel.backend.confirmation.domain.model.GeoCoordinate;
 import heizoel.backend.confirmation.infrastructure.properties.LocationGeocodingProperties;
 import lombok.RequiredArgsConstructor;

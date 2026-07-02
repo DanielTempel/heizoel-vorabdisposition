@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.adapter.out.dispo;
 
-import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackRequest;
+import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackRequest;
 import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
 import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
 import heizoel.backend.confirmation.infrastructure.config.DispoCallbackHttpConfig;
@@ -75,4 +75,3 @@ class HttpDispoStatusCallbackServiceIntegrationTest {
         server.verify();
     }
 }
-

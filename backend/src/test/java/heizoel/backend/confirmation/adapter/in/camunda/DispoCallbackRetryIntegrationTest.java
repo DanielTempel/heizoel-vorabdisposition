@@ -1,11 +1,11 @@
 package heizoel.backend.confirmation.adapter.in.camunda;
 
-import heizoel.backend.confirmation.application.port.in.HandleNoResponseTimeoutUseCase;
-import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackService;
+import heizoel.backend.confirmation.application.port.in.timeout.HandleNoResponseTimeoutUseCase;
+import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackService;
 import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
-import heizoel.backend.confirmation.application.port.out.GeocodingClient;
+import heizoel.backend.confirmation.application.port.out.location.GeocodingClient;
 import heizoel.backend.confirmation.domain.model.GeoCoordinate;
-import heizoel.backend.confirmation.application.port.out.NotificationService;
+import heizoel.backend.confirmation.application.port.out.notification.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
@@ -380,7 +380,7 @@ class DispoCallbackRetryIntegrationTest {
         return rows.get(0);
     }
 
-    private ArgumentMatcher<heizoel.backend.confirmation.application.port.out.DispoStatusCallbackRequest>
+    private ArgumentMatcher<heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackRequest>
     statusUpdateFor(String externalOrderId, ConfirmationStatus confirmationStatus) {
         return update ->
                 update != null

@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.adapter.out.persistence;
 
-import heizoel.backend.confirmation.application.port.out.OrderSnapshotRepositoryPort;
+import heizoel.backend.confirmation.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,4 +13,3 @@ public interface OrderSnapshotRepository
     Optional<OrderSnapshot> findByExternalOrderId(String externalOrderId);
 
 }
-

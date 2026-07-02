@@ -15,10 +15,10 @@ public class AddressNormalizer {
         return value == null
                 ? ""
                 : value.toLowerCase(Locale.ROOT)
-                .replace("ÃŸ", "ss")
-                .replace("Ã¤", "ae")
-                .replace("Ã¶", "oe")
-                .replace("Ã¼", "ue")
+                .replace("ß", "ss")
+                .replace("ä", "ae")
+                .replace("ö", "oe")
+                .replace("ü", "ue")
                 .replaceAll("[^a-z0-9]+", " ")
                 .trim();
     }
@@ -40,13 +40,14 @@ public class AddressNormalizer {
     private String expandCommonAbbreviations(String value) {
         String expanded = STREET_ABBREVIATION_PATTERN.matcher(value).replaceAll("strasse");
         return expanded
-                .replace("ÃŸ", "ss")
-                .replace("Ã„", "Ae")
-                .replace("Ã–", "Oe")
-                .replace("Ãœ", "Ue")
-                .replace("Ã¤", "ae")
-                .replace("Ã¶", "oe")
-                .replace("Ã¼", "ue");
+                .replace("ß", "ss")
+                .replace("Ä", "Ae")
+                .replace("Ö", "Oe")
+                .replace("Ü", "Ue")
+                .replace("ä", "ae")
+                .replace("ö", "oe")
+                .replace("ü", "ue");
     }
 }
+
 

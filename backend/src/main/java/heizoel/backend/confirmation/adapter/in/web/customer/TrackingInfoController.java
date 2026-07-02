@@ -2,7 +2,7 @@ package heizoel.backend.confirmation.adapter.in.web.customer;
 
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.adapter.in.web.customer.dto.TrackingInfoResponseDto;
-import heizoel.backend.confirmation.application.port.out.DeliveryAddressCoordinateResolver;
+import heizoel.backend.confirmation.application.port.out.location.DeliveryAddressCoordinateResolver;
 import heizoel.backend.confirmation.domain.model.GeoCoordinate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;

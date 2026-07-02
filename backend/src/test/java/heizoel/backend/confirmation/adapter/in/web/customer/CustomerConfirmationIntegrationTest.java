@@ -9,10 +9,10 @@ import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import heizoel.backend.confirmation.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.confirmation.adapter.out.persistence.OrderSnapshotRepository;
-import heizoel.backend.confirmation.application.port.out.GeocodingClient;
-import heizoel.backend.confirmation.application.port.out.LocationTrackingService;
+import heizoel.backend.confirmation.application.port.out.location.GeocodingClient;
+import heizoel.backend.confirmation.application.port.out.location.LocationTrackingService;
 import heizoel.backend.confirmation.domain.model.GeoCoordinate;
-import heizoel.backend.confirmation.application.port.out.NotificationService;
+import heizoel.backend.confirmation.application.port.out.notification.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -494,7 +494,7 @@ class CustomerConfirmationIntegrationTest {
                 .orElseThrow();
 
         confirmationRequest.markInactive();
-        ((heizoel.backend.confirmation.application.port.out.ConfirmationRequestRepositoryPort)
+        ((heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort)
                 confirmationRequestRepository).save(confirmationRequest);
     }
 }

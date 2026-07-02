@@ -1,8 +1,8 @@
 package heizoel.backend.confirmation.application.service;
 
-import heizoel.backend.confirmation.application.port.out.TokenService;
-import heizoel.backend.confirmation.application.port.out.ConfirmationRequestRepositoryPort;
-import heizoel.backend.confirmation.application.port.out.OrderSnapshotRepositoryPort;
+import heizoel.backend.confirmation.application.port.out.token.TokenService;
+import heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort;
+import heizoel.backend.confirmation.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.confirmation.application.model.ConfirmationRequestCreationResult;
 import heizoel.backend.confirmation.application.model.ConfirmationRequestData;
 import heizoel.backend.confirmation.application.model.OrderSnapshotData;

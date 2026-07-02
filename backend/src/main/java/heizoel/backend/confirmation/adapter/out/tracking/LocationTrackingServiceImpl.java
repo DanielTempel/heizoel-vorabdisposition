@@ -1,7 +1,7 @@
 package heizoel.backend.confirmation.adapter.out.tracking;
 
 import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
-import heizoel.backend.confirmation.application.port.out.LocationTrackingService;
+import heizoel.backend.confirmation.application.port.out.location.LocationTrackingService;
 import heizoel.backend.confirmation.adapter.out.tracking.GeoCoordinateMapper;
 import heizoel.backend.confirmation.adapter.out.geocoding.RemoteCallExecutor;
 import heizoel.backend.confirmation.domain.model.GeoCoordinate;

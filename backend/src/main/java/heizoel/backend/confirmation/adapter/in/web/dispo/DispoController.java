@@ -2,9 +2,9 @@ package heizoel.backend.confirmation.adapter.in.web.dispo;
 
 import heizoel.backend.confirmation.adapter.in.web.dispo.dto.DispoConfirmationRequestDto;
 import heizoel.backend.confirmation.adapter.in.web.dispo.dto.DispoConfirmationResponseDto;
-import heizoel.backend.confirmation.application.port.in.CreateConfirmationRequestCommand;
-import heizoel.backend.confirmation.application.port.in.CreateConfirmationRequestResult;
-import heizoel.backend.confirmation.application.port.in.DispoConfirmationRequestUseCase;
+import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestCommand;
+import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestResult;
+import heizoel.backend.confirmation.application.port.in.confirmation.DispoConfirmationRequestUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

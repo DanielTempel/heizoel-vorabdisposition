@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.adapter.out.persistence;
 
-import heizoel.backend.confirmation.application.port.out.ConfirmationRequestRepositoryPort;
+import heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +21,3 @@ public interface ConfirmationRequestRepository
     Optional<ConfirmationRequest> findByToken(String token);
 
 }
-

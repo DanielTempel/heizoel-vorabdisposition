@@ -16,5 +16,6 @@ public class ConfirmationProperties {
     private String dispoUrl;
     private String dispoTrackingUrl;
     private String smsProviderUrl;
+    private String whatsappProviderUrl;
 }
 

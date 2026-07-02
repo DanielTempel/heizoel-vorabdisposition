@@ -2,7 +2,7 @@ package heizoel.backend.confirmation.adapter.in.web.customer;
 
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.adapter.in.web.customer.dto.DriverLocationResponseDto;
-import heizoel.backend.confirmation.application.port.out.LocationTrackingService;
+import heizoel.backend.confirmation.application.port.out.location.LocationTrackingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;

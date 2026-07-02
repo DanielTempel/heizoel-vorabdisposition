@@ -1,6 +1,6 @@
 # AGENTS.md
 
-do tests only if I ask you
+do tests only if I ask you, 
 
 ## Project Context
 
@@ -85,11 +85,6 @@ Currently supported:
 ```text
 EMAIL
 SMS
-```
-
-Future candidate:
-
-```text
 WHATSAPP
 ```
 
@@ -97,6 +92,7 @@ Channel-specific validation is required:
 
 * `EMAIL` requires customer e-mail.
 * `SMS` requires customer phone number.
+* `WHATSAPP` requires customer phone number.
 
 ## Camunda Rules
 

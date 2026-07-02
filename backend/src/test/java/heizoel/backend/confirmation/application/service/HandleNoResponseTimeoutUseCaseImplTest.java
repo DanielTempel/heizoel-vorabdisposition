@@ -1,9 +1,9 @@
 package heizoel.backend.confirmation.application.service;
 
-import heizoel.backend.confirmation.application.port.out.DispoCallbackWorkflowService;
-import heizoel.backend.confirmation.application.port.out.CustomerResponseRepositoryPort;
-import heizoel.backend.confirmation.application.port.out.ConfirmationRequestRepositoryPort;
-import heizoel.backend.confirmation.application.port.out.OrderSnapshotRepositoryPort;
+import heizoel.backend.confirmation.application.port.out.workflow.DispoCallbackWorkflowService;
+import heizoel.backend.confirmation.application.port.out.persistence.CustomerResponseRepositoryPort;
+import heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort;
+import heizoel.backend.confirmation.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.confirmation.application.usecase.HandleNoResponseTimeoutUseCaseImpl;
 import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;

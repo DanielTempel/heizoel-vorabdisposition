@@ -1,13 +1,13 @@
 package heizoel.backend.confirmation.adapter.out.notification;
 
-import heizoel.backend.confirmation.application.port.out.ConfirmationWorkflowService;
-import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackService;
+import heizoel.backend.confirmation.application.port.out.workflow.ConfirmationWorkflowService;
+import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackService;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
-import heizoel.backend.confirmation.application.port.out.GeocodingClient;
+import heizoel.backend.confirmation.application.port.out.location.GeocodingClient;
 import heizoel.backend.confirmation.domain.model.GeoCoordinate;
-import heizoel.backend.confirmation.application.port.out.EmailSender;
-import heizoel.backend.confirmation.application.port.out.SmsConfirmationSender;
+import heizoel.backend.confirmation.adapter.out.notification.email.EmailNotificationSender;
+import heizoel.backend.confirmation.adapter.out.notification.sms.SmsNotificationSender;
 import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,10 +77,10 @@ class ConfirmationNotificationTest {
     JdbcTemplate jdbcTemplate;
 
     @MockitoBean
-    EmailSender emailSender;
+    EmailNotificationSender emailSender;
 
     @MockitoBean
-    SmsConfirmationSender smsConfirmationSender;
+    SmsNotificationSender smsConfirmationSender;
 
     @MockitoBean
     ConfirmationWorkflowService confirmationWorkflowService;
@@ -102,6 +102,8 @@ class ConfirmationNotificationTest {
         );
         when(geocodingClient.geocode(anyString()))
                 .thenReturn(java.util.Optional.of(new GeoCoordinate(9.9372D, 49.7935D)));
+        when(emailSender.channel()).thenReturn(CommunicationChannel.EMAIL);
+        when(smsConfirmationSender.channel()).thenReturn(CommunicationChannel.SMS);
     }
 
     @Test
@@ -187,7 +189,7 @@ class ConfirmationNotificationTest {
                 ArgumentCaptor.forClass(ConfirmationRequest.class);
 
         verify(smsConfirmationSender, times(1))
-                .send(orderCaptor.capture(), requestCaptor.capture());
+                .sendConfirmationRequest(orderCaptor.capture(), requestCaptor.capture());
 
         verifyNoInteractions(emailSender);
 

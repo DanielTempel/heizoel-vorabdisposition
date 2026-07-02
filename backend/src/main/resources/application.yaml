@@ -31,6 +31,8 @@ heizoel:
     dispo-url: http://localhost:8090/api/dispo/confirmation-status-updates
     dispo-tracking-url: http://localhost:8090/api/dispo/confirmation-status-updates/tracking/orders
     sms-provider-url: http://localhost:8091/api/sms/messages
+    whatsapp-provider-url: http://localhost:8092/api/whatsapp/messages
+
   location:
     geocoding:
       enabled: true

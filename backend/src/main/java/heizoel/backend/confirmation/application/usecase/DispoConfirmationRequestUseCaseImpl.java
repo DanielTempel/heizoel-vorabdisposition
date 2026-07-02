@@ -1,10 +1,11 @@
 package heizoel.backend.confirmation.application.usecase;
 
 
-import heizoel.backend.confirmation.application.port.out.*;
-import heizoel.backend.confirmation.application.port.in.CreateConfirmationRequestCommand;
-import heizoel.backend.confirmation.application.port.in.CreateConfirmationRequestResult;
-import heizoel.backend.confirmation.application.port.in.DispoConfirmationRequestUseCase;
+import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestCommand;
+import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestResult;
+import heizoel.backend.confirmation.application.port.in.confirmation.DispoConfirmationRequestUseCase;
+import heizoel.backend.confirmation.application.port.out.notification.NotificationService;
+import heizoel.backend.confirmation.application.port.out.workflow.ConfirmationWorkflowService;
 import heizoel.backend.confirmation.application.model.ConfirmationRequestCreationResult;
 import heizoel.backend.confirmation.application.model.ConfirmationRequestData;
 import heizoel.backend.confirmation.application.model.OrderSnapshotData;
@@ -74,10 +75,12 @@ public class DispoConfirmationRequestUseCaseImpl implements DispoConfirmationReq
             );
         }
 
-        if (command.communicationChannel() == CommunicationChannel.SMS
+        if ((command.communicationChannel() == CommunicationChannel.SMS
+                || command.communicationChannel() == CommunicationChannel.WHATSAPP)
                 && isBlank(command.customerPhoneNumber())) {
             throw new MissingDigitalContactException(
-                    "Customer phone number is required when communication channel is SMS."
+                    "Customer phone number is required when communication channel is "
+                            + command.communicationChannel() + "."
             );
         }
     }

@@ -1,7 +1,7 @@
 package heizoel.backend.confirmation.adapter.in.camunda;
 
 
-import heizoel.backend.confirmation.application.port.in.HandleNoResponseTimeoutUseCase;
+import heizoel.backend.confirmation.application.port.in.timeout.HandleNoResponseTimeoutUseCase;
 import lombok.RequiredArgsConstructor;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;

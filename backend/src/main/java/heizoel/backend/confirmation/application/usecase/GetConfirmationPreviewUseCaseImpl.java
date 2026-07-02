@@ -1,8 +1,8 @@
 package heizoel.backend.confirmation.application.usecase;
 
-import heizoel.backend.confirmation.application.port.in.GetConfirmationPreviewResult;
-import heizoel.backend.confirmation.application.port.in.GetConfirmationPreviewUseCase;
-import heizoel.backend.confirmation.application.port.out.ConfirmationRequestRepositoryPort;
+import heizoel.backend.confirmation.application.port.in.customer.GetConfirmationPreviewResult;
+import heizoel.backend.confirmation.application.port.in.customer.GetConfirmationPreviewUseCase;
+import heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;

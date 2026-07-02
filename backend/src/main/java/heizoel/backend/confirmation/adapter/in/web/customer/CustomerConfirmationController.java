@@ -1,10 +1,10 @@
 package heizoel.backend.confirmation.adapter.in.web.customer;
 
 import heizoel.backend.confirmation.adapter.in.web.customer.dto.CustomerResponseRequestDto;
-import heizoel.backend.confirmation.application.port.in.SubmitCustomerResponseCommand;
-import heizoel.backend.confirmation.application.port.in.SubmitCustomerResponseUseCase;
-import heizoel.backend.confirmation.application.port.in.GetConfirmationPreviewResult;
-import heizoel.backend.confirmation.application.port.in.GetConfirmationPreviewUseCase;
+import heizoel.backend.confirmation.application.port.in.customer.SubmitCustomerResponseCommand;
+import heizoel.backend.confirmation.application.port.in.customer.SubmitCustomerResponseUseCase;
+import heizoel.backend.confirmation.application.port.in.customer.GetConfirmationPreviewResult;
+import heizoel.backend.confirmation.application.port.in.customer.GetConfirmationPreviewUseCase;
 import heizoel.backend.confirmation.adapter.in.web.customer.dto.CustomerConfirmationPreviewDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

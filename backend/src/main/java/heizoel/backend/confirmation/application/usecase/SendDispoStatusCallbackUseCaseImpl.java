@@ -1,9 +1,9 @@
 package heizoel.backend.confirmation.application.usecase;
 
-import heizoel.backend.confirmation.application.port.in.SendDispoStatusCallbackCommand;
-import heizoel.backend.confirmation.application.port.in.SendDispoStatusCallbackUseCase;
-import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackRequest;
-import heizoel.backend.confirmation.application.port.out.DispoStatusCallbackService;
+import heizoel.backend.confirmation.application.port.in.dispo.SendDispoStatusCallbackCommand;
+import heizoel.backend.confirmation.application.port.in.dispo.SendDispoStatusCallbackUseCase;
+import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackRequest;
+import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
