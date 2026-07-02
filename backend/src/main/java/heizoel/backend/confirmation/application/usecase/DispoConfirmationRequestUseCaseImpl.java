@@ -45,7 +45,10 @@ public class DispoConfirmationRequestUseCaseImpl implements DispoConfirmationReq
                     creationResult.orderSnapshot(),
                     creationResult.confirmationRequest()
             );
-            confirmationWorkflowService.startTimeoutProcess(creationResult.confirmationRequest());
+            confirmationWorkflowService.startTimeoutProcess(
+                    creationResult.confirmationRequest().getId(),
+                    creationResult.confirmationRequest().getExpiresAt()
+            );
         }
 
         return new CreateConfirmationRequestResult(

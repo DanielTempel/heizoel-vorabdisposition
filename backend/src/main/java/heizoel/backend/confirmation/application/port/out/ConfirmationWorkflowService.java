@@ -1,9 +1,9 @@
 package heizoel.backend.confirmation.application.port.out;
 
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
+import java.time.Instant;
 
 public interface ConfirmationWorkflowService {
 
-    void startTimeoutProcess(ConfirmationRequest confirmationRequest);
+    void startTimeoutProcess(Long confirmationRequestId, Instant responseDeadlineAt);
 }
 

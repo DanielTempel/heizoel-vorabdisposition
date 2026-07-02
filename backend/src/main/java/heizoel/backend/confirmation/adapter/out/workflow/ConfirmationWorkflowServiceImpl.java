@@ -2,11 +2,11 @@ package heizoel.backend.confirmation.adapter.out.workflow;
 
 
 import heizoel.backend.confirmation.application.port.out.ConfirmationWorkflowService;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import lombok.RequiredArgsConstructor;
 import org.camunda.bpm.engine.RuntimeService;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Map;
 
 @Service
@@ -20,13 +20,13 @@ public class ConfirmationWorkflowServiceImpl implements ConfirmationWorkflowServ
     private final RuntimeService runtimeService;
 
     @Override
-    public void startTimeoutProcess(ConfirmationRequest confirmationRequest) {
+    public void startTimeoutProcess(Long confirmationRequestId, Instant responseDeadlineAt) {
         runtimeService.startProcessInstanceByKey(
                 PROCESS_KEY,
-                confirmationRequest.getId().toString(),
+                confirmationRequestId.toString(),
                 Map.of(
-                        VAR_CONFIRMATION_REQUEST_ID, confirmationRequest.getId(),
-                        VAR_RESPONSE_DEADLINE_AT, confirmationRequest.getExpiresAt().toString()
+                        VAR_CONFIRMATION_REQUEST_ID, confirmationRequestId,
+                        VAR_RESPONSE_DEADLINE_AT, responseDeadlineAt.toString()
                 )
         );
     }

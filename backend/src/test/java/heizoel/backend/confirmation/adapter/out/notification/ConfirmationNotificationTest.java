@@ -25,6 +25,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -153,7 +154,7 @@ class ConfirmationNotificationTest {
                 .isNotBlank();
 
         verify(confirmationWorkflowService, times(1))
-                .startTimeoutProcess(any(ConfirmationRequest.class));
+                .startTimeoutProcess(anyLong(), any(Instant.class));
     }
 
     @Test
@@ -206,7 +207,7 @@ class ConfirmationNotificationTest {
                 .isNotBlank();
 
         verify(confirmationWorkflowService, times(1))
-                .startTimeoutProcess(any(ConfirmationRequest.class));
+                .startTimeoutProcess(anyLong(), any(Instant.class));
     }
 
     private org.springframework.test.web.servlet.ResultActions createDispoConfirmationRequest(
