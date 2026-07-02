@@ -1,13 +1,13 @@
 package heizoel.backend.confirmation.adapter.out.notification;
 
-import heizoel.backend.confirmation.application.port.out.workflow.ConfirmationWorkflowService;
+import heizoel.backend.confirmation.application.port.out.workflow.NoResponseWorkflowService;
 import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackService;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import heizoel.backend.confirmation.application.port.out.location.GeocodingClient;
 import heizoel.backend.confirmation.domain.model.GeoCoordinate;
-import heizoel.backend.confirmation.adapter.out.notification.email.EmailNotificationSender;
-import heizoel.backend.confirmation.adapter.out.notification.sms.SmsNotificationSender;
+import heizoel.backend.confirmation.adapter.notification.email.EmailNotificationSender;
+import heizoel.backend.confirmation.adapter.notification.sms.SmsNotificationSender;
 import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,7 +58,7 @@ class ConfirmationNotificationTest {
         registry.add("camunda.bpm.deployment-resource-pattern[0]", () -> "classpath*:processes/*.bpmn");
 
         /*
-         * We mock ConfirmationWorkflowService in this test.
+         * We mock NoResponseWorkflowService in this test.
          * Therefore, the Camunda job executor is not needed here.
          */
         registry.add("camunda.bpm.job-execution.enabled", () -> "false");
@@ -83,7 +83,7 @@ class ConfirmationNotificationTest {
     SmsNotificationSender smsConfirmationSender;
 
     @MockitoBean
-    ConfirmationWorkflowService confirmationWorkflowService;
+    NoResponseWorkflowService noResponseWorkflowService;
 
     @MockitoBean
     DispoStatusCallbackService dispoStatusCallbackService;
@@ -96,7 +96,7 @@ class ConfirmationNotificationTest {
         reset(
                 emailSender,
                 smsConfirmationSender,
-                confirmationWorkflowService,
+                noResponseWorkflowService,
                 dispoStatusCallbackService,
                 geocodingClient
         );
@@ -155,7 +155,7 @@ class ConfirmationNotificationTest {
         assertThat(capturedRequest.getToken())
                 .isNotBlank();
 
-        verify(confirmationWorkflowService, times(1))
+        verify(noResponseWorkflowService, times(1))
                 .startTimeoutProcess(anyLong(), any(Instant.class));
     }
 
@@ -208,7 +208,7 @@ class ConfirmationNotificationTest {
         assertThat(capturedRequest.getToken())
                 .isNotBlank();
 
-        verify(confirmationWorkflowService, times(1))
+        verify(noResponseWorkflowService, times(1))
                 .startTimeoutProcess(anyLong(), any(Instant.class));
     }
 

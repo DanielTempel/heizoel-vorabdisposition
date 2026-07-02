@@ -1,9 +1,0 @@
-package heizoel.backend.confirmation.adapter.in.web.customer.dto;
-
-public record TrackingInfoResponseDto(
-        boolean trackingAvailable,
-        Double targetLocationX,
-        Double targetLocationY
-) {
-}
-

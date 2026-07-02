@@ -1,5 +1,7 @@
 package heizoel.backend.confirmation.adapter.out.notification.email;
 
+import heizoel.backend.confirmation.adapter.notification.email.EmailNotificationSender;
+import heizoel.backend.confirmation.adapter.notification.email.ThymeleafConfirmationMailRenderer;
 import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;

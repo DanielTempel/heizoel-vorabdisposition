@@ -5,7 +5,7 @@ import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfi
 import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestResult;
 import heizoel.backend.confirmation.application.port.in.confirmation.DispoConfirmationRequestUseCase;
 import heizoel.backend.confirmation.application.port.out.notification.NotificationService;
-import heizoel.backend.confirmation.application.port.out.workflow.ConfirmationWorkflowService;
+import heizoel.backend.confirmation.application.port.out.workflow.NoResponseWorkflowService;
 import heizoel.backend.confirmation.application.model.ConfirmationRequestCreationResult;
 import heizoel.backend.confirmation.application.model.ConfirmationRequestData;
 import heizoel.backend.confirmation.application.model.OrderSnapshotData;
@@ -23,7 +23,7 @@ public class DispoConfirmationRequestUseCaseImpl implements DispoConfirmationReq
 
     private final ConfirmationRequestPreparationService confirmationRequestPreparationService;
     private final NotificationService notificationService;
-    private final ConfirmationWorkflowService confirmationWorkflowService;
+    private final NoResponseWorkflowService noResponseWorkflowService;
 
     @Override
     @Transactional
@@ -46,7 +46,7 @@ public class DispoConfirmationRequestUseCaseImpl implements DispoConfirmationReq
                     creationResult.orderSnapshot(),
                     creationResult.confirmationRequest()
             );
-            confirmationWorkflowService.startTimeoutProcess(
+            noResponseWorkflowService.startTimeoutProcess(
                     creationResult.confirmationRequest().getId(),
                     creationResult.confirmationRequest().getExpiresAt()
             );
