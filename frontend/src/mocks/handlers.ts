@@ -4,6 +4,7 @@ import type {
   CustomerConfirmationPreview,
 } from '../types/confirmation'
 import type { DriverLocation, TrackingInfo } from '../types/tracking'
+import { dashboardHandlers } from './dashboard-handlers'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
@@ -167,4 +168,5 @@ export const handlers = [
       return HttpResponse.json(getMockDriverLocation(token))
     },
   ),
+  ...dashboardHandlers,
 ]
