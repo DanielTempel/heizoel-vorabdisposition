@@ -3,9 +3,9 @@
 Die Kundenseite zur Terminrückmeldung kann in zwei Modi betrieben werden:
 
 - Backend-Modus: Das Frontend ruft die echten Backend-APIs auf.
-- Mock-Modus: Das Frontend liefert lokale Testdaten anhand des Tokens in der URL.
+- Mock-Modus: Das Frontend startet Mock Service Worker (MSW). Die Anwendung ruft weiterhin dieselben HTTP-Endpunkte auf, die Antworten werden aber im Browser anhand des Tokens in der URL gemockt.
 
-Der Backend-Modus ist der Standard. Wenn `VITE_CONFIRMATION_API_MODE` nicht gesetzt ist, verwendet das Frontend automatisch das Backend.
+Der Backend-Modus ist der Standard. Wenn `VITE_CONFIRMATION_API_MODE` nicht gesetzt ist, wird MSW nicht gestartet und das Frontend verwendet automatisch das Backend.
 
 ## Mock-Modus aktivieren
 
@@ -25,6 +25,8 @@ npm run dev
 
 `frontend/.env.local` wird von git ignoriert. Dadurch kann jede Person lokal selbst entscheiden, ob sie mit Mock-Daten oder mit dem Backend arbeitet.
 
+Im Mock-Modus müssen Backend, Datenbank, Docker, Postman und Mailpit nicht gestartet werden. Der Vite-Dev-Server reicht aus.
+
 ## Mock-Modus deaktivieren
 
 Die Mock-Variable auskommentieren oder entfernen:
@@ -35,6 +37,8 @@ Die Mock-Variable auskommentieren oder entfernen:
 ```
 
 Nach einem Neustart des Frontends wird wieder der Backend-Modus verwendet.
+
+Der API-Code bleibt in beiden Modi gleich. Die Umschaltung erfolgt nur darüber, ob MSW im Browser gestartet wird.
 
 ## Verfügbare Mock-URLs
 
@@ -67,5 +71,7 @@ http://localhost:3000/confirmation/mock-driver-error
 ## Hinweise
 
 Mock-Tokens sind keine echten Backend-Tokens. Sie funktionieren nur, wenn `VITE_CONFIRMATION_API_MODE=mock` aktiv ist.
+
+Die Mock-Szenarien werden zentral unter `frontend/src/mocks` gepflegt. Die Dateien unter `frontend/src/api` enthalten keine eigenen Mock-Daten mehr.
 
 Für einen Ende-zu-Ende-Test wird der Backend-Modus verwendet. Dafür wird eine echte Rückmeldeanfrage über Postman oder einen anderen HTTP-Client erstellt. Anschließend wird der echte Bestätigungslink aus Mailpit im Browser geöffnet.
