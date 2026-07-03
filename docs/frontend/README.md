@@ -14,7 +14,7 @@ Diese Dokumente beschreiben die lokale Arbeit mit dem React-Frontend der Kundens
 Das Frontend kann in zwei Modi betrieben werden:
 
 - Backend-Modus: Standardmodus. Das Frontend ruft die echten Backend-APIs auf.
-- Mock-Modus: Das Frontend verwendet lokale Testdaten anhand des Tokens in der URL.
+- Mock-Modus: Das Frontend startet Mock Service Worker (MSW), der Backend-Antworten im Browser anhand des Tokens in der URL simuliert.
 
 Wenn `VITE_CONFIRMATION_API_MODE` nicht gesetzt ist, wird automatisch der Backend-Modus verwendet.
 
