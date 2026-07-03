@@ -16,10 +16,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -76,11 +78,14 @@ class ConfirmationNotificationTest {
     @Autowired
     JdbcTemplate jdbcTemplate;
 
-    @MockitoBean
+    @MockitoSpyBean
     EmailNotificationSender emailSender;
 
-    @MockitoBean
+    @MockitoSpyBean
     SmsNotificationSender smsConfirmationSender;
+
+    @MockitoBean
+    JavaMailSender javaMailSender;
 
     @MockitoBean
     NoResponseWorkflowService noResponseWorkflowService;
@@ -102,8 +107,10 @@ class ConfirmationNotificationTest {
         );
         when(geocodingClient.geocode(anyString()))
                 .thenReturn(java.util.Optional.of(new GeoCoordinate(9.9372D, 49.7935D)));
-        when(emailSender.channel()).thenReturn(CommunicationChannel.EMAIL);
-        when(smsConfirmationSender.channel()).thenReturn(CommunicationChannel.SMS);
+        doNothing().when(emailSender)
+                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+        doNothing().when(smsConfirmationSender)
+                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
     }
 
     @Test

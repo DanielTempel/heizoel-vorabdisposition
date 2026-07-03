@@ -10,6 +10,8 @@ public interface OrderSnapshotRepository
         extends JpaRepository<OrderSnapshot, Long>, OrderSnapshotRepositoryPort {
 
     @Override
-    Optional<OrderSnapshot> findByExternalOrderId(String externalOrderId);
-
+    Optional<OrderSnapshot> findByCompanyIdAndExternalOrderId(
+            Long companyId,
+            String externalOrderId
+    );
 }

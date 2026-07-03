@@ -724,7 +724,7 @@ class DispoControllerIntegrationTest {
             ConfirmationStatus status
     ) {
         OrderSnapshot orderSnapshot = orderSnapshotRepository
-                .findByExternalOrderId(externalOrderId)
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
@@ -732,7 +732,8 @@ class DispoControllerIntegrationTest {
                 .orElseThrow();
 
         confirmationRequest.markInactive();
-        confirmationRequestRepository.save(confirmationRequest);
+        ((heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort)
+                confirmationRequestRepository).save(confirmationRequest);
 
         switch (status) {
             case SENT -> orderSnapshot.markSent();
@@ -740,7 +741,8 @@ class DispoControllerIntegrationTest {
             case REJECTED -> orderSnapshot.markRejected();
             case NO_RESPONSE -> orderSnapshot.markNoResponse();
         }
-        orderSnapshotRepository.save(orderSnapshot);
+        ((heizoel.backend.confirmation.application.port.out.persistence.OrderSnapshotRepositoryPort)
+                orderSnapshotRepository).save(orderSnapshot);
     }
 
     private record TestDispoRequest(

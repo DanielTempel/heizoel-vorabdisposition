@@ -2,6 +2,7 @@ package heizoel.backend.confirmation.adapter.web.dispo;
 
 import heizoel.backend.confirmation.adapter.web.dispo.dto.DispoConfirmationRequestDto;
 import heizoel.backend.confirmation.adapter.web.dispo.dto.DispoConfirmationResponseDto;
+import heizoel.backend.confirmation.application.model.CompanyContext;
 import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestCommand;
 import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestResult;
 import heizoel.backend.confirmation.application.port.in.confirmation.DispoConfirmationRequestUseCase;
@@ -26,6 +27,7 @@ public class DispoController {
             @Valid @RequestBody DispoConfirmationRequestDto request
     ) {
         CreateConfirmationRequestCommand command = new CreateConfirmationRequestCommand(
+                new CompanyContext(1L),
                 request.externalOrderId(),
                 request.customerName(),
                 request.communicationChannel(),

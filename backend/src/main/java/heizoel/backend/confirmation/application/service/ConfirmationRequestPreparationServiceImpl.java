@@ -1,21 +1,20 @@
 package heizoel.backend.confirmation.application.service;
 
 import heizoel.backend.confirmation.application.model.ConfirmationRequestCreationResult;
+import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestCommand;
 import heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort;
 import heizoel.backend.confirmation.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.confirmation.application.port.out.token.TokenService;
-import heizoel.backend.confirmation.application.model.ConfirmationRequestData;
-import heizoel.backend.confirmation.application.model.OrderSnapshotData;
+import heizoel.backend.confirmation.domain.model.Company;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
+import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
 import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
 import heizoel.backend.confirmation.domain.exception.InvalidDeliveryWindowException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Optional;
 
 @Service
@@ -28,16 +27,23 @@ public class ConfirmationRequestPreparationServiceImpl implements ConfirmationRe
     private final ConfirmationRequestRepositoryPort confirmationRequestRepository;
     private final TokenService tokenService;
 
+
     @Override
     public ConfirmationRequestCreationResult prepareConfirmationRequest(
-            OrderSnapshotData orderData,
-            ConfirmationRequestData requestData
+            Company company,
+            CreateConfirmationRequestCommand command
     ) {
+        OrderData orderData = OrderData.from(command);
+        RequestData requestData = RequestData.from(command);
+
         Optional<OrderSnapshot> existingOrder =
-                orderSnapshotRepository.findByExternalOrderId(orderData.externalOrderId());
+                orderSnapshotRepository.findByCompanyIdAndExternalOrderId(
+                        company.getId(),
+                        orderData.externalOrderId()
+                );
 
         if (existingOrder.isEmpty()) {
-            OrderSnapshot orderSnapshot = createOrderSnapshot(orderData);
+            OrderSnapshot orderSnapshot = createOrderSnapshot(company, orderData);
             OrderSnapshot savedOrderSnapshot = orderSnapshotRepository.save(orderSnapshot);
             return createNewRequest(savedOrderSnapshot, requestData);
         }
@@ -70,9 +76,10 @@ public class ConfirmationRequestPreparationServiceImpl implements ConfirmationRe
 
     private ConfirmationRequestCreationResult createNewRequest(
             OrderSnapshot orderSnapshot,
-            ConfirmationRequestData data
+            RequestData data
     ) {
         Instant sentAt = Instant.now();
+
         Instant deliveryStartsAt = data.deliveryDate()
                 .atTime(data.deliveryWindowStart())
                 .atZone(DELIVERY_ZONE)
@@ -85,7 +92,8 @@ public class ConfirmationRequestPreparationServiceImpl implements ConfirmationRe
         }
 
         Instant requestedExpiresAt =
-                sentAt.plus(Duration.ofHours(data.responseDeadline()));
+                sentAt.plus(Duration.ofHours(data.responseDeadlineHours()));
+
         Instant effectiveExpiresAt = requestedExpiresAt.isBefore(deliveryStartsAt)
                 ? requestedExpiresAt
                 : deliveryStartsAt;
@@ -99,7 +107,7 @@ public class ConfirmationRequestPreparationServiceImpl implements ConfirmationRe
                 data.deliveryWindowEnd(),
                 sentAt,
                 effectiveExpiresAt,
-                data.responseDeadline()
+                data.responseDeadlineHours()
         );
 
         ConfirmationRequest savedConfirmationRequest =
@@ -115,8 +123,8 @@ public class ConfirmationRequestPreparationServiceImpl implements ConfirmationRe
     private boolean isReusable(
             OrderSnapshot orderSnapshot,
             ConfirmationRequest latestRequest,
-            OrderSnapshotData orderData,
-            ConfirmationRequestData requestData
+            OrderData orderData,
+            RequestData requestData
     ) {
         boolean sameOrderData = orderSnapshot.hasSameData(
                 orderData.customerName(),
@@ -133,7 +141,7 @@ public class ConfirmationRequestPreparationServiceImpl implements ConfirmationRe
                 requestData.deliveryWindowStart(),
                 requestData.deliveryWindowEnd(),
                 requestData.communicationChannel(),
-                requestData.responseDeadline()
+                requestData.responseDeadlineHours()
         );
 
         boolean reusableState =
@@ -144,8 +152,12 @@ public class ConfirmationRequestPreparationServiceImpl implements ConfirmationRe
         return sameOrderData && sameRequestData && reusableState;
     }
 
-    private OrderSnapshot createOrderSnapshot(OrderSnapshotData data) {
+    private OrderSnapshot createOrderSnapshot(
+            Company company,
+            OrderData data
+    ) {
         return OrderSnapshot.create(
+                company,
                 data.externalOrderId(),
                 data.customerName(),
                 data.customerEmail(),
@@ -159,7 +171,7 @@ public class ConfirmationRequestPreparationServiceImpl implements ConfirmationRe
 
     private OrderSnapshot updateOrderSnapshot(
             OrderSnapshot orderSnapshot,
-            OrderSnapshotData data
+            OrderData data
     ) {
         orderSnapshot.update(
                 data.customerName(),
@@ -174,4 +186,48 @@ public class ConfirmationRequestPreparationServiceImpl implements ConfirmationRe
         return orderSnapshotRepository.save(orderSnapshot);
     }
 
+
+    private record OrderData(
+            String externalOrderId,
+            String customerName,
+            String customerEmail,
+            String customerPhoneNumber,
+            String deliveryAddress,
+            String product,
+            Integer quantityLiters,
+            String priceDisplayText
+    ) {
+        static OrderData from(CreateConfirmationRequestCommand command) {
+            return new OrderData(
+                    command.externalOrderId(),
+                    command.customerName(),
+                    command.customerEmail(),
+                    command.customerPhoneNumber(),
+                    command.deliveryAddress(),
+                    command.product(),
+                    command.quantityLiters(),
+                    command.priceDisplayText()
+            );
+        }
+    }
+
+    private record RequestData(
+            LocalDate deliveryDate,
+            LocalTime deliveryWindowStart,
+            LocalTime deliveryWindowEnd,
+            CommunicationChannel communicationChannel,
+            Integer responseDeadlineHours
+    ) {
+        static RequestData from(CreateConfirmationRequestCommand command) {
+            return new RequestData(
+                    command.deliveryDate(),
+                    command.deliveryWindowStart(),
+                    command.deliveryWindowEnd(),
+                    command.communicationChannel(),
+                    command.responseDeadlineHours()
+            );
+        }
+    }
+
 }
+

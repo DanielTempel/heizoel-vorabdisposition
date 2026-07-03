@@ -5,7 +5,7 @@ import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
 public interface DispoCallbackWorkflowService {
 
     void startDispoCallbackProcess(
-            String externalOrderId,
+            Long orderSnapshotId,
             ConfirmationStatus confirmationStatus,
             String customerComment
     );

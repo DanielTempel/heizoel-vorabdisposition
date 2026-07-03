@@ -5,12 +5,13 @@ import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfi
 import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestResult;
 import heizoel.backend.confirmation.application.port.in.confirmation.DispoConfirmationRequestUseCase;
 import heizoel.backend.confirmation.application.port.out.notification.NotificationService;
+import heizoel.backend.confirmation.application.port.out.persistence.CompanyRepositoryPort;
 import heizoel.backend.confirmation.application.port.out.workflow.NoResponseWorkflowService;
 import heizoel.backend.confirmation.application.model.ConfirmationRequestCreationResult;
-import heizoel.backend.confirmation.application.model.ConfirmationRequestData;
-import heizoel.backend.confirmation.application.model.OrderSnapshotData;
 import heizoel.backend.confirmation.application.service.ConfirmationRequestPreparationService;
+import heizoel.backend.confirmation.domain.model.Company;
 import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.confirmation.domain.exception.CompanyNotFoundException;
 import heizoel.backend.confirmation.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.confirmation.domain.exception.MissingDigitalContactException;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DispoConfirmationRequestUseCaseImpl implements DispoConfirmationRequestUseCase {
 
+    private final CompanyRepositoryPort companyRepository;
     private final ConfirmationRequestPreparationService confirmationRequestPreparationService;
     private final NotificationService notificationService;
     private final NoResponseWorkflowService noResponseWorkflowService;
@@ -32,13 +34,13 @@ public class DispoConfirmationRequestUseCaseImpl implements DispoConfirmationReq
         validateDeliveryWindow(command);
         validateCommunicationChannel(command);
 
-        OrderSnapshotData orderData = toOrderSnapshotData(command);
-        ConfirmationRequestData requestData = toConfirmationRequestData(command);
+        Company company = companyRepository.findById(command.companyContext().companyId())
+                .orElseThrow(() -> new CompanyNotFoundException("Company was not found."));
 
         ConfirmationRequestCreationResult creationResult =
                 confirmationRequestPreparationService.prepareConfirmationRequest(
-                        orderData,
-                        requestData
+                        company,
+                        command
                 );
 
         if (creationResult.created()) {
@@ -83,31 +85,6 @@ public class DispoConfirmationRequestUseCaseImpl implements DispoConfirmationReq
                             + command.communicationChannel() + "."
             );
         }
-    }
-
-    private OrderSnapshotData toOrderSnapshotData(CreateConfirmationRequestCommand command) {
-        return new OrderSnapshotData(
-                command.externalOrderId(),
-                command.customerName(),
-                command.customerEmail(),
-                command.customerPhoneNumber(),
-                command.deliveryAddress(),
-                command.product(),
-                command.quantityLiters(),
-                command.priceDisplayText()
-        );
-    }
-
-    private ConfirmationRequestData toConfirmationRequestData(
-            CreateConfirmationRequestCommand command
-    ) {
-        return new ConfirmationRequestData(
-                command.deliveryDate(),
-                command.deliveryWindowStart(),
-                command.deliveryWindowEnd(),
-                command.communicationChannel(),
-                command.responseDeadlineHours()
-        );
     }
 
     private boolean isBlank(String value) {

@@ -15,7 +15,6 @@ import org.springframework.web.client.RestClientException;
 public class HttpDispoStatusCallbackService implements DispoStatusCallbackService {
 
     private final RestClient restClient;
-    private final ConfirmationProperties properties;
 
     @Override
     public void sendStatusUpdate(DispoStatusCallbackRequest request) {
@@ -27,7 +26,7 @@ public class HttpDispoStatusCallbackService implements DispoStatusCallbackServic
 
         try {
             restClient.post()
-                    .uri(properties.getDispoUrl())
+                    .uri(request.callbackUrl())
                     .body(dto)
                     .retrieve()
                     .toBodilessEntity();

@@ -182,7 +182,7 @@ class DispoCallbackIntegrationTest {
                 .andExpect(status().isNoContent());
 
         OrderSnapshot orderSnapshot = orderSnapshotRepository
-                .findByExternalOrderId(externalOrderId)
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         assertThat(orderSnapshot.getConfirmationStatus())
@@ -223,7 +223,7 @@ class DispoCallbackIntegrationTest {
                 .andExpect(status().isNoContent());
 
         OrderSnapshot orderSnapshot = orderSnapshotRepository
-                .findByExternalOrderId(externalOrderId)
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         assertThat(orderSnapshot.getCustomerEmail()).isNull();
@@ -316,7 +316,7 @@ class DispoCallbackIntegrationTest {
 
     private String findActiveToken(String externalOrderId) {
         OrderSnapshot orderSnapshot = orderSnapshotRepository
-                .findByExternalOrderId(externalOrderId)
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository

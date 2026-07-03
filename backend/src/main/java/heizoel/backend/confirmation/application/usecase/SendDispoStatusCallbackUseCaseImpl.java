@@ -4,6 +4,9 @@ import heizoel.backend.confirmation.application.port.in.dispo.SendDispoStatusCal
 import heizoel.backend.confirmation.application.port.in.dispo.SendDispoStatusCallbackUseCase;
 import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackRequest;
 import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackService;
+import heizoel.backend.confirmation.application.port.out.persistence.OrderSnapshotRepositoryPort;
+import heizoel.backend.confirmation.domain.exception.OrderSnapshotNotFoundException;
+import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,12 +15,20 @@ import org.springframework.stereotype.Service;
 public class SendDispoStatusCallbackUseCaseImpl implements SendDispoStatusCallbackUseCase {
 
     private final DispoStatusCallbackService dispoStatusCallbackService;
+    private final OrderSnapshotRepositoryPort orderSnapshotRepository;
 
     @Override
     public void sendDispoStatusCallback(SendDispoStatusCallbackCommand command) {
+
+        OrderSnapshot orderSnapshot = orderSnapshotRepository.findById(command.orderSnapshotId())
+                .orElseThrow(() -> new OrderSnapshotNotFoundException(
+                        "Order snapshot was not found."
+                ));
+
         dispoStatusCallbackService.sendStatusUpdate(
                 new DispoStatusCallbackRequest(
-                        command.externalOrderId(),
+                        orderSnapshot.getCompany().getCallbackUrl(),
+                        orderSnapshot.getExternalOrderId(),
                         command.confirmationStatus(),
                         command.customerComment()
                 )

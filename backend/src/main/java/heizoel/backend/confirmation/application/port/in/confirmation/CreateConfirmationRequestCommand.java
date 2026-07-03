@@ -1,11 +1,13 @@
 package heizoel.backend.confirmation.application.port.in.confirmation;
 
+import heizoel.backend.confirmation.application.model.CompanyContext;
 import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record CreateConfirmationRequestCommand(
+        CompanyContext companyContext,
         String externalOrderId,
         String customerName,
         CommunicationChannel communicationChannel,

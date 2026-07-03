@@ -102,7 +102,7 @@ public class SubmitCustomerResponseUseCaseImpl implements SubmitCustomerResponse
         }
 
         dispoCallbackWorkflowService.startDispoCallbackProcess(
-                orderSnapshot.getExternalOrderId(),
+                orderSnapshot.getId(),
                 confirmationStatus,
                 customerComment
         );

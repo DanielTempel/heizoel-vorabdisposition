@@ -12,8 +12,14 @@ import java.util.Objects;
         name = "order_snapshot",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_order_snapshot_external_order_id",
-                        columnNames = "external_order_id"
+                        name = "uk_order_snapshot_company_external_order_id",
+                        columnNames = {"company_id", "external_order_id"}
+                )
+        },
+        indexes = {
+                @Index(
+                        name = "idx_order_snapshot_company_id",
+                        columnList = "company_id"
                 )
         }
 )
@@ -24,6 +30,10 @@ public class OrderSnapshot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "company_id", nullable = false)
+    private Company company;
 
     @Column(name = "external_order_id", nullable = false, length = 100)
     private String externalOrderId;
@@ -54,6 +64,7 @@ public class OrderSnapshot {
     private ConfirmationStatus confirmationStatus;
 
     public static OrderSnapshot create(
+            Company company,
             String externalOrderId,
             String customerName,
             String customerEmail,
@@ -64,6 +75,7 @@ public class OrderSnapshot {
             String priceDisplayText
     ) {
         OrderSnapshot orderSnapshot = new OrderSnapshot();
+        orderSnapshot.company = company;
         orderSnapshot.externalOrderId = externalOrderId;
         orderSnapshot.customerName = customerName;
         orderSnapshot.customerEmail = customerEmail;

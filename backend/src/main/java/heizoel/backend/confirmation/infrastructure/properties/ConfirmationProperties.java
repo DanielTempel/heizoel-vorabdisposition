@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 public class ConfirmationProperties {
 
     private String frontendUrl = "http://localhost:3000";
-    private String dispoUrl;
     private String dispoTrackingUrl;
     private String smsProviderUrl;
     private String whatsappProviderUrl;

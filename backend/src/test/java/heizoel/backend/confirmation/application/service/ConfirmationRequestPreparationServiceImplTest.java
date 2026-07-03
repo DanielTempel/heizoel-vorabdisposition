@@ -4,8 +4,9 @@ import heizoel.backend.confirmation.application.port.out.token.TokenService;
 import heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort;
 import heizoel.backend.confirmation.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.confirmation.application.model.ConfirmationRequestCreationResult;
-import heizoel.backend.confirmation.application.model.ConfirmationRequestData;
-import heizoel.backend.confirmation.application.model.OrderSnapshotData;
+import heizoel.backend.confirmation.application.model.CompanyContext;
+import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestCommand;
+import heizoel.backend.confirmation.domain.model.Company;
 import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
@@ -39,6 +40,9 @@ class ConfirmationRequestPreparationServiceImplTest {
     @Mock
     TokenService tokenService;
 
+    @Mock
+    Company company;
+
     @InjectMocks
     ConfirmationRequestPreparationServiceImpl service;
 
@@ -48,7 +52,8 @@ class ConfirmationRequestPreparationServiceImplTest {
         LocalTime deliveryWindowStart = LocalTime.of(10, 0);
 
         when(tokenService.generateToken()).thenReturn("token");
-        when(orderSnapshotRepository.findByExternalOrderId("ORDER-1"))
+        when(company.getId()).thenReturn(1L);
+        when(orderSnapshotRepository.findByCompanyIdAndExternalOrderId(1L, "ORDER-1"))
                 .thenReturn(java.util.Optional.empty());
         when(orderSnapshotRepository.save(any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -57,8 +62,8 @@ class ConfirmationRequestPreparationServiceImplTest {
 
         ConfirmationRequestCreationResult creationResult =
                 service.prepareConfirmationRequest(
-                orderData(),
-                requestData(deliveryDate, deliveryWindowStart, 168)
+                company,
+                command(deliveryDate, deliveryWindowStart, 168)
         );
         ConfirmationRequest result = creationResult.confirmationRequest();
 
@@ -73,7 +78,8 @@ class ConfirmationRequestPreparationServiceImplTest {
         LocalDate deliveryDate = LocalDate.now(DELIVERY_ZONE).plusDays(7);
 
         when(tokenService.generateToken()).thenReturn("token");
-        when(orderSnapshotRepository.findByExternalOrderId("ORDER-1"))
+        when(company.getId()).thenReturn(1L);
+        when(orderSnapshotRepository.findByCompanyIdAndExternalOrderId(1L, "ORDER-1"))
                 .thenReturn(java.util.Optional.empty());
         when(orderSnapshotRepository.save(any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -81,8 +87,8 @@ class ConfirmationRequestPreparationServiceImplTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         ConfirmationRequest result = service.prepareConfirmationRequest(
-                orderData(),
-                requestData(deliveryDate, LocalTime.of(10, 0), 1)
+                company,
+                command(deliveryDate, LocalTime.of(10, 0), 1)
         ).confirmationRequest();
 
         assertThat(result.getExpiresAt())
@@ -93,14 +99,15 @@ class ConfirmationRequestPreparationServiceImplTest {
     void create_rejectsDeliveryWindowThatAlreadyStarted() {
         LocalDate deliveryDate = LocalDate.now(DELIVERY_ZONE).minusDays(1);
 
-        when(orderSnapshotRepository.findByExternalOrderId("ORDER-1"))
+        when(company.getId()).thenReturn(1L);
+        when(orderSnapshotRepository.findByCompanyIdAndExternalOrderId(1L, "ORDER-1"))
                 .thenReturn(java.util.Optional.empty());
         when(orderSnapshotRepository.save(any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         assertThatThrownBy(() -> service.prepareConfirmationRequest(
-                orderData(),
-                requestData(deliveryDate, LocalTime.of(10, 0), 24)
+                company,
+                command(deliveryDate, LocalTime.of(10, 0), 24)
         ))
                 .isInstanceOf(InvalidDeliveryWindowException.class)
                 .hasMessage("Delivery window must start in the future.");
@@ -109,30 +116,26 @@ class ConfirmationRequestPreparationServiceImplTest {
         verify(confirmationRequestRepository, never()).save(any());
     }
 
-    private OrderSnapshotData orderData() {
-        return new OrderSnapshotData(
+    private CreateConfirmationRequestCommand command(
+            LocalDate deliveryDate,
+            LocalTime deliveryWindowStart,
+            int responseDeadlineHours
+    ) {
+        return new CreateConfirmationRequestCommand(
+                new CompanyContext(1L),
                 "ORDER-1",
                 "Customer",
+                CommunicationChannel.EMAIL,
                 "customer@example.com",
                 null,
                 "Address",
                 "Heating oil",
                 1000,
-                "1,000 EUR"
-        );
-    }
-
-    private ConfirmationRequestData requestData(
-            LocalDate deliveryDate,
-            LocalTime deliveryWindowStart,
-            int responseDeadlineHours
-    ) {
-        return new ConfirmationRequestData(
                 deliveryDate,
                 deliveryWindowStart,
                 deliveryWindowStart.plusHours(1),
-                CommunicationChannel.EMAIL,
-                responseDeadlineHours
+                responseDeadlineHours,
+                "1,000 EUR"
         );
     }
 }

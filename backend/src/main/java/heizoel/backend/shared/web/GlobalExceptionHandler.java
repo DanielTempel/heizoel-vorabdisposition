@@ -2,12 +2,14 @@ package heizoel.backend.shared.web;
 
 import heizoel.backend.shared.exception.DispoCallbackFailedException;
 import heizoel.backend.shared.exception.EmailSendingException;
+import heizoel.backend.confirmation.domain.exception.CompanyNotFoundException;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestExpiredException;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestInactiveException;
 import heizoel.backend.confirmation.domain.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.confirmation.domain.exception.CustomerResponseAlreadyExistsException;
 import heizoel.backend.confirmation.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.confirmation.domain.exception.MissingDigitalContactException;
+import heizoel.backend.confirmation.domain.exception.OrderSnapshotNotFoundException;
 import heizoel.backend.shared.exception.SmsSendingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +62,16 @@ public class GlobalExceptionHandler {
     ResponseEntity<ErrorResponseDto> confirmationRequestNotFound(ConfirmationRequestNotFoundException e, HttpServletRequest req
     ) {
         return respond(HttpStatus.NOT_FOUND, "CONFIRMATION_REQUEST_NOT_FOUND", e.getMessage(), req.getRequestURI());
+    }
+
+    @ExceptionHandler(CompanyNotFoundException.class)
+    ResponseEntity<ErrorResponseDto> companyNotFound(CompanyNotFoundException e, HttpServletRequest req) {
+        return respond(HttpStatus.NOT_FOUND, "COMPANY_NOT_FOUND", e.getMessage(), req.getRequestURI());
+    }
+
+    @ExceptionHandler(OrderSnapshotNotFoundException.class)
+    ResponseEntity<ErrorResponseDto> orderSnapshotNotFound(OrderSnapshotNotFoundException e, HttpServletRequest req) {
+        return respond(HttpStatus.NOT_FOUND, "ORDER_SNAPSHOT_NOT_FOUND", e.getMessage(), req.getRequestURI());
     }
 
     @ExceptionHandler(ConfirmationRequestInactiveException.class)

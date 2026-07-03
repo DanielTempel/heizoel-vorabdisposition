@@ -119,6 +119,9 @@ class HandleNoResponseTimeoutUseCaseImplTest {
 
     private ConfirmationRequest confirmationRequest(boolean active, Instant expiresAt) {
         OrderSnapshot orderSnapshot = OrderSnapshot.create(
+                heizoel.backend.confirmation.domain.model.Company.create(
+                        "Company", "api-key-hash", "http://localhost/callback"
+                ),
                 "A-TIMEOUT-1", "Customer", "customer@example.com", null,
                 "Address", "Heating oil", 1000, "1,000 EUR"
         );

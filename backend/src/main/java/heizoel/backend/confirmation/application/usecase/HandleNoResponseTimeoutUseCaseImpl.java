@@ -51,7 +51,7 @@ public class HandleNoResponseTimeoutUseCaseImpl implements HandleNoResponseTimeo
         orderSnapshotRepository.save(orderSnapshot);
 
         dispoCallbackWorkflowService.startDispoCallbackProcess(
-                orderSnapshot.getExternalOrderId(),
+                orderSnapshot.getId(),
                 ConfirmationStatus.NO_RESPONSE,
                 null
         );

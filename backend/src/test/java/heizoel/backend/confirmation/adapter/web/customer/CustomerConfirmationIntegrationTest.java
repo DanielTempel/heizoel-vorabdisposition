@@ -30,8 +30,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.LocalDate;
 import java.time.Instant;
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.ZoneId;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -190,7 +191,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(content().string(""));
 
         OrderSnapshot orderSnapshot = orderSnapshotRepository
-                .findByExternalOrderId(externalOrderId)
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         assertThat(orderSnapshot.getConfirmationStatus())
@@ -234,7 +235,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(content().string(""));
 
         OrderSnapshot orderSnapshot = orderSnapshotRepository
-                .findByExternalOrderId(externalOrderId)
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         assertThat(orderSnapshot.getConfirmationStatus())
@@ -301,7 +302,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/response"));
 
         OrderSnapshot orderSnapshot = orderSnapshotRepository
-                .findByExternalOrderId(externalOrderId)
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
@@ -332,7 +333,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/response"));
 
         OrderSnapshot orderSnapshot = orderSnapshotRepository
-                .findByExternalOrderId(externalOrderId)
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         assertThat(orderSnapshot.getConfirmationStatus())
@@ -388,7 +389,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.status").value(400));
 
         OrderSnapshot orderSnapshot = orderSnapshotRepository
-                .findByExternalOrderId(externalOrderId)
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
@@ -451,7 +452,7 @@ class CustomerConfirmationIntegrationTest {
 
     private String findActiveTokenByExternalOrderId(String externalOrderId) {
         OrderSnapshot orderSnapshot = orderSnapshotRepository
-                .findByExternalOrderId(externalOrderId)
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         return confirmationRequestRepository
@@ -462,7 +463,7 @@ class CustomerConfirmationIntegrationTest {
 
     private void setLatestDeliveryDate(String externalOrderId, LocalDate deliveryDate) {
         OrderSnapshot orderSnapshot = orderSnapshotRepository
-                .findByExternalOrderId(externalOrderId)
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
@@ -483,7 +484,7 @@ class CustomerConfirmationIntegrationTest {
 
         jdbcTemplate.update(
                 "update confirmation_request set expires_at = ? where id = ?",
-                Instant.now().minusSeconds(1),
+                Timestamp.from(Instant.now().minusSeconds(1)),
                 confirmationRequest.getId()
         );
     }

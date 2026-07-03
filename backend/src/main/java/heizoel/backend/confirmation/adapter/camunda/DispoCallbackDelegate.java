@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DispoCallbackDelegate implements JavaDelegate {
 
-    private static final String VAR_EXTERNAL_ORDER_ID = "externalOrderId";
+    private static final String VAR_ORDER_SNAPSHOT_ID = "orderSnapshotId";
     private static final String VAR_CONFIRMATION_STATUS = "confirmationStatus";
     private static final String VAR_CUSTOMER_COMMENT = "customerComment";
 
@@ -21,7 +21,7 @@ public class DispoCallbackDelegate implements JavaDelegate {
     @Override
     public void execute(DelegateExecution execution) {
         SendDispoStatusCallbackCommand command = new SendDispoStatusCallbackCommand(
-                (String) execution.getVariable(VAR_EXTERNAL_ORDER_ID),
+                (Long) execution.getVariable(VAR_ORDER_SNAPSHOT_ID),
                 ConfirmationStatus.valueOf((String) execution.getVariable(VAR_CONFIRMATION_STATUS)),
                 (String) execution.getVariable(VAR_CUSTOMER_COMMENT)
         );

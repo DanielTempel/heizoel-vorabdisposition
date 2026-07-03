@@ -6,7 +6,12 @@ import java.util.Optional;
 
 public interface OrderSnapshotRepositoryPort {
 
-    Optional<OrderSnapshot> findByExternalOrderId(String externalOrderId);
+    Optional<OrderSnapshot> findByCompanyIdAndExternalOrderId(
+            Long companyId,
+            String externalOrderId
+    );
+
+    Optional<OrderSnapshot> findById(Long id);
 
     OrderSnapshot save(OrderSnapshot orderSnapshot);
 }
