@@ -27,6 +27,11 @@ export function DashboardPage() {
     void loadDashboard()
   }, [])
 
+  function openConfirmationDetails(orderId: string) {
+    window.history.pushState({}, '', `/dashboard/confirmation/${orderId}`)
+    window.dispatchEvent(new Event('locationchange'))
+  }
+
   return (
     <main className="min-h-screen bg-background px-6 py-8 text-foreground">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
@@ -63,7 +68,10 @@ export function DashboardPage() {
             ) : null}
 
             {status === 'ready' && confirmations.length > 0 ? (
-              <DashboardTable confirmations={confirmations} />
+              <DashboardTable
+                confirmations={confirmations}
+                onViewDetails={openConfirmationDetails}
+              />
             ) : null}
           </div>
         </section>

@@ -14,6 +14,7 @@ import { StatusBadge } from './status-badge'
 
 type DashboardTableProps = {
   confirmations: DashboardConfirmation[]
+  onViewDetails: (orderId: string) => void
 }
 
 function formatDeadline(confirmation: DashboardConfirmation) {
@@ -45,7 +46,10 @@ function formatDeadline(confirmation: DashboardConfirmation) {
   return `${remainingHours}h übrig`
 }
 
-export function DashboardTable({ confirmations }: DashboardTableProps) {
+export function DashboardTable({
+  confirmations,
+  onViewDetails,
+}: DashboardTableProps) {
   return (
     <Table>
       <TableHeader>
@@ -78,7 +82,12 @@ export function DashboardTable({ confirmations }: DashboardTableProps) {
             </TableCell>
             <TableCell>{formatDeadline(confirmation)}</TableCell>
             <TableCell className="text-right">
-              <Button size="sm" variant="outline" type="button">
+              <Button
+                size="sm"
+                variant="outline"
+                type="button"
+                onClick={() => onViewDetails(confirmation.externalOrderId)}
+              >
                 <Eye className="size-3" />
                 Details
               </Button>
