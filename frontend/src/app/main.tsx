@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ConfirmationPage } from '../pages/confirmation/page'
+import { App } from './router'
 import './globals.css'
 
 async function enableMocking() {
@@ -18,7 +18,7 @@ async function enableMocking() {
 function renderApp() {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <ConfirmationPage />
+      <App />
     </StrictMode>,
   )
 }
