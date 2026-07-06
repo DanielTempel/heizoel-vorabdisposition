@@ -51,6 +51,7 @@ class HttpDispoStatusCallbackServiceIntegrationTest {
                 .andRespond(withNoContent());
 
         service.sendStatusUpdate(new DispoStatusCallbackRequest(
+                "http://dispo.example.test/api/confirmation-status-updates",
                 "A-CB-1",
                 ConfirmationStatus.CONFIRMED,
                 "Bitte 30 Minuten vorher anrufen."
@@ -66,6 +67,7 @@ class HttpDispoStatusCallbackServiceIntegrationTest {
                 .andRespond(withServerError());
 
         assertThatThrownBy(() -> service.sendStatusUpdate(new DispoStatusCallbackRequest(
+                "http://dispo.example.test/api/confirmation-status-updates",
                 "A-CB-2",
                 ConfirmationStatus.REJECTED,
                 "Passt nicht."

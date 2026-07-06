@@ -363,8 +363,10 @@ class DispoCallbackRetryIntegrationTest {
                 FROM act_ru_job j
                 JOIN act_ru_variable v
                   ON v.proc_inst_id_ = j.process_instance_id_
-                WHERE v.name_ = 'externalOrderId'
-                  AND v.text_ = ?
+                JOIN order_snapshot os
+                  ON os.id = v.long_
+                WHERE v.name_ = 'orderSnapshotId'
+                  AND os.external_order_id = ?
                   AND j.exception_msg_ = ?
                 ORDER BY j.create_time_ DESC
                 LIMIT 1

@@ -99,7 +99,7 @@ class HandleNoResponseTimeoutUseCaseImplTest {
         verify(confirmationRequestRepository).save(confirmationRequest);
         verify(orderSnapshotRepository).save(orderSnapshot);
         verify(dispoCallbackWorkflowService).startDispoCallbackProcess(
-                "A-TIMEOUT-1",
+                orderSnapshot.getId(),
                 ConfirmationStatus.NO_RESPONSE,
                 null
         );

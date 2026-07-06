@@ -1,5 +1,7 @@
 package heizoel.backend.shared.web;
 
+import heizoel.backend.confirmation.adapter.web.security.InvalidApiKeyException;
+import heizoel.backend.confirmation.adapter.web.security.MissingApiKeyException;
 import heizoel.backend.shared.exception.DispoCallbackFailedException;
 import heizoel.backend.shared.exception.EmailSendingException;
 import heizoel.backend.confirmation.domain.exception.CompanyNotFoundException;
@@ -122,6 +124,15 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.UNPROCESSABLE_ENTITY, "MISSING_DIGITAL_CONTACT", e.getMessage(), req.getRequestURI());
     }
 
+    @ExceptionHandler(MissingApiKeyException.class)
+    ResponseEntity<ErrorResponseDto> missingApiKey(MissingApiKeyException e, HttpServletRequest req) {
+        return respond(HttpStatus.UNAUTHORIZED, "MISSING_API_KEY", e.getMessage(), req.getRequestURI());
+    }
+
+    @ExceptionHandler(InvalidApiKeyException.class)
+    ResponseEntity<ErrorResponseDto> invalidApiKey(InvalidApiKeyException e, HttpServletRequest req) {
+        return respond(HttpStatus.UNAUTHORIZED, "INVALID_API_KEY", e.getMessage(), req.getRequestURI());
+    }
 
     private ResponseEntity<ErrorResponseDto> respond(
             HttpStatus status,

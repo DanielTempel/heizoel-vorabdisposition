@@ -14,6 +14,7 @@ import java.util.Map;
 public class NoResponseWorkflowServiceImpl implements NoResponseWorkflowService {
 
     private static final String PROCESS_KEY = "confirmation-timeout-process";
+
     private static final String VAR_CONFIRMATION_REQUEST_ID = "confirmationRequestId";
     private static final String VAR_RESPONSE_DEADLINE_AT = "responseDeadlineAt";
 

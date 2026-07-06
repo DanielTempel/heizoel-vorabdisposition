@@ -13,10 +13,10 @@ INSERT INTO company (
     api_key_hash,
     callback_url
 ) VALUES (
-    'Minova Heizöl GmbH',
-    'demo-api-key-hash',
-    'http://localhost:8081/api/dispo/callback'
-)
+      'Minova Heizöl GmbH',
+      '05dd3468bfd1ca12df3b6128183ad7b6de9bd83df68edd6d84b03951e45d2227',
+      'http://localhost:8081/api/dispo/callback'
+  )
 ON CONFLICT (name) DO NOTHING;
 
 ALTER TABLE order_snapshot

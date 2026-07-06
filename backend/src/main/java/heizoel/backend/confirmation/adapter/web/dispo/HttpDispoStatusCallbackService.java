@@ -3,7 +3,6 @@ package heizoel.backend.confirmation.adapter.web.dispo;
 import heizoel.backend.confirmation.adapter.web.dispo.dto.DispoConfirmationStatusUpdateDto;
 import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackRequest;
 import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackService;
-import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
 import heizoel.backend.shared.exception.DispoCallbackFailedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
