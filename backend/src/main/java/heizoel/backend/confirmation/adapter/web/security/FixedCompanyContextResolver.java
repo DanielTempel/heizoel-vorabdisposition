@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Profile("!prod")
-public class FixedContextResolver implements ContextResolver {
+public class FixedCompanyContextResolver implements CompanyContextResolver {
 
     @Override
     public CompanyContext resolve() {

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Profile("prod")
 @RequiredArgsConstructor
-public class ApiKeyContextResolver implements ContextResolver {
+public class ApiKeyCompanyContextResolver implements CompanyContextResolver {
 
 
     private static final String API_KEY_HEADER = "X-API-Key";

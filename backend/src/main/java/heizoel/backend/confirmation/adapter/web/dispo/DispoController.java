@@ -2,7 +2,7 @@ package heizoel.backend.confirmation.adapter.web.dispo;
 
 import heizoel.backend.confirmation.adapter.web.dispo.dto.DispoConfirmationRequestDto;
 import heizoel.backend.confirmation.adapter.web.dispo.dto.DispoConfirmationResponseDto;
-import heizoel.backend.confirmation.adapter.web.security.ContextResolver;
+import heizoel.backend.confirmation.adapter.web.security.CompanyContextResolver;
 import heizoel.backend.confirmation.application.model.CompanyContext;
 import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestCommand;
 import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestResult;
@@ -22,13 +22,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class DispoController {
 
     private final DispoConfirmationRequestUseCase dispoConfirmationRequestUseCase;
-    private final ContextResolver contextResolver;
+    private final CompanyContextResolver companyContextResolver;
 
     @PostMapping
     public ResponseEntity<DispoConfirmationResponseDto> createConfirmationRequest(
             @Valid @RequestBody DispoConfirmationRequestDto request
     ) {
-        CompanyContext companyContext = contextResolver.resolve();
+        CompanyContext companyContext = companyContextResolver.resolve();
 
         CreateConfirmationRequestCommand command = new CreateConfirmationRequestCommand(
                 companyContext,
