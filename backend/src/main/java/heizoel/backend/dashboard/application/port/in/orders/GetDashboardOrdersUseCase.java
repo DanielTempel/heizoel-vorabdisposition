@@ -1,4 +1,4 @@
-package heizoel.backend.dashboard.application.port.in;
+package heizoel.backend.dashboard.application.port.in.orders;
 
 public interface GetDashboardOrdersUseCase {
 

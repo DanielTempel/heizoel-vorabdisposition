@@ -8,7 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import heizoel.backend.confirmation.domain.model.QConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.QOrderSnapshot;
 import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
-import heizoel.backend.dashboard.application.port.in.DashboardOrder;
+import heizoel.backend.dashboard.application.port.in.orders.DashboardOrderRaw;
 import heizoel.backend.dashboard.application.port.out.persistence.DashboardOrderFilter;
 import heizoel.backend.dashboard.application.port.out.persistence.DashboardOrderQueryPort;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class DashboardOrderQueryAdapter implements DashboardOrderQueryPort {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<DashboardOrder> findDashboardOrders(
+    public Page<DashboardOrderRaw> findDashboardOrders(
             DashboardOrderFilter filter,
             Pageable pageable
     ) {
@@ -44,13 +44,11 @@ public class DashboardOrderQueryAdapter implements DashboardOrderQueryPort {
                 confirmationRequest
         );
 
-        List<DashboardOrder> content = queryFactory
+        List<DashboardOrderRaw> content = queryFactory
                 .select(Projections.constructor(
-                        DashboardOrder.class,
+                        DashboardOrderRaw.class,
                         orderSnapshot.externalOrderId,
                         orderSnapshot.customerName,
-                        orderSnapshot.deliveryAddress,
-                        orderSnapshot.quantityLiters,
                         confirmationRequest.deliveryDate,
                         confirmationRequest.deliveryWindowStart,
                         confirmationRequest.deliveryWindowEnd,
@@ -182,7 +180,6 @@ public class DashboardOrderQueryAdapter implements DashboardOrderQueryPort {
         where.and(
                 orderSnapshot.externalOrderId.lower().contains(search)
                         .or(orderSnapshot.customerName.lower().contains(search))
-                        .or(orderSnapshot.deliveryAddress.lower().contains(search))
         );
     }
 }

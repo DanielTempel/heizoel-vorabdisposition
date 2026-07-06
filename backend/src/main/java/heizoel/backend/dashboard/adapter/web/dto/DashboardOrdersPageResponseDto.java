@@ -1,6 +1,6 @@
 package heizoel.backend.dashboard.adapter.web.dto;
 
-import heizoel.backend.dashboard.application.port.in.DashboardOrdersPageResult;
+import heizoel.backend.dashboard.application.port.in.orders.DashboardOrdersPageResult;
 
 import java.util.List;
 

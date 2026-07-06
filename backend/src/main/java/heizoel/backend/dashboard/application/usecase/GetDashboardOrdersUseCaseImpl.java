@@ -1,11 +1,10 @@
 package heizoel.backend.dashboard.application.usecase;
 
 
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
-import heizoel.backend.dashboard.application.port.in.DashboardOrder;
-import heizoel.backend.dashboard.application.port.in.DashboardOrdersPageResult;
-import heizoel.backend.dashboard.application.port.in.GetDashboardOrdersQuery;
-import heizoel.backend.dashboard.application.port.in.GetDashboardOrdersUseCase;
+import heizoel.backend.dashboard.application.port.in.orders.DashboardOrderRaw;
+import heizoel.backend.dashboard.application.port.in.orders.DashboardOrdersPageResult;
+import heizoel.backend.dashboard.application.port.in.orders.GetDashboardOrdersQuery;
+import heizoel.backend.dashboard.application.port.in.orders.GetDashboardOrdersUseCase;
 import heizoel.backend.dashboard.application.port.out.persistence.DashboardOrderFilter;
 import heizoel.backend.dashboard.application.port.out.persistence.DashboardOrderQueryPort;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +37,7 @@ public class GetDashboardOrdersUseCaseImpl implements GetDashboardOrdersUseCase 
                 search
         );
 
-        Page<DashboardOrder> result = dashboardOrderQueryPort.findDashboardOrders(
+        Page<DashboardOrderRaw> result = dashboardOrderQueryPort.findDashboardOrders(
                 filter,
                 PageRequest.of(page, PAGE_SIZE)
         );

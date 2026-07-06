@@ -1,9 +1,9 @@
-package heizoel.backend.dashboard.application.port.in;
+package heizoel.backend.dashboard.application.port.in.orders;
 
 import java.util.List;
 
 public record DashboardOrdersPageResult(
-        List<DashboardOrder> items,
+        List<DashboardOrderRaw> items,
         int page,
         int size,
         long totalElements,

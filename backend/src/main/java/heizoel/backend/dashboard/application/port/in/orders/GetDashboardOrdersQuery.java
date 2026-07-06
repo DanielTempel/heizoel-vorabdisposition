@@ -1,4 +1,4 @@
-package heizoel.backend.dashboard.application.port.in;
+package heizoel.backend.dashboard.application.port.in.orders;
 
 import heizoel.backend.confirmation.application.model.CompanyContext;
 import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;

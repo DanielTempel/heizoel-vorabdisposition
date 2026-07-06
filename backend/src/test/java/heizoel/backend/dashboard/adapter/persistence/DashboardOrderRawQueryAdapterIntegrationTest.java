@@ -5,7 +5,7 @@ import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.OrderSnapshot;
 import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
 import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
-import heizoel.backend.dashboard.application.port.in.DashboardOrder;
+import heizoel.backend.dashboard.application.port.in.orders.DashboardOrderRaw;
 import heizoel.backend.dashboard.application.port.out.persistence.DashboardOrderFilter;
 import heizoel.backend.dashboard.infrastructure.QueryDslConfig;
 import jakarta.persistence.EntityManager;
@@ -25,7 +25,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({DashboardOrderQueryAdapter.class, QueryDslConfig.class})
-class DashboardOrderQueryAdapterIntegrationTest {
+class DashboardOrderRawQueryAdapterIntegrationTest {
 
     private static final LocalDate TODAY = LocalDate.of(2026, 7, 6);
     private static final Instant SENT_AT = Instant.parse("2026-07-01T10:00:00Z");
@@ -71,11 +70,11 @@ class DashboardOrderQueryAdapterIntegrationTest {
         order(otherCompany, "SHARED-ORDER", "Hidden Customer", "Hidden Street",
                 TODAY, ConfirmationStatus.SENT);
 
-        Page<DashboardOrder> result = find(requestedCompany, null, null, null, 0, 20);
+        Page<DashboardOrderRaw> result = find(requestedCompany, null, null, null, 0, 20);
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent())
-                .extracting(DashboardOrder::customerName)
+                .extracting(DashboardOrderRaw::customerName)
                 .containsExactly("Visible Customer");
     }
 
@@ -89,7 +88,7 @@ class DashboardOrderQueryAdapterIntegrationTest {
         order(company, "WRONG-DATE", "Wrong Date", "Three Street",
                 TODAY.plusDays(2), ConfirmationStatus.CONFIRMED);
 
-        Page<DashboardOrder> result = find(
+        Page<DashboardOrderRaw> result = find(
                 company,
                 TODAY.plusDays(1),
                 ConfirmationStatus.CONFIRMED,
@@ -99,7 +98,7 @@ class DashboardOrderQueryAdapterIntegrationTest {
         );
 
         assertThat(result.getContent())
-                .extracting(DashboardOrder::externalOrderId)
+                .extracting(DashboardOrderRaw::externalOrderId)
                 .containsExactly("MATCH");
     }
 
@@ -109,7 +108,7 @@ class DashboardOrderQueryAdapterIntegrationTest {
         order(company, "PAST-CONFIRMED", "Past Customer", "Past Street",
                 TODAY.minusDays(5), ConfirmationStatus.CONFIRMED);
 
-        Page<DashboardOrder> result = find(
+        Page<DashboardOrderRaw> result = find(
                 company,
                 TODAY.minusDays(5),
                 ConfirmationStatus.CONFIRMED,
@@ -119,7 +118,7 @@ class DashboardOrderQueryAdapterIntegrationTest {
         );
 
         assertThat(result.getContent())
-                .extracting(DashboardOrder::externalOrderId)
+                .extracting(DashboardOrderRaw::externalOrderId)
                 .containsExactly("PAST-CONFIRMED");
     }
 
@@ -137,15 +136,15 @@ class DashboardOrderQueryAdapterIntegrationTest {
         order(company, "PAST-SENT", "Sent", "Sent Street",
                 TODAY.minusDays(4), ConfirmationStatus.SENT);
 
-        Page<DashboardOrder> result = find(company, null, null, null, 0, 20);
+        Page<DashboardOrderRaw> result = find(company, null, null, null, 0, 20);
 
         assertThat(result.getContent())
-                .extracting(DashboardOrder::externalOrderId)
+                .extracting(DashboardOrderRaw::externalOrderId)
                 .containsExactly("PAST-NO-RESPONSE", "PAST-REJECTED", "FUTURE-SENT");
     }
 
     @Test
-    void findDashboardOrders_searchesExternalOrderIdCustomerNameAndAddressCaseInsensitively() {
+    void findDashboardOrders_searchesExternalOrderIdAndCustomerNameCaseInsensitively() {
         Company company = company("Search tenant");
         order(company, "SPECIAL-4711", "Ordinary Customer", "Ordinary Street",
                 TODAY, ConfirmationStatus.SENT);
@@ -157,14 +156,13 @@ class DashboardOrderQueryAdapterIntegrationTest {
                 TODAY.plusDays(3), ConfirmationStatus.SENT);
 
         assertThat(find(company, null, null, "special-47", 0, 20).getContent())
-                .extracting(DashboardOrder::externalOrderId)
+                .extracting(DashboardOrderRaw::externalOrderId)
                 .containsExactly("SPECIAL-4711");
         assertThat(find(company, null, null, "ALICE", 0, 20).getContent())
-                .extracting(DashboardOrder::externalOrderId)
+                .extracting(DashboardOrderRaw::externalOrderId)
                 .containsExactly("ORDER-2");
         assertThat(find(company, null, null, "allee 42", 0, 20).getContent())
-                .extracting(DashboardOrder::externalOrderId)
-                .containsExactly("ORDER-3");
+                .isEmpty();
         assertThat(find(company, null, null, "does-not-exist", 0, 20).getContent())
                 .isEmpty();
     }
@@ -194,7 +192,7 @@ class DashboardOrderQueryAdapterIntegrationTest {
                 CommunicationChannel.SMS
         );
 
-        Page<DashboardOrder> result = find(company, null, null, null, 0, 20);
+        Page<DashboardOrderRaw> result = find(company, null, null, null, 0, 20);
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent()).singleElement().satisfies(row -> {
@@ -219,19 +217,19 @@ class DashboardOrderQueryAdapterIntegrationTest {
         order(company, "ORDER-E", "Customer E", "Street E",
                 TODAY.plusDays(4), ConfirmationStatus.SENT);
 
-        Page<DashboardOrder> firstPage = find(company, null, null, null, 0, 2);
-        Page<DashboardOrder> secondPage = find(company, null, null, null, 1, 2);
-        Page<DashboardOrder> lastPage = find(company, null, null, null, 2, 2);
-        Page<DashboardOrder> beyondLastPage = find(company, null, null, null, 3, 2);
+        Page<DashboardOrderRaw> firstPage = find(company, null, null, null, 0, 2);
+        Page<DashboardOrderRaw> secondPage = find(company, null, null, null, 1, 2);
+        Page<DashboardOrderRaw> lastPage = find(company, null, null, null, 2, 2);
+        Page<DashboardOrderRaw> beyondLastPage = find(company, null, null, null, 3, 2);
 
         assertThat(firstPage.getContent())
-                .extracting(DashboardOrder::externalOrderId)
+                .extracting(DashboardOrderRaw::externalOrderId)
                 .containsExactly("ORDER-A", "ORDER-B");
         assertThat(secondPage.getContent())
-                .extracting(DashboardOrder::externalOrderId)
+                .extracting(DashboardOrderRaw::externalOrderId)
                 .containsExactly("ORDER-C", "ORDER-D");
         assertThat(lastPage.getContent())
-                .extracting(DashboardOrder::externalOrderId)
+                .extracting(DashboardOrderRaw::externalOrderId)
                 .containsExactly("ORDER-E");
         assertThat(beyondLastPage.getContent()).isEmpty();
         assertThat(firstPage.getTotalElements()).isEqualTo(5);
@@ -243,7 +241,7 @@ class DashboardOrderQueryAdapterIntegrationTest {
     void findDashboardOrders_returnsEmptyPageWithZeroTotalWhenNothingMatches() {
         Company company = company("Empty result tenant");
 
-        Page<DashboardOrder> result = find(
+        Page<DashboardOrderRaw> result = find(
                 company,
                 TODAY,
                 ConfirmationStatus.REJECTED,
@@ -257,7 +255,7 @@ class DashboardOrderQueryAdapterIntegrationTest {
         assertThat(result.getTotalPages()).isZero();
     }
 
-    private Page<DashboardOrder> find(
+    private Page<DashboardOrderRaw> find(
             Company company,
             LocalDate deliveryDate,
             ConfirmationStatus status,
