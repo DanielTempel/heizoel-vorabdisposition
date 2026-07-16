@@ -2,13 +2,13 @@ package heizoel.backend.confirmation.adapter.out.notification;
 
 import heizoel.backend.confirmation.application.port.out.workflow.NoResponseWorkflowService;
 import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackService;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
 import heizoel.backend.confirmation.application.port.out.location.GeocodingClient;
-import heizoel.backend.confirmation.domain.model.GeoCoordinate;
+import heizoel.backend.domain.model.GeoCoordinate;
 import heizoel.backend.confirmation.adapter.notification.email.EmailNotificationSender;
 import heizoel.backend.confirmation.adapter.notification.sms.SmsNotificationSender;
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

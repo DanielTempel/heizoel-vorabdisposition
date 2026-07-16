@@ -5,10 +5,10 @@ import heizoel.backend.confirmation.application.port.out.persistence.Confirmatio
 import heizoel.backend.confirmation.application.port.out.persistence.CustomerResponseRepositoryPort;
 import heizoel.backend.confirmation.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.confirmation.application.port.out.workflow.DispoCallbackWorkflowService;
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
-import heizoel.backend.confirmation.domain.exception.ConfirmationRequestNotFoundException;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
+import heizoel.backend.domain.exception.ConfirmationRequestNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

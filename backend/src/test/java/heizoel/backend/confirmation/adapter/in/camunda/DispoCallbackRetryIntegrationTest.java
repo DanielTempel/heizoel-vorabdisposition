@@ -2,9 +2,9 @@ package heizoel.backend.confirmation.adapter.in.camunda;
 
 import heizoel.backend.confirmation.application.port.in.timeout.HandleNoResponseTimeoutUseCase;
 import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackService;
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
 import heizoel.backend.confirmation.application.port.out.location.GeocodingClient;
-import heizoel.backend.confirmation.domain.model.GeoCoordinate;
+import heizoel.backend.domain.model.GeoCoordinate;
 import heizoel.backend.confirmation.application.port.out.notification.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

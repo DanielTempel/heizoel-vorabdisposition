@@ -1,8 +1,8 @@
 package heizoel.backend.confirmation.application.port.out.notification;
 
-import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
+import heizoel.backend.domain.model.enumeration.CustomerResponseType;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
 
 public interface NotificationService {
 

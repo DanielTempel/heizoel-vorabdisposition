@@ -1,4 +1,4 @@
-package heizoel.backend.confirmation.domain.model;
+package heizoel.backend.domain.model;
 
 public record GeoCoordinate(
         double longitude,

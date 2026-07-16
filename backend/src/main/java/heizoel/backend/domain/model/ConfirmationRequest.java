@@ -1,6 +1,6 @@
-package heizoel.backend.confirmation.domain.model;
+package heizoel.backend.domain.model;
 
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

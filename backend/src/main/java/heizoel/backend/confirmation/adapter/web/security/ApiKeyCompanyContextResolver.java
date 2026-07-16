@@ -2,7 +2,7 @@ package heizoel.backend.confirmation.adapter.web.security;
 
 import heizoel.backend.confirmation.application.model.CompanyContext;
 import heizoel.backend.confirmation.application.port.out.persistence.CompanyRepositoryPort;
-import heizoel.backend.confirmation.domain.model.Company;
+import heizoel.backend.domain.model.Company;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;

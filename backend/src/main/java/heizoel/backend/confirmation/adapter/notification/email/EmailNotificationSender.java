@@ -1,13 +1,13 @@
 package heizoel.backend.confirmation.adapter.notification.email;
 
-import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.CustomerResponseType;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
 import heizoel.backend.confirmation.adapter.notification.NotificationChannelSender;
-import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
+import heizoel.backend.infrastructure.properties.ConfirmationProperties;
 import heizoel.backend.shared.exception.EmailSendingException;
-import heizoel.backend.confirmation.infrastructure.properties.MailProperties;
+import heizoel.backend.infrastructure.properties.MailProperties;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

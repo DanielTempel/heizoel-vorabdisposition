@@ -1,4 +1,4 @@
-package heizoel.backend.confirmation.domain.exception;
+package heizoel.backend.domain.exception;
 
 public class InvalidDeliveryWindowException extends RuntimeException {
     public InvalidDeliveryWindowException(String message) {

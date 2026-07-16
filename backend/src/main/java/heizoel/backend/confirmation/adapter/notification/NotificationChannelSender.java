@@ -1,9 +1,9 @@
 package heizoel.backend.confirmation.adapter.notification;
 
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
-import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.CustomerResponseType;
 
 public interface NotificationChannelSender {
 

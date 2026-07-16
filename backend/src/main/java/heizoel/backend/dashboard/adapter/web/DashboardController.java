@@ -1,9 +1,8 @@
 package heizoel.backend.dashboard.adapter.web;
 
-
 import heizoel.backend.confirmation.adapter.web.security.CompanyContextResolver;
 import heizoel.backend.confirmation.application.model.CompanyContext;
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
 import heizoel.backend.dashboard.adapter.web.dto.DashboardOrderDetailResponseDto;
 import heizoel.backend.dashboard.adapter.web.dto.DashboardOrdersPageResponseDto;
 import heizoel.backend.dashboard.application.port.in.orderdetail.DashboardOrderDetail;

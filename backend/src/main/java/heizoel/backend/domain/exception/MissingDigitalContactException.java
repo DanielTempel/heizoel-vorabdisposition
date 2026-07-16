@@ -1,4 +1,4 @@
-package heizoel.backend.confirmation.domain.exception;
+package heizoel.backend.domain.exception;
 
 public class MissingDigitalContactException extends RuntimeException {
     public MissingDigitalContactException(String message) {

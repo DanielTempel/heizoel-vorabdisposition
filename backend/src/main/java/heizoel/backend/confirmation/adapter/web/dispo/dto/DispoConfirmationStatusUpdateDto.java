@@ -1,7 +1,7 @@
 package heizoel.backend.confirmation.adapter.web.dispo.dto;
 
 
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
 
 public record DispoConfirmationStatusUpdateDto(
         String externalOrderId,

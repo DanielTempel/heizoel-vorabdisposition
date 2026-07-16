@@ -1,6 +1,6 @@
-package heizoel.backend.confirmation.infrastructure.config;
+package heizoel.backend.infrastructure.config;
 
-import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
+import heizoel.backend.infrastructure.properties.ConfirmationProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.context.annotation.Bean;

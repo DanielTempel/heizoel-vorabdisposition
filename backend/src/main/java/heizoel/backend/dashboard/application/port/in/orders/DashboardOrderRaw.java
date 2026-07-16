@@ -1,7 +1,7 @@
 package heizoel.backend.dashboard.application.port.in.orders;
 
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
 
 import java.time.Instant;
 import java.time.LocalDate;

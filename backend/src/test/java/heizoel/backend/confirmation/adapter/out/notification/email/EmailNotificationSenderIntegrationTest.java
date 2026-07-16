@@ -2,11 +2,13 @@ package heizoel.backend.confirmation.adapter.out.notification.email;
 
 import heizoel.backend.confirmation.adapter.notification.email.EmailNotificationSender;
 import heizoel.backend.confirmation.adapter.notification.email.ThymeleafConfirmationMailRenderer;
-import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
-import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
-import heizoel.backend.confirmation.infrastructure.properties.MailProperties;
+import heizoel.backend.domain.model.Company;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.CustomerResponseType;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
+import heizoel.backend.infrastructure.properties.ConfirmationProperties;
+import heizoel.backend.infrastructure.properties.MailProperties;
 import jakarta.mail.BodyPart;
 import jakarta.mail.Multipart;
 import jakarta.mail.Session;
@@ -157,7 +159,7 @@ class EmailNotificationSenderIntegrationTest {
 
     private OrderSnapshot orderSnapshot() {
         return OrderSnapshot.create(
-                heizoel.backend.confirmation.domain.model.Company.create(
+                Company.create(
                         "Company", "api-key-hash", "http://localhost/callback"
                 ),
                 "A-MAIL-1", "Max Muller", "daniel@example.com", null,
@@ -170,7 +172,7 @@ class EmailNotificationSenderIntegrationTest {
         return ConfirmationRequest.create(
                 orderSnapshot(),
                 "token",
-                heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel.EMAIL,
+                CommunicationChannel.EMAIL,
                 LocalDate.of(2026, 6, 12),
                 LocalTime.of(10, 0),
                 LocalTime.of(11, 0),

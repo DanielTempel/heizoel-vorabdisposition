@@ -1,6 +1,8 @@
 package heizoel.backend.confirmation.domain.model;
 
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

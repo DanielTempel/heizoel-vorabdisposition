@@ -6,10 +6,10 @@ import heizoel.backend.confirmation.application.port.out.persistence.OrderSnapsh
 import heizoel.backend.confirmation.application.model.ConfirmationRequestCreationResult;
 import heizoel.backend.confirmation.application.model.CompanyContext;
 import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfirmationRequestCommand;
-import heizoel.backend.confirmation.domain.model.Company;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.exception.InvalidDeliveryWindowException;
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.Company;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

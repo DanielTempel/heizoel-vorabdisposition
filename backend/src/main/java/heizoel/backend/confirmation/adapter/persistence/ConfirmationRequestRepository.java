@@ -1,8 +1,8 @@
 package heizoel.backend.confirmation.adapter.persistence;
 
 import heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

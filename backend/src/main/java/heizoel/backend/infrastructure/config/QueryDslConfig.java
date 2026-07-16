@@ -1,4 +1,4 @@
-package heizoel.backend.dashboard.infrastructure;
+package heizoel.backend.infrastructure.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

@@ -2,11 +2,11 @@ package heizoel.backend.confirmation.adapter.out.workflow;
 
 import heizoel.backend.confirmation.application.port.in.timeout.HandleNoResponseTimeoutUseCase;
 import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackService;
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
 import heizoel.backend.confirmation.application.port.out.location.GeocodingClient;
-import heizoel.backend.confirmation.domain.model.GeoCoordinate;
+import heizoel.backend.domain.model.GeoCoordinate;
 import heizoel.backend.confirmation.application.port.out.notification.NotificationService;
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;

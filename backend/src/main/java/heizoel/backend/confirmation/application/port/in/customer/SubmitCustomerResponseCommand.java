@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.application.port.in.customer;
 
-import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
+import heizoel.backend.domain.model.enumeration.CustomerResponseType;
 
 public record SubmitCustomerResponseCommand(
         String token,

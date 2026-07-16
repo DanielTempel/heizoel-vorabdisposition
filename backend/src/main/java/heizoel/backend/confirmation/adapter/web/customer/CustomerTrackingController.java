@@ -5,7 +5,7 @@ import heizoel.backend.confirmation.adapter.web.customer.dto.TrackingInfoRespons
 import heizoel.backend.confirmation.application.port.in.customer.GetDriverLocationUseCase;
 import heizoel.backend.confirmation.application.port.in.customer.GetTrackingInfoUseCase;
 import heizoel.backend.confirmation.application.port.in.customer.TrackingInfoResult;
-import heizoel.backend.confirmation.domain.model.GeoCoordinate;
+import heizoel.backend.domain.model.GeoCoordinate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;

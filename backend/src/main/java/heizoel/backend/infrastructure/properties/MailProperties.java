@@ -1,4 +1,4 @@
-package heizoel.backend.confirmation.infrastructure.properties;
+package heizoel.backend.infrastructure.properties;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,8 +1,8 @@
 package heizoel.backend.confirmation.adapter.location;
 
-import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
+import heizoel.backend.infrastructure.properties.ConfirmationProperties;
 import heizoel.backend.confirmation.application.port.out.location.LocationTrackingService;
-import heizoel.backend.confirmation.domain.model.GeoCoordinate;
+import heizoel.backend.domain.model.GeoCoordinate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

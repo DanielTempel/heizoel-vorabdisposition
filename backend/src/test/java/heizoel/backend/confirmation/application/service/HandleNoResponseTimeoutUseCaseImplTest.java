@@ -5,10 +5,12 @@ import heizoel.backend.confirmation.application.port.out.persistence.CustomerRes
 import heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort;
 import heizoel.backend.confirmation.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.confirmation.application.usecase.HandleNoResponseTimeoutUseCaseImpl;
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
-import heizoel.backend.confirmation.domain.exception.ConfirmationRequestNotFoundException;
+import heizoel.backend.domain.model.Company;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
+import heizoel.backend.domain.exception.ConfirmationRequestNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -119,7 +121,7 @@ class HandleNoResponseTimeoutUseCaseImplTest {
 
     private ConfirmationRequest confirmationRequest(boolean active, Instant expiresAt) {
         OrderSnapshot orderSnapshot = OrderSnapshot.create(
-                heizoel.backend.confirmation.domain.model.Company.create(
+                Company.create(
                         "Company", "api-key-hash", "http://localhost/callback"
                 ),
                 "A-TIMEOUT-1", "Customer", "customer@example.com", null,
@@ -128,7 +130,7 @@ class HandleNoResponseTimeoutUseCaseImplTest {
         ConfirmationRequest confirmationRequest = ConfirmationRequest.create(
                 orderSnapshot,
                 "token",
-                heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel.EMAIL,
+                CommunicationChannel.EMAIL,
                 java.time.LocalDate.now().plusDays(1),
                 java.time.LocalTime.of(10, 0),
                 java.time.LocalTime.of(11, 0),

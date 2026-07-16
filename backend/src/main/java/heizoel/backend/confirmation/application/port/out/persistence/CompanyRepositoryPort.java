@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.application.port.out.persistence;
 
-import heizoel.backend.confirmation.domain.model.Company;
+import heizoel.backend.domain.model.Company;
 
 import java.util.Optional;
 

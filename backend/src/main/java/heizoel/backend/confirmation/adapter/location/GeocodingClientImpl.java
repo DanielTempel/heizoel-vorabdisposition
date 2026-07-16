@@ -1,8 +1,8 @@
 package heizoel.backend.confirmation.adapter.location;
 
 import heizoel.backend.confirmation.application.port.out.location.GeocodingClient;
-import heizoel.backend.confirmation.domain.model.GeoCoordinate;
-import heizoel.backend.confirmation.infrastructure.properties.LocationGeocodingProperties;
+import heizoel.backend.domain.model.GeoCoordinate;
+import heizoel.backend.infrastructure.properties.LocationGeocodingProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;

@@ -1,6 +1,6 @@
 package heizoel.backend.dashboard.application.port.in.orderdetail;
 
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
 
 import java.time.Instant;
 import java.time.LocalDate;

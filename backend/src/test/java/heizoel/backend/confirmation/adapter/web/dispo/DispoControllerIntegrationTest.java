@@ -2,13 +2,13 @@ package heizoel.backend.confirmation.adapter.web.dispo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import heizoel.backend.confirmation.adapter.persistence.CustomerResponseRepository;
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
 import heizoel.backend.confirmation.adapter.persistence.ConfirmationRequestRepository;
 import heizoel.backend.confirmation.adapter.persistence.OrderSnapshotRepository;
 import heizoel.backend.confirmation.application.port.out.notification.NotificationService;
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

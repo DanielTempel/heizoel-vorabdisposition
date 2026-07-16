@@ -1,11 +1,11 @@
 package heizoel.backend.confirmation.adapter.notification.whatsapp;
 
 import heizoel.backend.confirmation.adapter.notification.NotificationChannelSender;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
-import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
-import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.CustomerResponseType;
+import heizoel.backend.infrastructure.properties.ConfirmationProperties;
 import heizoel.backend.shared.exception.WhatsAppSendingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

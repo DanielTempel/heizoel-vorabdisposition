@@ -1,13 +1,13 @@
 package heizoel.backend.dashboard.adapter.persistence;
 
-import heizoel.backend.confirmation.domain.model.Company;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.Company;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
 import heizoel.backend.dashboard.application.port.in.orders.DashboardOrderRaw;
 import heizoel.backend.dashboard.application.port.out.persistence.DashboardOrderFilter;
-import heizoel.backend.dashboard.infrastructure.QueryDslConfig;
+import heizoel.backend.infrastructure.config.QueryDslConfig;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

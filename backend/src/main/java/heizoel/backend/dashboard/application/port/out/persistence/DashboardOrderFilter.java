@@ -1,6 +1,6 @@
 package heizoel.backend.dashboard.application.port.out.persistence;
 
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
 
 import java.time.LocalDate;
 

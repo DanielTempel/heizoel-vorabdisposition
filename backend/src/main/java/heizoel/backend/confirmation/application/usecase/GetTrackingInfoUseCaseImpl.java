@@ -4,9 +4,9 @@ import heizoel.backend.confirmation.application.port.in.customer.GetTrackingInfo
 import heizoel.backend.confirmation.application.port.in.customer.TrackingInfoResult;
 import heizoel.backend.confirmation.application.port.out.location.DeliveryAddressCoordinateResolver;
 import heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort;
-import heizoel.backend.confirmation.domain.exception.ConfirmationRequestNotFoundException;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.GeoCoordinate;
+import heizoel.backend.domain.exception.ConfirmationRequestNotFoundException;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.GeoCoordinate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

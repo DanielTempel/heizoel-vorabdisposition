@@ -2,9 +2,9 @@ package heizoel.backend.confirmation.adapter.out.dispo;
 
 import heizoel.backend.confirmation.adapter.web.dispo.HttpDispoStatusCallbackService;
 import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackRequest;
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
-import heizoel.backend.confirmation.infrastructure.properties.ConfirmationProperties;
-import heizoel.backend.confirmation.infrastructure.config.DispoCallbackHttpConfig;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.infrastructure.properties.ConfirmationProperties;
+import heizoel.backend.infrastructure.config.DispoCallbackHttpConfig;
 import heizoel.backend.shared.exception.DispoCallbackFailedException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

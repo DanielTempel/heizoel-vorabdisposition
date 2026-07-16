@@ -2,7 +2,7 @@ package heizoel.backend.confirmation.adapter.camunda;
 
 import heizoel.backend.confirmation.application.port.in.dispo.SendDispoStatusCallbackCommand;
 import heizoel.backend.confirmation.application.port.in.dispo.SendDispoStatusCallbackUseCase;
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
 import lombok.RequiredArgsConstructor;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;

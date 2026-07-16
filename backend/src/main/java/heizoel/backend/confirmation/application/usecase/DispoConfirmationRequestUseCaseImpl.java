@@ -9,11 +9,11 @@ import heizoel.backend.confirmation.application.port.out.persistence.CompanyRepo
 import heizoel.backend.confirmation.application.port.out.workflow.NoResponseWorkflowService;
 import heizoel.backend.confirmation.application.model.ConfirmationRequestCreationResult;
 import heizoel.backend.confirmation.application.service.ConfirmationRequestPreparationService;
-import heizoel.backend.confirmation.domain.model.Company;
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
-import heizoel.backend.confirmation.domain.exception.CompanyNotFoundException;
-import heizoel.backend.confirmation.domain.exception.InvalidDeliveryWindowException;
-import heizoel.backend.confirmation.domain.exception.MissingDigitalContactException;
+import heizoel.backend.domain.model.Company;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.exception.CompanyNotFoundException;
+import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
+import heizoel.backend.domain.exception.MissingDigitalContactException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

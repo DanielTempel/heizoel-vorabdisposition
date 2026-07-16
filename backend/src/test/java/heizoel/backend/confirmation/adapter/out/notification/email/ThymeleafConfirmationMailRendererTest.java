@@ -1,8 +1,10 @@
 package heizoel.backend.confirmation.adapter.out.notification.email;
 
 import heizoel.backend.confirmation.adapter.notification.email.ThymeleafConfirmationMailRenderer;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.Company;
+import heizoel.backend.domain.model.OrderSnapshot;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
 import org.junit.jupiter.api.Test;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
@@ -76,7 +78,7 @@ class ThymeleafConfirmationMailRendererTest {
 
     private OrderSnapshot orderSnapshot() {
         return OrderSnapshot.create(
-                heizoel.backend.confirmation.domain.model.Company.create(
+                Company.create(
                         "Company", "api-key-hash", "http://localhost/callback"
                 ),
                 "A-123", "Max Muller", null, null,
@@ -89,7 +91,7 @@ class ThymeleafConfirmationMailRendererTest {
         return ConfirmationRequest.create(
                 orderSnapshot(),
                 "token",
-                heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel.EMAIL,
+                CommunicationChannel.EMAIL,
                 LocalDate.of(2026, 6, 12),
                 LocalTime.of(10, 0),
                 LocalTime.of(11, 0),

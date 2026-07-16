@@ -1,7 +1,7 @@
 package heizoel.backend.confirmation.application.port.out.persistence;
 
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.CustomerResponse;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.CustomerResponse;
 
 import java.util.Optional;
 

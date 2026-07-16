@@ -7,7 +7,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import heizoel.backend.confirmation.domain.model.QConfirmationRequest;
 import heizoel.backend.confirmation.domain.model.QOrderSnapshot;
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
 import heizoel.backend.dashboard.application.port.in.orders.DashboardOrderRaw;
 import heizoel.backend.dashboard.application.port.out.persistence.DashboardOrderFilter;
 import heizoel.backend.dashboard.application.port.out.persistence.DashboardOrderQueryPort;

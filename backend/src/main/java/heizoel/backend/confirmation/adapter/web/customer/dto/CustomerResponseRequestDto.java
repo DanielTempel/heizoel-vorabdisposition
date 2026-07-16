@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.adapter.web.customer.dto;
 
-import heizoel.backend.confirmation.domain.model.enumeration.CustomerResponseType;
+import heizoel.backend.domain.model.enumeration.CustomerResponseType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 

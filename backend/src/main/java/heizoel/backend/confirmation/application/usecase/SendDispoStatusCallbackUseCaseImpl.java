@@ -5,8 +5,8 @@ import heizoel.backend.confirmation.application.port.in.dispo.SendDispoStatusCal
 import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackRequest;
 import heizoel.backend.confirmation.application.port.out.dispo.DispoStatusCallbackService;
 import heizoel.backend.confirmation.application.port.out.persistence.OrderSnapshotRepositoryPort;
-import heizoel.backend.confirmation.domain.exception.OrderSnapshotNotFoundException;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
+import heizoel.backend.domain.exception.OrderSnapshotNotFoundException;
+import heizoel.backend.domain.model.OrderSnapshot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

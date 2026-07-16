@@ -1,6 +1,6 @@
 package heizoel.backend.confirmation.application.port.in.confirmation;
 
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
 
 public record CreateConfirmationRequestResult(
         String externalOrderId,

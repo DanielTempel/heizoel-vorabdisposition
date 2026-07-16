@@ -5,12 +5,12 @@ import heizoel.backend.confirmation.application.port.in.confirmation.CreateConfi
 import heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort;
 import heizoel.backend.confirmation.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.confirmation.application.port.out.token.TokenService;
-import heizoel.backend.confirmation.domain.model.Company;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.OrderSnapshot;
-import heizoel.backend.confirmation.domain.model.enumeration.CommunicationChannel;
-import heizoel.backend.confirmation.domain.model.enumeration.ConfirmationStatus;
-import heizoel.backend.confirmation.domain.exception.InvalidDeliveryWindowException;
+import heizoel.backend.domain.model.Company;
+import heizoel.backend.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.model.OrderSnapshot;
+import heizoel.backend.domain.model.enumeration.CommunicationChannel;
+import heizoel.backend.domain.model.enumeration.ConfirmationStatus;
+import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

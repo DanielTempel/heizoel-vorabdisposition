@@ -4,8 +4,8 @@ import heizoel.backend.confirmation.application.port.in.customer.DriverLocationR
 import heizoel.backend.confirmation.application.port.in.customer.GetDriverLocationUseCase;
 import heizoel.backend.confirmation.application.port.out.location.LocationTrackingService;
 import heizoel.backend.confirmation.application.port.out.persistence.ConfirmationRequestRepositoryPort;
-import heizoel.backend.confirmation.domain.exception.ConfirmationRequestNotFoundException;
-import heizoel.backend.confirmation.domain.model.ConfirmationRequest;
+import heizoel.backend.domain.exception.ConfirmationRequestNotFoundException;
+import heizoel.backend.domain.model.ConfirmationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
