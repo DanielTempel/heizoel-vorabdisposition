@@ -1,0 +1,111 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{pdflscape}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,matrix}
+
+\geometry{left=2.25cm,right=2.25cm,top=2.35cm,bottom=2.35cm}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlist[itemize]{leftmargin=1.4em,itemsep=0.22em,topsep=0.25em}
+\setlist[enumerate]{leftmargin=1.6em,itemsep=0.22em,topsep=0.25em}
+\renewcommand{\arraystretch}{1.18}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\definecolor{MinovaBlue}{HTML}{2F6F9F}
+\definecolor{MinovaDark}{HTML}{203040}
+\definecolor{SoftBlue}{HTML}{EAF2F8}
+\definecolor{SoftGray}{HTML}{F3F4F6}
+\definecolor{SoftGreen}{HTML}{E8F5E9}
+\definecolor{SoftOrange}{HTML}{FFF4E5}
+\definecolor{SoftRed}{HTML}{FDECEC}
+\definecolor{ProblemRed}{HTML}{B3261E}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=MinovaBlue,
+  urlcolor=MinovaBlue,
+  pdftitle={System zur digitalen Lieferavisierung},
+  pdfsubject={Gesamtuebersicht und Komponentenmodell},
+  pdfauthor={Projektteam Heizoel-Vorabdisposition}
+}
+
+\titleformat{\section}{\Large\bfseries\color{MinovaDark}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\large\bfseries\color{MinovaDark}}{\thesubsection}{0.7em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small Digitale Lieferavisierung}
+\rhead{\small Gesamtübersicht}
+\cfoot{\thepage}
+\setlength{\headheight}{14pt}
+
+\newcommand{\infobox}[2]{%
+  \begin{center}
+  \fcolorbox{MinovaBlue}{SoftBlue}{%
+    \begin{minipage}{0.92\textwidth}
+      \textbf{#1}\par\smallskip #2
+    \end{minipage}}
+  \end{center}}
+
+\begin{document}
+
+\begin{titlepage}
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[MinovaDark] (current page.north west) rectangle
+      ([yshift=-8.7cm]current page.north east);
+    \fill[MinovaBlue] ([yshift=-8.7cm]current page.north west) rectangle
+      ([yshift=-8.95cm]current page.north east);
+  \end{tikzpicture}
+
+  \vspace*{1.6cm}
+  {\color{white}\Huge\bfseries System zur digitalen\par}
+  \vspace{0.18cm}
+  {\color{white}\Huge\bfseries Lieferavisierung\par}
+  \vspace{0.35cm}
+  {\color{white}\Large Gesamtübersicht und Komponentenmodell\par}
+
+  \vspace{6.0cm}
+  {\Large\bfseries Integration in das DISPO-Umfeld\par}
+  \vspace{0.5cm}
+  {\large Zweck, Systemgrenze, Komponenten und Zusammenspiel\par}
+
+  \vfill
+  \begin{tabular}{@{}ll@{}}
+    Dokumenttyp: & Fachlich-technischer Überblick\\
+    Sprache: & Deutsch\\
+    Stand: & 19. Juli 2026\\
+  \end{tabular}
+\end{titlepage}
+
+\pagenumbering{roman}
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\input{sections/01-ziel-und-einordnung}
+\input{sections/02-dispo}
+\input{sections/03-ausgangslage-und-zielbild}
+\input{sections/04-systemkontext}
+\input{sections/05-komponenten}
+\input{sections/06-ablauf}
+\input{sections/07-statusmodell}
+\input{sections/08-umsetzungsstand}
+
+\end{document}

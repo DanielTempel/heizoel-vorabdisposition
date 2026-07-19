@@ -1,0 +1,37 @@
+\clearpage
+\section{Rolle von DISPO und Systemgrenze}
+
+\subsection{Rolle von DISPO}
+
+DISPO ist die führende Arbeitsumgebung für die Planung und Bearbeitung von Lieferaufträgen.
+Es verwaltet unter anderem Aufträge, Touren, Fahrzeuge, Lieferdaten und Zeitfenster. Die
+digitale Lieferavisierung erhält daraus die Daten eines bereits geplanten Liefertermins und
+gibt die Kundenreaktion zurück.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{assets/screenshots/dispo-overview-anonymized.png}
+  \caption{Anonymisierte DISPO-Ansicht mit Karte, Auftragsliste, Tour und Lieferdetails}
+  \label{fig:dispo-overview}
+\end{figure}
+
+Die Schaltfläche zum Starten einer Avisierung und die Darstellung des Rückmeldestatus sind
+noch keine vorhandenen oder zugesagten DISPO-Funktionen. Sie bilden einen Vorschlag für die
+spätere Integration und müssen mit dem DISPO-Produktteam abgestimmt werden.
+
+\subsection{Verantwortungsgrenze}
+
+\begin{center}
+\begin{tabularx}{0.94\textwidth}{>{\bfseries}L{3.2cm}X}
+\hline
+DISPO & Plant und ändert Aufträge, Touren, Fahrzeuge, Lieferdaten und Zeitfenster.\\
+\hline
+Lieferavisierung & Versendet die Lieferankündigung, speichert die Kundenantwort und macht sie sichtbar.\\
+\hline
+\end{tabularx}
+\end{center}
+
+\infobox{Klare Systemgrenze}{%
+Planung und Änderung von Aufträgen, Touren und Zeitfenstern erfolgen ausschlie\ss{}lich in
+DISPO. Die digitale Lieferavisierung kommuniziert die bereits geplanten Daten und erfasst die
+Antwort des Kunden.}

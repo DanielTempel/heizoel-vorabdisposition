@@ -1,0 +1,31 @@
+\clearpage
+\section{Zentraler Interaktionsablauf}
+
+\subsection{Standardfall}
+
+Der Standardfall beschreibt eine erfolgreiche Bestätigung des vorgeschlagenen
+Lieferzeitfensters:
+
+\begin{enumerate}
+  \item Der Disponent plant Auftrag und Tour in DISPO.
+  \item Er startet die Avisierung für einen einzelnen Auftrag.
+  \item DISPO übergibt die geplanten Lieferdaten an den Avisierungsservice.
+  \item Der Avisierungsservice versendet eine Nachricht mit persönlichem Link.
+  \item Der Kunde öffnet die Bestätigungsseite und bestätigt das Zeitfenster.
+  \item Der Avisierungsservice speichert die Rückmeldung als \texttt{CONFIRMED}.
+  \item Das Ergebnis erscheint im Avisierungsdashboard und wird an DISPO zurückgemeldet.
+\end{enumerate}
+
+\input{diagrams/sequence}
+
+\subsection{Fälle mit Handlungsbedarf}
+
+Lehnt der Kunde das Zeitfenster ab, wird der Fall als \texttt{REJECTED} mit seinem Kommentar
+angezeigt. Bleibt eine Antwort innerhalb der vorgesehenen Frist aus, wird er als
+\texttt{NO\_RESPONSE} sichtbar. Beide Fälle erfordern eine Entscheidung des Disponenten.
+
+Der Disponent kann die unveränderte Anfrage über einen anderen Kanal erneut versenden. Muss
+das Lieferzeitfenster geändert werden, erfolgt diese Änderung zuerst in DISPO; anschlie\ss{}end
+wird eine neue Avisierung ausgelöst. Wird die Situation telefonisch geklärt, kann der
+Disponent den Fall in der Detailansicht manuell bestätigen. Diese Aktion wird mit Benutzer
+und Zeitpunkt protokolliert und ebenfalls an DISPO zurückgemeldet.

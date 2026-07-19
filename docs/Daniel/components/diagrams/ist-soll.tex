@@ -1,0 +1,30 @@
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  box/.style={draw=MinovaDark,rounded corners=2pt,minimum width=2.65cm,minimum height=1.05cm,align=center,fill=white},
+  old/.style={box,fill=SoftGray},
+  new/.style={box,fill=SoftBlue,draw=MinovaBlue},
+  arrow/.style={-{Latex[length=2.4mm]},thick,draw=MinovaDark}
+]
+  \node[old] (plan-old) {Liefertermin\\planen};
+  \node[old,right=0.65cm of plan-old] (call) {Kunden\\anrufen};
+  \node[old,right=0.65cm of call] (retry) {Erneut anrufen\\oder Rückruf};
+  \node[old,right=0.65cm of retry] (record) {Ergebnis manuell\\festhalten};
+  \draw[arrow] (plan-old) -- (call);
+  \draw[arrow] (call) -- (retry);
+  \draw[arrow] (retry) -- (record);
+  \node[anchor=east,font=\bfseries,text=MinovaDark] at ([xshift=-0.25cm]plan-old.west) {IST};
+
+  \node[new,below=1.25cm of plan-old] (plan-new) {Liefertermin\\planen};
+  \node[new,right=0.65cm of plan-new] (send) {Avisierung\\starten};
+  \node[new,right=0.65cm of send] (answer) {Kunde antwortet\\digital};
+  \node[new,right=0.65cm of answer] (callback) {Ergebnis wird\\sichtbar};
+  \draw[arrow,draw=MinovaBlue] (plan-new) -- (send);
+  \draw[arrow,draw=MinovaBlue] (send) -- (answer);
+  \draw[arrow,draw=MinovaBlue] (answer) -- (callback);
+  \node[anchor=east,font=\bfseries,text=MinovaBlue] at ([xshift=-0.25cm]plan-new.west) {ZIEL};
+\end{tikzpicture}
+\caption{Vom telefonischen Einzelprozess zur digitalen Lieferavisierung}
+\label{fig:ist-soll}
+\end{figure}

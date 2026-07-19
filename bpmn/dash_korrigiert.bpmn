@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_DashboardNutzung_Korrigiert" targetNamespace="http://heizoel/avisierungsdashboard" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.21.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.22.0">
+  <bpmn:process id="Process_DashboardNutzung" name="Nutzung des Avisierungsdashboards" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_DashboardNutzung">
+      <bpmn:lane id="Lane_DISPO" name="DISPO">
+        <bpmn:flowNodeRef>Task_AdjustOrder</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AvisierenAgain</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UpdateConfirmationInDispo</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Dashboard" name="Avisierungsdashboard">
+        <bpmn:flowNodeRef>Gateway_MergeStandardView</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ShowStandardView</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ShowSelectedTour</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ShowComment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ManualConfirmation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ResendOtherChannel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenProblemOrder</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ProblemStatus</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Disponent" name="Disponent">
+        <bpmn:flowNodeRef>Task_OpenDashboard</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_MergeSelectTour</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SelectTour</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_MergeCheckTour</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CheckTour</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_MergeGoToDispo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_GoToDispo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReturnToDashboard</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CallCustomer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>StartEvent_Dashboard</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Finished</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_MoreTours</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ProblemExists</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_NoResponseAction</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_PhoneConfirmed</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Dashboard" name="Avisierungsfälle liegen zur Prüfung vor">
+      <bpmn:outgoing>Flow_Start_OpenDashboard</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_OpenDashboard" name="Avisierungsdashboard öffnen">
+      <bpmn:incoming>Flow_Start_OpenDashboard</bpmn:incoming>
+      <bpmn:outgoing>Flow_OpenDashboard_MergeStandardView</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_MergeStandardView">
+      <bpmn:incoming>Flow_OpenDashboard_MergeStandardView</bpmn:incoming>
+      <bpmn:incoming>Flow_Return_MergeStandardView</bpmn:incoming>
+      <bpmn:outgoing>Flow_MergeStandardView_ShowStandardView</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_ShowStandardView" name="Standardansicht anzeigen">
+      <bpmn:incoming>Flow_MergeStandardView_ShowStandardView</bpmn:incoming>
+      <bpmn:outgoing>Flow_ShowStandardView_MergeSelectTour</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_MergeSelectTour">
+      <bpmn:incoming>Flow_ShowStandardView_MergeSelectTour</bpmn:incoming>
+      <bpmn:incoming>Flow_MoreTours_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_MergeSelectTour_SelectTour</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_SelectTour" name="Zu bearbeitende Tour auswählen">
+      <bpmn:incoming>Flow_MergeSelectTour_SelectTour</bpmn:incoming>
+      <bpmn:outgoing>Flow_SelectTour_ShowSelectedTour</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_ShowSelectedTour" name="Avisierungsstatus der Tour anzeigen">
+      <bpmn:incoming>Flow_SelectTour_ShowSelectedTour</bpmn:incoming>
+      <bpmn:outgoing>Flow_ShowSelectedTour_MergeCheckTour</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_MergeCheckTour">
+      <bpmn:incoming>Flow_ShowSelectedTour_MergeCheckTour</bpmn:incoming>
+      <bpmn:incoming>Flow_Resend_MergeCheckTour</bpmn:incoming>
+      <bpmn:incoming>Flow_UpdateConfirmation_MergeCheckTour</bpmn:incoming>
+      <bpmn:outgoing>Flow_MergeCheckTour_CheckTour</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_CheckTour" name="Status und Handlungsbedarf prüfen">
+      <bpmn:incoming>Flow_MergeCheckTour_CheckTour</bpmn:incoming>
+      <bpmn:outgoing>Flow_CheckTour_ProblemExists</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_ProblemExists" name="Problemfall vorhanden?">
+      <bpmn:incoming>Flow_CheckTour_ProblemExists</bpmn:incoming>
+      <bpmn:outgoing>Flow_ProblemExists_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ProblemExists_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_MoreTours" name="Weitere Tour bearbeiten?">
+      <bpmn:incoming>Flow_ProblemExists_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_MoreTours_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_MoreTours_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_Finished" name="Bearbeitung abgeschlossen">
+      <bpmn:incoming>Flow_MoreTours_No</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Gateway_ProblemStatus" name="Welcher Avisierungsstatus liegt vor?">
+      <bpmn:incoming>Flow_ProblemExists_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Status_Rejected</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Status_NoResponse</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_OpenProblemOrder" name="Lieferauftragsdetails öffnen">
+      <bpmn:incoming>Flow_Status_Rejected</bpmn:incoming>
+      <bpmn:outgoing>Flow_OpenOrder_ShowComment</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_ShowComment" name="Kundenkommentar anzeigen">
+      <bpmn:incoming>Flow_OpenOrder_ShowComment</bpmn:incoming>
+      <bpmn:outgoing>Flow_ShowComment_MergeGoToDispo</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_NoResponseAction" name="Wie soll weiter vorgegangen werden?">
+      <bpmn:incoming>Flow_Status_NoResponse</bpmn:incoming>
+      <bpmn:outgoing>Flow_Action_OtherChannel</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Action_Phone</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_ResendOtherChannel" name="Gleichen Termin über anderen Kanal senden">
+      <bpmn:incoming>Flow_Action_OtherChannel</bpmn:incoming>
+      <bpmn:outgoing>Flow_Resend_MergeCheckTour</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_CallCustomer" name="Kunden telefonisch kontaktieren">
+      <bpmn:incoming>Flow_Action_Phone</bpmn:incoming>
+      <bpmn:outgoing>Flow_Call_PhoneConfirmed</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_PhoneConfirmed" name="Termin telefonisch bestätigt?">
+      <bpmn:incoming>Flow_Call_PhoneConfirmed</bpmn:incoming>
+      <bpmn:outgoing>Flow_PhoneConfirmed_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_PhoneConfirmed_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_ManualConfirmation" name="Termin manuell als bestätigt markieren">
+      <bpmn:incoming>Flow_PhoneConfirmed_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_ManualConfirmation_UpdateDispo</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_UpdateConfirmationInDispo" name="Bestätigungsstatus in DISPO aktualisieren">
+      <bpmn:incoming>Flow_ManualConfirmation_UpdateDispo</bpmn:incoming>
+      <bpmn:outgoing>Flow_UpdateConfirmation_MergeCheckTour</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_MergeGoToDispo">
+      <bpmn:incoming>Flow_ShowComment_MergeGoToDispo</bpmn:incoming>
+      <bpmn:incoming>Flow_PhoneConfirmed_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_MergeGoToDispo_GoToDispo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_GoToDispo" name="Zu DISPO wechseln">
+      <bpmn:incoming>Flow_MergeGoToDispo_GoToDispo</bpmn:incoming>
+      <bpmn:outgoing>Flow_GoToDispo_AdjustOrder</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_AdjustOrder" name="Tour, Lieferdatum oder Lieferzeit anpassen">
+      <bpmn:incoming>Flow_GoToDispo_AdjustOrder</bpmn:incoming>
+      <bpmn:outgoing>Flow_AdjustOrder_AvisierenAgain</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_AvisierenAgain" name="Lieferauftrag erneut avisieren">
+      <bpmn:incoming>Flow_AdjustOrder_AvisierenAgain</bpmn:incoming>
+      <bpmn:outgoing>Flow_AvisierenAgain_ReturnDashboard</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ReturnToDashboard" name="Zum Avisierungsdashboard zurückkehren">
+      <bpmn:incoming>Flow_AvisierenAgain_ReturnDashboard</bpmn:incoming>
+      <bpmn:outgoing>Flow_Return_MergeStandardView</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_Start_OpenDashboard" sourceRef="StartEvent_Dashboard" targetRef="Task_OpenDashboard" />
+    <bpmn:sequenceFlow id="Flow_OpenDashboard_MergeStandardView" sourceRef="Task_OpenDashboard" targetRef="Gateway_MergeStandardView" />
+    <bpmn:sequenceFlow id="Flow_Return_MergeStandardView" sourceRef="Task_ReturnToDashboard" targetRef="Gateway_MergeStandardView" />
+    <bpmn:sequenceFlow id="Flow_MergeStandardView_ShowStandardView" sourceRef="Gateway_MergeStandardView" targetRef="Task_ShowStandardView" />
+    <bpmn:sequenceFlow id="Flow_ShowStandardView_MergeSelectTour" sourceRef="Task_ShowStandardView" targetRef="Gateway_MergeSelectTour" />
+    <bpmn:sequenceFlow id="Flow_MoreTours_Yes" name="Ja" sourceRef="Gateway_MoreTours" targetRef="Gateway_MergeSelectTour" />
+    <bpmn:sequenceFlow id="Flow_MergeSelectTour_SelectTour" sourceRef="Gateway_MergeSelectTour" targetRef="Task_SelectTour" />
+    <bpmn:sequenceFlow id="Flow_SelectTour_ShowSelectedTour" sourceRef="Task_SelectTour" targetRef="Task_ShowSelectedTour" />
+    <bpmn:sequenceFlow id="Flow_ShowSelectedTour_MergeCheckTour" sourceRef="Task_ShowSelectedTour" targetRef="Gateway_MergeCheckTour" />
+    <bpmn:sequenceFlow id="Flow_Resend_MergeCheckTour" sourceRef="Task_ResendOtherChannel" targetRef="Gateway_MergeCheckTour" />
+    <bpmn:sequenceFlow id="Flow_UpdateConfirmation_MergeCheckTour" sourceRef="Task_UpdateConfirmationInDispo" targetRef="Gateway_MergeCheckTour" />
+    <bpmn:sequenceFlow id="Flow_MergeCheckTour_CheckTour" sourceRef="Gateway_MergeCheckTour" targetRef="Task_CheckTour" />
+    <bpmn:sequenceFlow id="Flow_CheckTour_ProblemExists" sourceRef="Task_CheckTour" targetRef="Gateway_ProblemExists" />
+    <bpmn:sequenceFlow id="Flow_ProblemExists_Yes" name="Ja" sourceRef="Gateway_ProblemExists" targetRef="Gateway_ProblemStatus" />
+    <bpmn:sequenceFlow id="Flow_ProblemExists_No" name="Nein" sourceRef="Gateway_ProblemExists" targetRef="Gateway_MoreTours" />
+    <bpmn:sequenceFlow id="Flow_MoreTours_No" name="Nein" sourceRef="Gateway_MoreTours" targetRef="EndEvent_Finished" />
+    <bpmn:sequenceFlow id="Flow_Status_Rejected" name="Abgelehnt" sourceRef="Gateway_ProblemStatus" targetRef="Task_OpenProblemOrder" />
+    <bpmn:sequenceFlow id="Flow_Status_NoResponse" name="Keine Rückmeldung" sourceRef="Gateway_ProblemStatus" targetRef="Gateway_NoResponseAction" />
+    <bpmn:sequenceFlow id="Flow_OpenOrder_ShowComment" sourceRef="Task_OpenProblemOrder" targetRef="Task_ShowComment" />
+    <bpmn:sequenceFlow id="Flow_ShowComment_MergeGoToDispo" sourceRef="Task_ShowComment" targetRef="Gateway_MergeGoToDispo" />
+    <bpmn:sequenceFlow id="Flow_Action_OtherChannel" name="Anderer Kanal" sourceRef="Gateway_NoResponseAction" targetRef="Task_ResendOtherChannel" />
+    <bpmn:sequenceFlow id="Flow_Action_Phone" name="Telefonisch klären" sourceRef="Gateway_NoResponseAction" targetRef="Task_CallCustomer" />
+    <bpmn:sequenceFlow id="Flow_Call_PhoneConfirmed" sourceRef="Task_CallCustomer" targetRef="Gateway_PhoneConfirmed" />
+    <bpmn:sequenceFlow id="Flow_PhoneConfirmed_Yes" name="Ja" sourceRef="Gateway_PhoneConfirmed" targetRef="Task_ManualConfirmation" />
+    <bpmn:sequenceFlow id="Flow_PhoneConfirmed_No" name="Nein" sourceRef="Gateway_PhoneConfirmed" targetRef="Gateway_MergeGoToDispo" />
+    <bpmn:sequenceFlow id="Flow_ManualConfirmation_UpdateDispo" sourceRef="Task_ManualConfirmation" targetRef="Task_UpdateConfirmationInDispo" />
+    <bpmn:sequenceFlow id="Flow_MergeGoToDispo_GoToDispo" sourceRef="Gateway_MergeGoToDispo" targetRef="Task_GoToDispo" />
+    <bpmn:sequenceFlow id="Flow_GoToDispo_AdjustOrder" sourceRef="Task_GoToDispo" targetRef="Task_AdjustOrder" />
+    <bpmn:sequenceFlow id="Flow_AdjustOrder_AvisierenAgain" sourceRef="Task_AdjustOrder" targetRef="Task_AvisierenAgain" />
+    <bpmn:sequenceFlow id="Flow_AvisierenAgain_ReturnDashboard" sourceRef="Task_AvisierenAgain" targetRef="Task_ReturnToDashboard" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_DashboardNutzung">
+    <bpmndi:BPMNPlane id="BPMNPlane_DashboardNutzung" bpmnElement="Process_DashboardNutzung">
+      <bpmndi:BPMNShape id="Shape_Lane_DISPO" bpmnElement="Lane_DISPO" isHorizontal="true">
+        <dc:Bounds x="120" y="700" width="3950" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Dashboard" bpmnElement="Lane_Dashboard" isHorizontal="true">
+        <dc:Bounds x="120" y="410" width="3950" height="290" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Disponent" bpmnElement="Lane_Disponent" isHorizontal="true">
+        <dc:Bounds x="120" y="130" width="3950" height="280" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_StartEvent_Dashboard" bpmnElement="StartEvent_Dashboard">
+        <dc:Bounds x="160" y="240" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="141" y="282" width="128" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_OpenDashboard" bpmnElement="Task_OpenDashboard">
+        <dc:Bounds x="230" y="215" width="170" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_MergeStandardView" bpmnElement="Gateway_MergeStandardView" isMarkerVisible="true">
+        <dc:Bounds x="450" y="510" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ShowStandardView" bpmnElement="Task_ShowStandardView">
+        <dc:Bounds x="540" y="495" width="180" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_MergeSelectTour" bpmnElement="Gateway_MergeSelectTour" isMarkerVisible="true">
+        <dc:Bounds x="780" y="230" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_SelectTour" bpmnElement="Task_SelectTour">
+        <dc:Bounds x="870" y="215" width="180" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ShowSelectedTour" bpmnElement="Task_ShowSelectedTour">
+        <dc:Bounds x="1100" y="490" width="190" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_MergeCheckTour" bpmnElement="Gateway_MergeCheckTour" isMarkerVisible="true">
+        <dc:Bounds x="1340" y="230" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_CheckTour" bpmnElement="Task_CheckTour">
+        <dc:Bounds x="1430" y="215" width="180" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_ProblemExists" bpmnElement="Gateway_ProblemExists" isMarkerVisible="true">
+        <dc:Bounds x="1650" y="230" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1616" y="211" width="117" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_MoreTours" bpmnElement="Gateway_MoreTours" isMarkerVisible="true">
+        <dc:Bounds x="1780" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1693" y="143" width="124" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndEvent_Finished" bpmnElement="EndEvent_Finished">
+        <dc:Bounds x="1940" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1923" y="204" width="74" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_MergeGoToDispo" bpmnElement="Gateway_MergeGoToDispo" isMarkerVisible="true">
+        <dc:Bounds x="2910" y="230" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_GoToDispo" bpmnElement="Task_GoToDispo">
+        <dc:Bounds x="3000" y="215" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AdjustOrder" bpmnElement="Task_AdjustOrder">
+        <dc:Bounds x="3230" y="715" width="220" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_AvisierenAgain" bpmnElement="Task_AvisierenAgain">
+        <dc:Bounds x="3510" y="715" width="190" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ReturnToDashboard" bpmnElement="Task_ReturnToDashboard">
+        <dc:Bounds x="3750" y="215" width="190" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_ProblemStatus" bpmnElement="Gateway_ProblemStatus" isMarkerVisible="true">
+        <dc:Bounds x="1715" y="450" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1664" y="508" width="153" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ShowComment" bpmnElement="Task_ShowComment">
+        <dc:Bounds x="2210" y="525" width="170" height="70" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_NoResponseAction" bpmnElement="Gateway_NoResponseAction" isMarkerVisible="true">
+        <dc:Bounds x="1885" y="275" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1841" y="230" width="139" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_CallCustomer" bpmnElement="Task_CallCustomer">
+        <dc:Bounds x="2080" y="265" width="180" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway_PhoneConfirmed" bpmnElement="Gateway_PhoneConfirmed" isMarkerVisible="true">
+        <dc:Bounds x="2375" y="275" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2340" y="251" width="140" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ManualConfirmation" bpmnElement="Task_ManualConfirmation">
+        <dc:Bounds x="2560" y="480" width="200" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_ResendOtherChannel" bpmnElement="Task_ResendOtherChannel">
+        <dc:Bounds x="2490" y="610" width="220" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_OpenProblemOrder" bpmnElement="Task_OpenProblemOrder">
+        <dc:Bounds x="1975" y="525" width="180" height="70" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Task_UpdateConfirmationInDispo" bpmnElement="Task_UpdateConfirmationInDispo">
+        <dc:Bounds x="2810" y="740" width="210" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow_Start_OpenDashboard" bpmnElement="Flow_Start_OpenDashboard">
+        <di:waypoint x="196" y="258" />
+        <di:waypoint x="230" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_OpenDashboard_MergeStandardView" bpmnElement="Flow_OpenDashboard_MergeStandardView">
+        <di:waypoint x="400" y="255" />
+        <di:waypoint x="420" y="255" />
+        <di:waypoint x="420" y="535" />
+        <di:waypoint x="450" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Return_MergeStandardView" bpmnElement="Flow_Return_MergeStandardView">
+        <di:waypoint x="3940" y="255" />
+        <di:waypoint x="3980" y="255" />
+        <di:waypoint x="3980" y="980" />
+        <di:waypoint x="410" y="980" />
+        <di:waypoint x="410" y="535" />
+        <di:waypoint x="450" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_MergeStandardView_ShowStandardView" bpmnElement="Flow_MergeStandardView_ShowStandardView">
+        <di:waypoint x="500" y="535" />
+        <di:waypoint x="540" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ShowStandardView_MergeSelectTour" bpmnElement="Flow_ShowStandardView_MergeSelectTour">
+        <di:waypoint x="720" y="535" />
+        <di:waypoint x="750" y="535" />
+        <di:waypoint x="750" y="255" />
+        <di:waypoint x="780" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_MoreTours_Yes" bpmnElement="Flow_MoreTours_Yes">
+        <di:waypoint x="1830" y="180" />
+        <di:waypoint x="1850" y="180" />
+        <di:waypoint x="1850" y="90" />
+        <di:waypoint x="740" y="90" />
+        <di:waypoint x="740" y="255" />
+        <di:waypoint x="780" y="255" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1854" y="83" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_MergeSelectTour_SelectTour" bpmnElement="Flow_MergeSelectTour_SelectTour">
+        <di:waypoint x="830" y="255" />
+        <di:waypoint x="870" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_SelectTour_ShowSelectedTour" bpmnElement="Flow_SelectTour_ShowSelectedTour">
+        <di:waypoint x="1050" y="255" />
+        <di:waypoint x="1070" y="255" />
+        <di:waypoint x="1070" y="535" />
+        <di:waypoint x="1100" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ShowSelectedTour_MergeCheckTour" bpmnElement="Flow_ShowSelectedTour_MergeCheckTour">
+        <di:waypoint x="1290" y="535" />
+        <di:waypoint x="1310" y="535" />
+        <di:waypoint x="1310" y="255" />
+        <di:waypoint x="1340" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Resend_MergeCheckTour" bpmnElement="Flow_Resend_MergeCheckTour">
+        <di:waypoint x="2710" y="650" />
+        <di:waypoint x="2730" y="650" />
+        <di:waypoint x="2730" y="900" />
+        <di:waypoint x="1300" y="900" />
+        <di:waypoint x="1300" y="255" />
+        <di:waypoint x="1340" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_UpdateConfirmation_MergeCheckTour" bpmnElement="Flow_UpdateConfirmation_MergeCheckTour">
+        <di:waypoint x="3020" y="780" />
+        <di:waypoint x="3040" y="780" />
+        <di:waypoint x="3040" y="930" />
+        <di:waypoint x="1320" y="930" />
+        <di:waypoint x="1320" y="255" />
+        <di:waypoint x="1340" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_MergeCheckTour_CheckTour" bpmnElement="Flow_MergeCheckTour_CheckTour">
+        <di:waypoint x="1390" y="255" />
+        <di:waypoint x="1430" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_CheckTour_ProblemExists" bpmnElement="Flow_CheckTour_ProblemExists">
+        <di:waypoint x="1610" y="255" />
+        <di:waypoint x="1650" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ProblemExists_Yes" bpmnElement="Flow_ProblemExists_Yes">
+        <di:waypoint x="1700" y="255" />
+        <di:waypoint x="1710" y="255" />
+        <di:waypoint x="1710" y="475" />
+        <di:waypoint x="1715" y="475" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1749" y="273" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ProblemExists_No" bpmnElement="Flow_ProblemExists_No">
+        <di:waypoint x="1700" y="255" />
+        <di:waypoint x="1740" y="255" />
+        <di:waypoint x="1740" y="180" />
+        <di:waypoint x="1780" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1743" y="211" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_MoreTours_No" bpmnElement="Flow_MoreTours_No">
+        <di:waypoint x="1830" y="180" />
+        <di:waypoint x="1940" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1873" y="161" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Status_Rejected" bpmnElement="Flow_Status_Rejected">
+        <di:waypoint x="1765" y="475" />
+        <di:waypoint x="1875" y="475" />
+        <di:waypoint x="1875" y="560" />
+        <di:waypoint x="1975" y="560" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1825" y="545" width="50" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Status_NoResponse" bpmnElement="Flow_Status_NoResponse">
+        <di:waypoint x="1765" y="475" />
+        <di:waypoint x="1860" y="475" />
+        <di:waypoint x="1860" y="300" />
+        <di:waypoint x="1885" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1755" y="318" width="99" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_OpenOrder_ShowComment" bpmnElement="Flow_OpenOrder_ShowComment">
+        <di:waypoint x="2155" y="560" />
+        <di:waypoint x="2210" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ShowComment_MergeGoToDispo" bpmnElement="Flow_ShowComment_MergeGoToDispo">
+        <di:waypoint x="2380" y="560" />
+        <di:waypoint x="2410" y="560" />
+        <di:waypoint x="2410" y="400" />
+        <di:waypoint x="2880" y="400" />
+        <di:waypoint x="2880" y="255" />
+        <di:waypoint x="2910" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Action_OtherChannel" bpmnElement="Flow_Action_OtherChannel">
+        <di:waypoint x="1935" y="300" />
+        <di:waypoint x="2020" y="300" />
+        <di:waypoint x="2020" y="380" />
+        <di:waypoint x="2440" y="380" />
+        <di:waypoint x="2440" y="650" />
+        <di:waypoint x="2490" y="650" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1922" y="343" width="71" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Action_Phone" bpmnElement="Flow_Action_Phone">
+        <di:waypoint x="1935" y="300" />
+        <di:waypoint x="2080" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1965" y="273" width="89" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_Call_PhoneConfirmed" bpmnElement="Flow_Call_PhoneConfirmed">
+        <di:waypoint x="2260" y="300" />
+        <di:waypoint x="2375" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_PhoneConfirmed_Yes" bpmnElement="Flow_PhoneConfirmed_Yes">
+        <di:waypoint x="2425" y="300" />
+        <di:waypoint x="2460" y="320" />
+        <di:waypoint x="2460" y="520" />
+        <di:waypoint x="2560" y="520" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2409" y="343" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_PhoneConfirmed_No" bpmnElement="Flow_PhoneConfirmed_No">
+        <di:waypoint x="2425" y="300" />
+        <di:waypoint x="2880" y="300" />
+        <di:waypoint x="2880" y="255" />
+        <di:waypoint x="2910" y="255" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2631" y="278" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_ManualConfirmation_UpdateDispo" bpmnElement="Flow_ManualConfirmation_UpdateDispo">
+        <di:waypoint x="2760" y="520" />
+        <di:waypoint x="2780" y="520" />
+        <di:waypoint x="2780" y="780" />
+        <di:waypoint x="2810" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_MergeGoToDispo_GoToDispo" bpmnElement="Flow_MergeGoToDispo_GoToDispo">
+        <di:waypoint x="2960" y="255" />
+        <di:waypoint x="3000" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_GoToDispo_AdjustOrder" bpmnElement="Flow_GoToDispo_AdjustOrder">
+        <di:waypoint x="3160" y="255" />
+        <di:waypoint x="3190" y="255" />
+        <di:waypoint x="3190" y="755" />
+        <di:waypoint x="3230" y="755" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_AdjustOrder_AvisierenAgain" bpmnElement="Flow_AdjustOrder_AvisierenAgain">
+        <di:waypoint x="3450" y="755" />
+        <di:waypoint x="3510" y="755" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow_AvisierenAgain_ReturnDashboard" bpmnElement="Flow_AvisierenAgain_ReturnDashboard">
+        <di:waypoint x="3700" y="755" />
+        <di:waypoint x="3720" y="755" />
+        <di:waypoint x="3720" y="255" />
+        <di:waypoint x="3750" y="255" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,30 @@
+\clearpage
+\section{Systemkomponenten}
+
+Innerhalb der Systemgrenze werden drei Komponenten unterschieden. Diese Aufteilung folgt den
+drei fachlichen Aufgaben: Kommunikation ausführen, Kundenantwort erfassen und Ergebnisse für
+den Disponenten aufbereiten.
+
+\input{diagrams/components}
+
+\subsection{Avisierungsservice}
+
+Der Avisierungsservice ist die zentrale Komponente der Lösung. Er übernimmt die Daten des
+geplanten Auftrags, erzeugt die Avisierung, veranlasst den Nachrichtenversand und speichert
+die Antwort des Kunden. Au\ss{}erdem stellt er die Informationen für Bestätigungsseite und
+Dashboard bereit und meldet das Ergebnis an DISPO zurück.
+
+\subsection{Bestätigungsseite}
+
+Die Bestätigungsseite ist die für den Kunden bestimmte Web-Oberfläche. Sie zeigt die
+wesentlichen Lieferdaten und bietet zwei eindeutige Aktionen: Termin bestätigen oder Termin
+ablehnen. Bei einer Ablehnung kann der Kunde einen Kommentar hinterlassen. Der Zugriff erfolgt
+über den persönlichen Link aus der Benachrichtigung.
+
+\subsection{Avisierungsdashboard}
+
+Das Avisierungsdashboard ist die interne Arbeitsoberfläche für Disponenten. Es fasst
+Kundenrückmeldungen zusammen, hebt Fälle mit Handlungsbedarf hervor und zeigt in der
+Detailansicht Kommentare und den bisherigen Verlauf. Von dort kann eine unveränderte Anfrage
+über einen anderen Kanal erneut versendet oder eine telefonische Bestätigung manuell erfasst
+werden.
