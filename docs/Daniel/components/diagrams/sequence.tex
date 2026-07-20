@@ -1,0 +1,36 @@
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\tiny,>=Latex]
+  \matrix (m) [matrix of nodes,column sep=0.35cm,row sep=0.55cm,nodes={minimum width=1.85cm,minimum height=0.5cm,align=center}] {
+    |[draw,fill=SoftGray,rounded corners]| Disponent &
+    |[draw,fill=SoftGray,rounded corners]| DISPO &
+    |[draw=MinovaBlue,fill=SoftBlue,rounded corners]| Avisierungsservice &
+    |[draw,fill=SoftGray,rounded corners]| Nachrichtenkanal &
+    |[draw=MinovaBlue,fill=SoftBlue,rounded corners]| Bestätigungsseite &
+    |[draw=MinovaBlue,fill=SoftBlue,rounded corners]| Dashboard \\
+  };
+  \foreach \x in {1,...,6} {
+    \draw[dashed,gray] (m-1-\x.south) -- ++(0,-7.5cm);
+  }
+
+  \coordinate (y1) at ([yshift=-0.9cm]m-1-1.south);
+  \coordinate (y2) at ([yshift=-1.8cm]m-1-1.south);
+  \coordinate (y3) at ([yshift=-2.7cm]m-1-1.south);
+  \coordinate (y4) at ([yshift=-3.6cm]m-1-1.south);
+  \coordinate (y5) at ([yshift=-4.5cm]m-1-1.south);
+  \coordinate (y6) at ([yshift=-5.4cm]m-1-1.south);
+  \coordinate (y7) at ([yshift=-6.3cm]m-1-1.south);
+  \coordinate (y8) at ([yshift=-7.2cm]m-1-1.south);
+
+  \draw[->,thick] (m-1-1.center |- y1) -- node[above]{Avisierung starten} (m-1-2.center |- y1);
+  \draw[->,thick] (m-1-2.center |- y2) -- node[above]{Lieferdaten} (m-1-3.center |- y2);
+  \draw[->,thick] (m-1-3.center |- y3) -- node[above]{Link versenden} (m-1-4.center |- y3);
+  \draw[->,thick] (m-1-4.center |- y4) -- node[above]{Nachricht} (m-1-5.center |- y4);
+  \draw[->,thick] (m-1-5.center |- y5) -- node[above]{Lieferdaten laden} (m-1-3.center |- y5);
+  \draw[->,thick] (m-1-5.center |- y6) -- node[above]{bestätigen} (m-1-3.center |- y6);
+  \draw[->,thick] (m-1-3.center |- y7) -- node[above]{Status anzeigen} (m-1-6.center |- y7);
+  \draw[->,thick] (m-1-3.center |- y8) -- node[above]{Ergebnis melden} (m-1-2.center |- y8);
+\end{tikzpicture}
+\caption{Interaktion im Standardfall}
+\label{fig:sequence}
+\end{figure}

@@ -1,0 +1,21 @@
+\begin{figure}[H]
+\centering
+\resizebox{0.98\textwidth}{!}{%
+\begin{tikzpicture}[font=\scriptsize,>=Latex]
+  \node[draw=MinovaDark,rounded corners=2pt,minimum width=2.4cm,minimum height=1.3cm,align=center,fill=SoftGray]
+    (dispatcher) at (0,0) {\textbf{Disponent}\\plant und entscheidet};
+  \node[draw=MinovaDark,rounded corners=2pt,minimum width=2.5cm,minimum height=1.4cm,align=center,fill=white]
+    (dispo) at (3.5,0) {\textbf{DISPO}\\führendes System};
+  \node[draw=MinovaBlue,very thick,rounded corners=3pt,minimum width=3.8cm,minimum height=2.4cm,align=center,fill=SoftBlue]
+    (system) at (8.5,0) {\textbf{Digitale Lieferavisierung}\\[2pt]Avisierungsservice\\Bestätigungsseite\\Avisierungsdashboard};
+  \node[draw=MinovaDark,rounded corners=2pt,minimum width=2.4cm,minimum height=1.3cm,align=center,fill=SoftGray]
+    (customer) at (13.6,0) {\textbf{Kunde}\\bestätigt oder lehnt ab};
+
+  \draw[->,thick] (dispatcher) -- (dispo);
+  \draw[<->,thick] (dispo) -- node[above=5pt,font=\tiny,fill=white,inner sep=1pt]{Daten / Ergebnis} (system);
+  \draw[<->,thick] (system) -- node[above=5pt,font=\tiny,fill=white,inner sep=1pt]{Nachricht / Antwort} (customer);
+\end{tikzpicture}
+}
+\caption{Fachlicher Systemkontext der digitalen Lieferavisierung}
+\label{fig:system-context}
+\end{figure}

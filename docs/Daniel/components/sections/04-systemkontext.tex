@@ -1,0 +1,27 @@
+\clearpage
+\section{Systemkontext}
+
+Der fachliche Kontext umfasst vier Beteiligte: den Disponenten, DISPO, das System zur
+digitalen Lieferavisierung und den Kunden. Der Disponent plant in DISPO und löst dort die
+Kommunikation aus. Der Kunde antwortet über die Bestätigungsseite. Das Ergebnis wird dem
+Disponenten im Dashboard und perspektivisch auch in DISPO angezeigt.
+
+\input{diagrams/system-context}
+
+\begin{center}
+\begin{tabularx}{0.94\textwidth}{>{\bfseries}L{3.15cm}X}
+\hline
+Disponent & Löst die Avisierung aus und bearbeitet Fälle mit Handlungsbedarf.\\
+\hline
+DISPO & Liefert die geplanten Daten und übernimmt die Ergebnisanzeige.\\
+\hline
+Lieferavisierung & Versendet die Nachricht, erfasst die Antwort und bereitet sie auf.\\
+\hline
+Kunde & Prüft das vorgeschlagene Zeitfenster und antwortet über die Web-Seite.\\
+\hline
+\end{tabularx}
+\end{center}
+
+Details des eigentlichen Nachrichtenversands sind in dieser Übersicht bewusst zu einem
+allgemeinen Kommunikationskanal zusammengefasst. Für das Verständnis des Gesamtablaufs ist
+nur entscheidend, dass die Nachricht den persönlichen Link zur Bestätigungsseite enthält.

@@ -1,0 +1,31 @@
+\begin{figure}[H]
+\centering
+\resizebox{0.98\textwidth}{!}{%
+\begin{tikzpicture}[
+  font=\small,
+  component/.style={draw=MinovaBlue,thick,rounded corners=3pt,minimum width=3.5cm,minimum height=1.25cm,align=center,fill=SoftBlue},
+  external/.style={draw=MinovaDark,rounded corners=3pt,minimum width=2.7cm,minimum height=1.2cm,align=center,fill=SoftGray},
+  arrow/.style={-{Latex[length=2.4mm]},thick}
+]
+  \node[external] (dispo) at (0,0) {\textbf{DISPO}};
+  \node[component] (service) at (5.0,0) {\textbf{Avisierungsservice}\\Kommunikation und Rückmeldung};
+  \node[component] (page) at (10.1,1.35) {\textbf{Bestätigungsseite}\\Kundenansicht};
+  \node[component] (dashboard) at (10.1,-1.35) {\textbf{Avisierungsdashboard}\\Disponentenansicht};
+  \node[external] (customer) at (14.5,1.35) {\textbf{Kunde}};
+  \node[external] (dispatcher) at (14.5,-1.35) {\textbf{Disponent}};
+
+  \draw[arrow] ([yshift=0.22cm]dispo.east) -- ([yshift=0.22cm]service.west);
+  \draw[arrow] ([yshift=-0.22cm]service.west) -- ([yshift=-0.22cm]dispo.east);
+  \draw[arrow] (service) -- (page);
+  \draw[arrow] (service) -- (dashboard);
+  \draw[arrow] (page) -- (customer);
+  \draw[arrow] (dashboard) -- (dispatcher);
+
+  \begin{scope}[on background layer]
+    \node[draw=MinovaBlue,very thick,rounded corners=5pt,fit=(service)(page)(dashboard),inner sep=0.38cm,label={[font=\bfseries,text=MinovaBlue]above:System zur digitalen Lieferavisierung}] {};
+  \end{scope}
+\end{tikzpicture}
+}
+\caption{Komponenten und fachliche Schnittstellen}
+\label{fig:components}
+\end{figure}

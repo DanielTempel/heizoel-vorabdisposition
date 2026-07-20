@@ -1,0 +1,178 @@
+\clearpage
+\begin{landscape}
+\thispagestyle{plain}
+
+\begin{figure}[p]
+\centering
+\vspace*{-0.4cm}
+{\Large\bfseries\color{MinovaDark} UML-Komponentendiagramm\par}
+\vspace{0.2cm}
+{\small\color{MinovaDark}
+Komponenten, Abhängigkeiten und Benutzer der digitalen Lieferavisierung\par}
+\vspace{0.45cm}
+
+\resizebox{0.98\linewidth}{!}{%
+\begin{tikzpicture}[
+  font=\small,
+  internal/.style={
+    draw=MinovaDark,
+    line width=1.1pt,
+    minimum width=4.85cm,
+    minimum height=1.55cm,
+    align=center,
+    fill=SoftBlue,
+    inner sep=6pt
+  },
+  external/.style={
+    draw=MinovaDark,
+    line width=1.1pt,
+    minimum width=4.25cm,
+    minimum height=1.5cm,
+    align=center,
+    fill=SoftGray,
+    inner sep=6pt
+  },
+  note/.style={
+    draw=MinovaDark,
+    line width=0.8pt,
+    minimum width=4.35cm,
+    minimum height=1.3cm,
+    align=center,
+    fill=SoftGray,
+    inner sep=6pt
+  },
+  dependency/.style={-{Latex[open,length=2.5mm,width=1.8mm]},line width=0.9pt,dashed,draw=MinovaDark},
+  association/.style={line width=0.9pt,draw=MinovaDark},
+  noteLink/.style={line width=0.8pt,dashed,draw=MinovaDark},
+  edgeLabel/.style={font=\small,align=center,fill=white,inner sep=2.5pt,text=MinovaDark},
+  actorLabel/.style={font=\bfseries,align=center,text=MinovaDark}
+]
+  % Externe Systeme und Akteure
+  \node[external] (dispo) at (3.15,0.7)
+    {\textbf{DISPO}\\Führendes Planungssystem};
+
+  % UML-Notizen: fachliche Hinweise, keine Komponenten
+  \node[note,minimum width=4.8cm] (integrationNote) at (3.15,3.05)
+    {DISPO-Integration ist noch\\fachlich abzustimmen};
+  \node[note] (deliveryNote) at (21.45,0.7)
+    {Benachrichtigung über\\E-Mail, SMS oder WhatsApp};
+
+  % Fachliche Komponenten innerhalb der Systemgrenze
+  \node[internal] (service) at (12.3,0.7)
+    {\textbf{Avisierungsservice}\\Versand und Rückmeldungen};
+  \node[internal] (dashboard) at (8.65,-3.85)
+    {\textbf{Avisierungsdashboard}\\Interne Disponentenansicht};
+  \node[internal] (page) at (15.95,-3.85)
+    {\textbf{Bestätigungsseite}\\Öffentliche Kundenansicht};
+
+  % UML-Komponentensymbole
+  \foreach \componentNode in {dispo,service,dashboard,page}{
+    \draw[line width=0.65pt,draw=MinovaDark,fill=white]
+      ([xshift=-0.65cm,yshift=-0.22cm]\componentNode.north east)
+      rectangle ++(0.43cm,-0.31cm);
+    \draw[line width=0.65pt,draw=MinovaDark,fill=white]
+      ([xshift=-0.76cm,yshift=-0.27cm]\componentNode.north east)
+      rectangle ++(0.18cm,-0.08cm);
+    \draw[line width=0.65pt,draw=MinovaDark,fill=white]
+      ([xshift=-0.76cm,yshift=-0.40cm]\componentNode.north east)
+      rectangle ++(0.18cm,-0.08cm);
+  }
+
+  % Gefaltete Ecken der UML-Notizen
+  \foreach \noteNode in {integrationNote,deliveryNote}{
+    \fill[white]
+      ([xshift=-0.36cm]\noteNode.north east) --
+      (\noteNode.north east) --
+      ([yshift=-0.36cm]\noteNode.north east) -- cycle;
+    \draw[line width=0.8pt,draw=MinovaDark]
+      ([xshift=-0.36cm]\noteNode.north east) --
+      ([xshift=-0.36cm,yshift=-0.36cm]\noteNode.north east) --
+      ([yshift=-0.36cm]\noteNode.north east);
+  }
+
+  % Akteur: Disponent
+  \coordinate (dispatcherHead) at (3.15,-3.35);
+  \draw[line width=0.9pt,draw=MinovaDark] (dispatcherHead) circle (0.23cm);
+  \draw[line width=0.9pt,draw=MinovaDark]
+    (3.15,-3.58) -- (3.15,-4.25)
+    (2.70,-3.82) -- (3.60,-3.82)
+    (3.15,-4.25) -- (2.78,-4.76)
+    (3.15,-4.25) -- (3.52,-4.76);
+  \node[actorLabel,anchor=north] (dispatcher) at (3.15,-4.87) {Disponent};
+
+  % Akteur: Kunde
+  \coordinate (customerHead) at (21.45,-3.35);
+  \draw[line width=0.9pt,draw=MinovaDark] (customerHead) circle (0.23cm);
+  \draw[line width=0.9pt,draw=MinovaDark]
+    (21.45,-3.58) -- (21.45,-4.25)
+    (21.00,-3.82) -- (21.90,-3.82)
+    (21.45,-4.25) -- (21.08,-4.76)
+    (21.45,-4.25) -- (21.82,-4.76);
+  \node[actorLabel,anchor=north] (customer) at (21.45,-4.87) {Kunde};
+
+  % Das Gesamtsystem wird als zusammengesetzte UML-Komponente dargestellt
+  \begin{scope}[on background layer]
+    \node[
+      draw=MinovaDark,
+      line width=1.2pt,
+      fill=SoftBlue!22,
+      fit=(service)(dashboard)(page),
+      inner xsep=0.72cm,
+      inner ysep=1.1cm,
+      label={[font=\bfseries\large,text=MinovaDark,fill=white,inner sep=3pt]above:
+        System zur digitalen Lieferavisierung}
+    ] (systemBoundary) {};
+  \end{scope}
+
+  % Komponentensymbol des Gesamtsystems
+  \draw[line width=0.7pt,draw=MinovaDark,fill=white]
+    ([xshift=-0.72cm,yshift=-0.22cm]systemBoundary.north east)
+    rectangle ++(0.48cm,-0.34cm);
+  \draw[line width=0.7pt,draw=MinovaDark,fill=white]
+    ([xshift=-0.84cm,yshift=-0.28cm]systemBoundary.north east)
+    rectangle ++(0.19cm,-0.08cm);
+  \draw[line width=0.7pt,draw=MinovaDark,fill=white]
+    ([xshift=-0.84cm,yshift=-0.42cm]systemBoundary.north east)
+    rectangle ++(0.19cm,-0.08cm);
+
+  % UML-Abhängigkeiten zwischen Komponenten
+  \draw[dependency]
+    ([yshift=0.25cm]dispo.east) --
+    node[edgeLabel,above] {Avisierung starten\\Liefer- und Tourdaten}
+    ([yshift=0.25cm]service.west);
+  \draw[dependency]
+    ([yshift=-0.28cm]service.west) --
+    node[edgeLabel,below] {Ergebnis-Callback}
+    ([yshift=-0.28cm]dispo.east);
+  \draw[dependency,rounded corners=4pt]
+    (page.north) -- (15.95,-1.62) --
+    node[edgeLabel,above] {Lieferdaten und Kundenantwort}
+    (14.55,-1.62) -- (service.south east);
+  \draw[dependency,rounded corners=4pt]
+    (dashboard.north) -- (8.65,-1.62) --
+    node[edgeLabel,above] {Fälle, Kommentare\\und Aktionen}
+    (10.05,-1.62) -- (service.south west);
+
+  % UML-Assoziationen der Benutzer mit ihren Oberflächen
+  \draw[association] (3.15,-3.05) --
+    node[edgeLabel,right] {Planung}
+    (dispo.south);
+  \draw[association] (3.60,-4.05) --
+    node[edgeLabel,above] {Fälle bearbeiten}
+    (dashboard.west);
+  \draw[association] (21.0,-4.05) --
+    node[edgeLabel,above] {Bestätigen, ablehnen\\oder kommentieren}
+    (page.east);
+
+  % Verbindungen von UML-Notizen zu den beschriebenen Elementen
+  \draw[noteLink] (integrationNote.south) -- (dispo.north);
+  \draw[noteLink] (service.east) -- (deliveryNote.west);
+\end{tikzpicture}%
+}
+
+\caption{UML-Komponentendiagramm der digitalen Lieferavisierung}
+\label{fig:uml-component-overview}
+\end{figure}
+
+\end{landscape}
+\clearpage
