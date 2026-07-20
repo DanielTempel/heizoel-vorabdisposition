@@ -1,4 +1,4 @@
-# Heizöl Vorabdisposition Backend
+# Avisierungservice
 
 Backend prototype for the Heizöl delivery confirmation process.
 The backend receives confirmation requests from a DISPO system, sends confirmation links to customers via e-mail or SMS, stores customer responses, updates the confirmation status and sends status updates back to DISPO. Camunda workflows are used for customer response timeouts and retryable DISPO callbacks.
