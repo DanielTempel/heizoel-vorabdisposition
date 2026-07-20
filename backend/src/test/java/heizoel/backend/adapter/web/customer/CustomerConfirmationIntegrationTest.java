@@ -1,19 +1,20 @@
 package heizoel.backend.adapter.web.customer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import heizoel.backend.application.port.out.persistence.ConfirmationRequestRepositoryPort;
 import heizoel.backend.adapter.in.web.customer.dto.CustomerResponseRequestDto;
-import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.CustomerResponseType;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.OrderSnapshot;
-import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
-import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import heizoel.backend.application.port.out.location.GeocodingClient;
 import heizoel.backend.application.port.out.location.LocationTrackingService;
 import heizoel.backend.application.model.GeoCoordinate;
+import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
 import heizoel.backend.application.port.out.notification.NotificationService;
+import heizoel.backend.domain.CommunicationChannel;
+import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
+import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
+import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -214,6 +215,51 @@ class CustomerConfirmationIntegrationTest {
         assertThat(customerResponses).hasSize(1);
         assertThat(customerResponses.get(0).getComment())
                 .isEqualTo("Bitte 30 Minuten vorher anrufen.");
+    }
+
+    @Test
+    void confirm_whenFollowUpNotificationFails_stillStoresCustomerResponse() throws Exception {
+        String externalOrderId = "A-3002-NOTIFICATION-FAILURE";
+
+        createDispoConfirmationRequest(externalOrderId);
+
+        String token = findActiveTokenByExternalOrderId(externalOrderId);
+
+        Mockito.doThrow(new NotificationDeliveryException(
+                        CommunicationChannel.EMAIL,
+                        "Notification could not be delivered.",
+                        new RuntimeException("Mail provider unavailable.")
+                ))
+                .when(notificationService)
+                .sendCustomerResponseReceived(
+                        any(OrderSnapshot.class),
+                        any(ConfirmationRequest.class),
+                        any(CustomerResponseType.class)
+                );
+
+        CustomerResponseRequestDto request = new CustomerResponseRequestDto(
+                CustomerResponseType.CONFIRM,
+                "Bitte 30 Minuten vorher anrufen."
+        );
+
+        mockMvc.perform(post("/api/customer/confirmations/{token}/response", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+
+        OrderSnapshot orderSnapshot = orderSnapshotRepository
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
+                .orElseThrow();
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository
+                .findByToken(token)
+                .orElseThrow();
+
+        assertThat(orderSnapshot.getConfirmationStatus())
+                .isEqualTo(ConfirmationStatus.CONFIRMED);
+        assertThat(confirmationRequest.isActive()).isFalse();
+        assertThat(customerResponseRepository.existsByConfirmationRequest(confirmationRequest))
+                .isTrue();
     }
 
     @Test
@@ -496,8 +542,7 @@ class CustomerConfirmationIntegrationTest {
                 .orElseThrow();
 
         confirmationRequest.markInactive();
-        ((ConfirmationRequestRepositoryPort)
-                confirmationRequestRepository).save(confirmationRequest);
+        confirmationRequestRepository.save(confirmationRequest);
     }
 }
 

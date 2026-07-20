@@ -6,10 +6,10 @@ import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.adapter.in.web.overview.dto.DashboardOrderDetailResponseDto;
 import heizoel.backend.adapter.in.web.overview.dto.DashboardOrdersPageResponseDto;
 import heizoel.backend.application.model.overview.ConfirmationDetail;
-import heizoel.backend.application.port.in.overview.GetDashboardOrderDetailQuery;
+import heizoel.backend.application.port.in.overview.GetConfirmationDetailQuery;
 import heizoel.backend.application.port.in.overview.GetConfirmationDetailUseCase;
 import heizoel.backend.application.model.overview.ConfirmationOverviewPage;
-import heizoel.backend.application.port.in.overview.GetDashboardOrdersQuery;
+import heizoel.backend.application.port.in.overview.GetConfirmationOverviewQuery;
 import heizoel.backend.application.port.in.overview.GetConfirmationOverviewUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -38,7 +38,7 @@ public class DashboardController {
         CompanyContext companyContext = companyContextResolver.resolve();
 
         ConfirmationOverviewPage result = getConfirmationOverviewUseCase.getDashboardOrders(
-                new GetDashboardOrdersQuery(
+                new GetConfirmationOverviewQuery(
                         companyContext,
                         status,
                         search,
@@ -58,7 +58,7 @@ public class DashboardController {
         CompanyContext companyContext = companyContextResolver.resolve();
 
         ConfirmationDetail detail = getConfirmationDetailUseCase.getOrderDetail(
-                new GetDashboardOrderDetailQuery(
+                new GetConfirmationDetailQuery(
                         companyContext,
                         externalOrderId
                 )

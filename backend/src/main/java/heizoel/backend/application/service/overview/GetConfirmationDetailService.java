@@ -4,13 +4,13 @@ import heizoel.backend.application.model.overview.ConfirmationDetail;
 import heizoel.backend.application.model.overview.LatestConfirmationRequest;
 import heizoel.backend.application.model.overview.LatestCustomerResponse;
 import heizoel.backend.application.port.in.overview.*;
-import heizoel.backend.application.port.out.persistence.ConfirmationRequestRepositoryPort;
-import heizoel.backend.application.port.out.persistence.CustomerResponseRepositoryPort;
-import heizoel.backend.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.application.exception.OrderSnapshotNotFoundException;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.CustomerResponse;
 import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
+import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
+import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,12 +18,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class GetConfirmationDetailService implements GetConfirmationDetailUseCase {
 
-    private final OrderSnapshotRepositoryPort orderSnapshotRepository;
-    private final ConfirmationRequestRepositoryPort confirmationRequestRepository;
-    private final CustomerResponseRepositoryPort customerResponseRepository;
+    private final OrderSnapshotRepository orderSnapshotRepository;
+    private final ConfirmationRequestRepository confirmationRequestRepository;
+    private final CustomerResponseRepository customerResponseRepository;
 
     @Override
-    public ConfirmationDetail getOrderDetail(GetDashboardOrderDetailQuery query) {
+    public ConfirmationDetail getOrderDetail(GetConfirmationDetailQuery query) {
         OrderSnapshot orderSnapshot = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(
                         query.companyContext().companyId(),
@@ -34,7 +34,7 @@ public class GetConfirmationDetailService implements GetConfirmationDetailUseCas
                 ));
 
         ConfirmationRequest latestRequest = confirmationRequestRepository
-                .findLatestByOrderSnapshot(orderSnapshot)
+                .findTopByOrderSnapshotOrderByIdDesc(orderSnapshot)
                 .orElse(null);
 
         LatestConfirmationRequest latestRequestResult = latestRequest != null

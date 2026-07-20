@@ -1,12 +1,12 @@
 package heizoel.backend.adapter.out.notification.whatsapp;
 
 import heizoel.backend.adapter.out.notification.NotificationChannelSender;
+import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.OrderSnapshot;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.CustomerResponseType;
 import heizoel.backend.configuration.properties.ConfirmationProperties;
-import heizoel.backend.shared.exception.WhatsAppSendingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -47,8 +47,9 @@ public class WhatsAppNotificationSender implements NotificationChannelSender {
                     .retrieve()
                     .toBodilessEntity();
         } catch (RestClientException ex) {
-            throw new WhatsAppSendingException(
-                    "WhatsApp message could not be sent for externalOrderId="
+            throw new NotificationDeliveryException(
+                    CommunicationChannel.WHATSAPP,
+                    "Notification could not be delivered for externalOrderId="
                             + orderSnapshot.getExternalOrderId(),
                     ex
             );

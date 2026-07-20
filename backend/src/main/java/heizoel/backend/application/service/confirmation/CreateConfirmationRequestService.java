@@ -5,14 +5,14 @@ import heizoel.backend.application.port.in.confirmation.CreateConfirmationReques
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestResult;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestUseCase;
 import heizoel.backend.application.port.out.notification.NotificationService;
-import heizoel.backend.application.port.out.persistence.CompanyRepositoryPort;
 import heizoel.backend.application.port.out.workflow.NoResponseWorkflowService;
-import heizoel.backend.application.model.ConfirmationRequestCreationResult;
+import heizoel.backend.application.port.in.confirmation.ConfirmationRequestCreationResult;
 import heizoel.backend.domain.Company;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.application.exception.CompanyNotFoundException;
 import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.domain.exception.MissingDigitalContactException;
+import heizoel.backend.adapter.out.persistence.CompanyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CreateConfirmationRequestService implements CreateConfirmationRequestUseCase {
 
-    private final CompanyRepositoryPort companyRepository;
+    private final CompanyRepository companyRepository;
     private final ConfirmationRequestPreparationService confirmationRequestPreparationService;
     private final NotificationService notificationService;
     private final NoResponseWorkflowService noResponseWorkflowService;

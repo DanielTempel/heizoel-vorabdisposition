@@ -1,12 +1,12 @@
-package heizoel.backend.adapter.out.persistence.overview;
+package heizoel.backend.adapter.out.persistence;
 
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import heizoel.backend.confirmation.domain.model.QConfirmationRequest;
-import heizoel.backend.confirmation.domain.model.QOrderSnapshot;
+import heizoel.backend.domain.QConfirmationRequest;
+import heizoel.backend.domain.QOrderSnapshot;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.application.model.overview.ConfirmationOverviewItem;
 import heizoel.backend.application.port.out.persistence.ConfirmationOverviewFilter;

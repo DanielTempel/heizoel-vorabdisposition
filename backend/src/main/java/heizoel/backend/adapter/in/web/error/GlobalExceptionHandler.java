@@ -2,9 +2,9 @@ package heizoel.backend.adapter.in.web.error;
 
 import heizoel.backend.adapter.in.web.security.InvalidApiKeyException;
 import heizoel.backend.adapter.in.web.security.MissingApiKeyException;
-import heizoel.backend.shared.exception.DispoCallbackFailedException;
-import heizoel.backend.shared.exception.EmailSendingException;
 import heizoel.backend.application.exception.CompanyNotFoundException;
+import heizoel.backend.application.port.out.dispo.DispoCallbackException;
+import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
 import heizoel.backend.domain.exception.ConfirmationRequestExpiredException;
 import heizoel.backend.domain.exception.ConfirmationRequestInactiveException;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
@@ -12,7 +12,6 @@ import heizoel.backend.domain.exception.CustomerResponseAlreadyExistsException;
 import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.domain.exception.MissingDigitalContactException;
 import heizoel.backend.application.exception.OrderSnapshotNotFoundException;
-import heizoel.backend.shared.exception.SmsSendingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -53,10 +52,18 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(EmailSendingException.class)
-    ResponseEntity<ErrorResponseDto> emailSendingFailed(EmailSendingException e, HttpServletRequest req
+    @ExceptionHandler(NotificationDeliveryException.class)
+    ResponseEntity<ErrorResponseDto> notificationDeliveryFailed(
+            NotificationDeliveryException e,
+            HttpServletRequest req
     ) {
-        return respond(HttpStatus.BAD_GATEWAY, "EMAIL_SENDING_FAILED", e.getMessage(), req.getRequestURI());
+        String code = switch (e.getChannel()) {
+            case EMAIL -> "EMAIL_SENDING_FAILED";
+            case SMS -> "SMS_SENDING_FAILED";
+            case WHATSAPP -> "WHATSAPP_SENDING_FAILED";
+        };
+
+        return respond(HttpStatus.BAD_GATEWAY, code, e.getMessage(), req.getRequestURI());
     }
 
 
@@ -100,14 +107,8 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.NOT_FOUND, "NOT_FOUND", "Resource was not found.", req.getRequestURI());
     }
 
-    @ExceptionHandler(SmsSendingException.class)
-    ResponseEntity<ErrorResponseDto> smsSendingFailed(SmsSendingException e, HttpServletRequest req
-    ) {
-        return respond(HttpStatus.BAD_GATEWAY, "SMS_SENDING_FAILED", e.getMessage(), req.getRequestURI());
-    }
-
-    @ExceptionHandler(DispoCallbackFailedException.class)
-    ResponseEntity<ErrorResponseDto> dispoCallbackFailed(DispoCallbackFailedException e, HttpServletRequest req
+    @ExceptionHandler(DispoCallbackException.class)
+    ResponseEntity<ErrorResponseDto> dispoCallbackFailed(DispoCallbackException e, HttpServletRequest req
     ) {
        return respond(HttpStatus.BAD_GATEWAY, "DISPO_CALLBACK_FAILED", e.getMessage(), req.getRequestURI());
     }

@@ -1,14 +1,14 @@
 package heizoel.backend.application.service.workflow;
 
 import heizoel.backend.application.port.in.workflow.HandleNoResponseTimeoutUseCase;
-import heizoel.backend.application.port.out.persistence.ConfirmationRequestRepositoryPort;
-import heizoel.backend.application.port.out.persistence.CustomerResponseRepositoryPort;
-import heizoel.backend.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.application.port.out.workflow.DispoCallbackWorkflowService;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.OrderSnapshot;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
+import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
+import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
+import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +19,9 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class HandleNoResponseTimeoutService implements HandleNoResponseTimeoutUseCase {
 
-    private final ConfirmationRequestRepositoryPort confirmationRequestRepository;
-    private final OrderSnapshotRepositoryPort orderSnapshotRepository;
-    private final CustomerResponseRepositoryPort customerResponseRepository;
+    private final ConfirmationRequestRepository confirmationRequestRepository;
+    private final OrderSnapshotRepository orderSnapshotRepository;
+    private final CustomerResponseRepository customerResponseRepository;
     private final DispoCallbackWorkflowService dispoCallbackWorkflowService;
 
     @Override

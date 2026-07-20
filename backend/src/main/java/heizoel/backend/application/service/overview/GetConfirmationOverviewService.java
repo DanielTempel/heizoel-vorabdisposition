@@ -3,7 +3,7 @@ package heizoel.backend.application.service.overview;
 
 import heizoel.backend.application.model.overview.ConfirmationOverviewItem;
 import heizoel.backend.application.model.overview.ConfirmationOverviewPage;
-import heizoel.backend.application.port.in.overview.GetDashboardOrdersQuery;
+import heizoel.backend.application.port.in.overview.GetConfirmationOverviewQuery;
 import heizoel.backend.application.port.in.overview.GetConfirmationOverviewUseCase;
 import heizoel.backend.application.port.out.persistence.ConfirmationOverviewFilter;
 import heizoel.backend.application.port.out.persistence.ConfirmationOverviewQueryPort;
@@ -25,7 +25,7 @@ public class GetConfirmationOverviewService implements GetConfirmationOverviewUs
     private final ConfirmationOverviewQueryPort confirmationOverviewQueryPort;
 
     @Override
-    public ConfirmationOverviewPage getDashboardOrders(GetDashboardOrdersQuery query) {
+    public ConfirmationOverviewPage getDashboardOrders(GetConfirmationOverviewQuery query) {
         int page = Math.max(query.page(), 0);
         String search = normalizeSearch(query.search());
 

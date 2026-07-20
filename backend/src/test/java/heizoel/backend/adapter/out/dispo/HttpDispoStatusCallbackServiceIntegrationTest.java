@@ -1,10 +1,10 @@
 package heizoel.backend.adapter.out.dispo;
 
+import heizoel.backend.application.port.out.dispo.DispoCallbackException;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackRequest;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.configuration.properties.ConfirmationProperties;
 import heizoel.backend.configuration.DispoCallbackHttpConfig;
-import heizoel.backend.shared.exception.DispoCallbackFailedException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
@@ -13,6 +13,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClientException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
@@ -60,7 +61,7 @@ class HttpDispoStatusCallbackServiceIntegrationTest {
     }
 
     @Test
-    void sendStatusUpdate_throwsDispoCallbackFailedExceptionWhenDispoReturnsServerError() {
+    void sendStatusUpdate_throwsDispoCallbackExceptionWhenDispoReturnsServerError() {
         server.expect(requestTo("http://dispo.example.test/api/confirmation-status-updates"))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withServerError());
@@ -71,8 +72,9 @@ class HttpDispoStatusCallbackServiceIntegrationTest {
                 ConfirmationStatus.REJECTED,
                 "Passt nicht."
         )))
-                .isInstanceOf(DispoCallbackFailedException.class)
-                .hasMessage("DISPO callback failed for externalOrderId=A-CB-2, status=REJECTED");
+                .isInstanceOf(DispoCallbackException.class)
+                .hasMessage("DISPO callback failed for externalOrderId=A-CB-2, status=REJECTED")
+                .hasCauseInstanceOf(RestClientException.class);
 
         server.verify();
     }

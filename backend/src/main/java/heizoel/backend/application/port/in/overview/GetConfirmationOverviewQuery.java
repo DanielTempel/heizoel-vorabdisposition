@@ -5,7 +5,7 @@ import heizoel.backend.domain.ConfirmationStatus;
 
 import java.time.LocalDate;
 
-public record GetDashboardOrdersQuery(
+public record GetConfirmationOverviewQuery(
         CompanyContext companyContext,
         ConfirmationStatus status,
         String search,

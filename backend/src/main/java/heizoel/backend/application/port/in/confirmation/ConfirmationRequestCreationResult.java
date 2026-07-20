@@ -1,4 +1,4 @@
-package heizoel.backend.application.model;
+package heizoel.backend.application.port.in.confirmation;
 
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.OrderSnapshot;

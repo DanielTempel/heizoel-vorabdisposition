@@ -4,5 +4,5 @@ import heizoel.backend.application.model.overview.ConfirmationOverviewPage;
 
 public interface GetConfirmationOverviewUseCase {
 
-    ConfirmationOverviewPage getDashboardOrders(GetDashboardOrdersQuery query);
+    ConfirmationOverviewPage getDashboardOrders(GetConfirmationOverviewQuery query);
 }

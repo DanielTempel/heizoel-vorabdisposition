@@ -5,8 +5,8 @@ import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.OrderSnapshot;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.adapter.out.notification.NotificationChannelSender;
+import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
 import heizoel.backend.configuration.properties.ConfirmationProperties;
-import heizoel.backend.shared.exception.EmailSendingException;
 import heizoel.backend.configuration.properties.MailProperties;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -113,8 +113,9 @@ public class EmailNotificationSender implements NotificationChannelSender {
             mailSender.send(message);
 
         } catch (MessagingException | MailException ex) {
-            throw new EmailSendingException(
-                    "E-mail could not be sent for externalOrderId="
+            throw new NotificationDeliveryException(
+                    CommunicationChannel.EMAIL,
+                    "Notification could not be delivered for externalOrderId="
                             + orderSnapshot.getExternalOrderId(),
                     ex
             );

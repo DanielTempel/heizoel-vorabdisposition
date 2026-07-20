@@ -1,16 +1,14 @@
 package heizoel.backend.adapter.web.dispo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import heizoel.backend.application.port.out.persistence.ConfirmationRequestRepositoryPort;
-import heizoel.backend.application.port.out.persistence.OrderSnapshotRepositoryPort;
-import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.OrderSnapshot;
-import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
-import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import heizoel.backend.application.port.out.notification.NotificationService;
 import heizoel.backend.domain.CommunicationChannel;
+import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
+import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
+import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -734,8 +732,7 @@ class DispoControllerIntegrationTest {
                 .orElseThrow();
 
         confirmationRequest.markInactive();
-        ((ConfirmationRequestRepositoryPort)
-                confirmationRequestRepository).save(confirmationRequest);
+        confirmationRequestRepository.save(confirmationRequest);
 
         switch (status) {
             case SENT -> orderSnapshot.markSent();
@@ -743,8 +740,7 @@ class DispoControllerIntegrationTest {
             case REJECTED -> orderSnapshot.markRejected();
             case NO_RESPONSE -> orderSnapshot.markNoResponse();
         }
-        ((OrderSnapshotRepositoryPort)
-                orderSnapshotRepository).save(orderSnapshot);
+        orderSnapshotRepository.save(orderSnapshot);
     }
 
     private record TestDispoRequest(

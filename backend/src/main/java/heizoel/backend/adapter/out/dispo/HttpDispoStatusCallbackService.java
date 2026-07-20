@@ -1,8 +1,8 @@
 package heizoel.backend.adapter.out.dispo;
 
+import heizoel.backend.application.port.out.dispo.DispoCallbackException;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackRequest;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackService;
-import heizoel.backend.shared.exception.DispoCallbackFailedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -29,11 +29,12 @@ public class HttpDispoStatusCallbackService implements DispoStatusCallbackServic
                     .retrieve()
                     .toBodilessEntity();
         } catch (RestClientException ex) {
-            throw new DispoCallbackFailedException(
+            throw new DispoCallbackException(
                     "DISPO callback failed for externalOrderId="
                             + request.externalOrderId()
                             + ", status="
-                            + request.confirmationStatus()
+                            + request.confirmationStatus(),
+                    ex
             );
         }
     }

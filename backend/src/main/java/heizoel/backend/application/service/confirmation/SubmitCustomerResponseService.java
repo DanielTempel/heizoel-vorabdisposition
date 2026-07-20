@@ -2,10 +2,8 @@ package heizoel.backend.application.service.confirmation;
 
 import heizoel.backend.application.port.in.confirmation.SubmitCustomerResponseCommand;
 import heizoel.backend.application.port.in.confirmation.SubmitCustomerResponseUseCase;
+import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
 import heizoel.backend.application.port.out.notification.NotificationService;
-import heizoel.backend.application.port.out.persistence.ConfirmationRequestRepositoryPort;
-import heizoel.backend.application.port.out.persistence.CustomerResponseRepositoryPort;
-import heizoel.backend.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.application.port.out.workflow.DispoCallbackWorkflowService;
 import heizoel.backend.domain.exception.ConfirmationRequestExpiredException;
 import heizoel.backend.domain.exception.ConfirmationRequestInactiveException;
@@ -16,7 +14,9 @@ import heizoel.backend.domain.CustomerResponse;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.CustomerResponseType;
 import heizoel.backend.domain.OrderSnapshot;
-import heizoel.backend.shared.exception.EmailSendingException;
+import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
+import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
+import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,9 +29,9 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class SubmitCustomerResponseService implements SubmitCustomerResponseUseCase {
 
-    private final ConfirmationRequestRepositoryPort confirmationRequestRepository;
-    private final OrderSnapshotRepositoryPort orderSnapshotRepository;
-    private final CustomerResponseRepositoryPort customerResponseRepository;
+    private final ConfirmationRequestRepository confirmationRequestRepository;
+    private final OrderSnapshotRepository orderSnapshotRepository;
+    private final CustomerResponseRepository customerResponseRepository;
     private final DispoCallbackWorkflowService dispoCallbackWorkflowService;
     private final NotificationService notificationService;
 
@@ -92,11 +92,12 @@ public class SubmitCustomerResponseService implements SubmitCustomerResponseUseC
                     confirmationRequest,
                     responseType
             );
-        } catch (EmailSendingException ex) {
+        } catch (NotificationDeliveryException ex) {
             log.warn(
-                    "Customer response follow-up e-mail could not be sent. externalOrderId={}, responseType={}",
+                    "Customer response follow-up notification could not be delivered. externalOrderId={}, responseType={}, channel={}",
                     orderSnapshot.getExternalOrderId(),
                     responseType,
+                    ex.getChannel(),
                     ex
             );
         }

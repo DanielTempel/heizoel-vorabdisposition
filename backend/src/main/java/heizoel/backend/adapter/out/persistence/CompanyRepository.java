@@ -1,14 +1,11 @@
 package heizoel.backend.adapter.out.persistence;
 
-import heizoel.backend.application.port.out.persistence.CompanyRepositoryPort;
 import heizoel.backend.domain.Company;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface CompanyRepository extends JpaRepository<Company, Long>, CompanyRepositoryPort{
+public interface CompanyRepository extends JpaRepository<Company, Long> {
 
-    @Override
     Optional<Company> findByApiKeyHash(String apiKeyHash);
-
 }

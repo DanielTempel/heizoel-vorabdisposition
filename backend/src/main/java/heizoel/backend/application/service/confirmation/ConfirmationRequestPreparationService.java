@@ -1,9 +1,7 @@
 package heizoel.backend.application.service.confirmation;
 
-import heizoel.backend.application.model.ConfirmationRequestCreationResult;
+import heizoel.backend.application.port.in.confirmation.ConfirmationRequestCreationResult;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestCommand;
-import heizoel.backend.application.port.out.persistence.ConfirmationRequestRepositoryPort;
-import heizoel.backend.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.application.port.out.token.TokenService;
 import heizoel.backend.domain.Company;
 import heizoel.backend.domain.ConfirmationRequest;
@@ -11,6 +9,8 @@ import heizoel.backend.domain.OrderSnapshot;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
+import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
+import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +23,8 @@ public class ConfirmationRequestPreparationService  {
 
     private static final ZoneId DELIVERY_ZONE = ZoneId.of("Europe/Berlin");
 
-    private final OrderSnapshotRepositoryPort orderSnapshotRepository;
-    private final ConfirmationRequestRepositoryPort confirmationRequestRepository;
+    private final OrderSnapshotRepository orderSnapshotRepository;
+    private final ConfirmationRequestRepository confirmationRequestRepository;
     private final TokenService tokenService;
 
 
@@ -50,7 +50,7 @@ public class ConfirmationRequestPreparationService  {
         OrderSnapshot orderSnapshot = existingOrder.get();
 
         Optional<ConfirmationRequest> latestRequest =
-                confirmationRequestRepository.findLatestByOrderSnapshot(orderSnapshot);
+                confirmationRequestRepository.findTopByOrderSnapshotOrderByIdDesc(orderSnapshot);
 
         if (latestRequest.isPresent()) {
             ConfirmationRequest request = latestRequest.get();
@@ -229,4 +229,3 @@ public class ConfirmationRequestPreparationService  {
     }
 
 }
-

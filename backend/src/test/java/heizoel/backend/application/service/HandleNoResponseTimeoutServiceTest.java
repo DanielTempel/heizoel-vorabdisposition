@@ -1,9 +1,6 @@
 package heizoel.backend.application.service;
 
 import heizoel.backend.application.port.out.workflow.DispoCallbackWorkflowService;
-import heizoel.backend.application.port.out.persistence.CustomerResponseRepositoryPort;
-import heizoel.backend.application.port.out.persistence.ConfirmationRequestRepositoryPort;
-import heizoel.backend.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.application.service.workflow.HandleNoResponseTimeoutService;
 import heizoel.backend.domain.Company;
 import heizoel.backend.domain.CommunicationChannel;
@@ -11,6 +8,9 @@ import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.OrderSnapshot;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
+import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
+import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
+import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,13 +27,13 @@ import static org.mockito.Mockito.*;
 class HandleNoResponseTimeoutServiceTest {
 
     @Mock
-    ConfirmationRequestRepositoryPort confirmationRequestRepository;
+    ConfirmationRequestRepository confirmationRequestRepository;
 
     @Mock
-    OrderSnapshotRepositoryPort orderSnapshotRepository;
+    OrderSnapshotRepository orderSnapshotRepository;
 
     @Mock
-    CustomerResponseRepositoryPort customerResponseRepository;
+    CustomerResponseRepository customerResponseRepository;
 
     @Mock
     DispoCallbackWorkflowService dispoCallbackWorkflowService;

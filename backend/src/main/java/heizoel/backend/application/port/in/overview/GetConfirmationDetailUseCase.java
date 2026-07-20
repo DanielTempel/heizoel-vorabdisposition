@@ -4,6 +4,6 @@ import heizoel.backend.application.model.overview.ConfirmationDetail;
 
 public interface GetConfirmationDetailUseCase {
 
-    ConfirmationDetail getOrderDetail(GetDashboardOrderDetailQuery query);
+    ConfirmationDetail getOrderDetail(GetConfirmationDetailQuery query);
 
 }

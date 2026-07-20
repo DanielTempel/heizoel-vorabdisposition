@@ -4,9 +4,9 @@ import heizoel.backend.application.port.in.workflow.SendDispoStatusCallbackComma
 import heizoel.backend.application.port.in.workflow.SendDispoStatusCallbackUseCase;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackRequest;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackService;
-import heizoel.backend.application.port.out.persistence.OrderSnapshotRepositoryPort;
 import heizoel.backend.application.exception.OrderSnapshotNotFoundException;
 import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 public class SendDispoStatusCallbackService implements SendDispoStatusCallbackUseCase {
 
     private final DispoStatusCallbackService dispoStatusCallbackService;
-    private final OrderSnapshotRepositoryPort orderSnapshotRepository;
+    private final OrderSnapshotRepository orderSnapshotRepository;
 
     @Override
     public void sendDispoStatusCallback(SendDispoStatusCallbackCommand command) {

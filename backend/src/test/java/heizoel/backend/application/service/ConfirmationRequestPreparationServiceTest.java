@@ -1,9 +1,7 @@
 package heizoel.backend.application.service;
 
 import heizoel.backend.application.port.out.token.TokenService;
-import heizoel.backend.application.port.out.persistence.ConfirmationRequestRepositoryPort;
-import heizoel.backend.application.port.out.persistence.OrderSnapshotRepositoryPort;
-import heizoel.backend.application.model.ConfirmationRequestCreationResult;
+import heizoel.backend.application.port.in.confirmation.ConfirmationRequestCreationResult;
 import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestCommand;
 import heizoel.backend.application.service.confirmation.ConfirmationRequestPreparationService;
@@ -11,6 +9,8 @@ import heizoel.backend.domain.Company;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.domain.CommunicationChannel;
+import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
+import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,10 +33,10 @@ class ConfirmationRequestPreparationServiceTest {
     private static final ZoneId DELIVERY_ZONE = ZoneId.of("Europe/Berlin");
 
     @Mock
-    ConfirmationRequestRepositoryPort confirmationRequestRepository;
+    ConfirmationRequestRepository confirmationRequestRepository;
 
     @Mock
-    OrderSnapshotRepositoryPort orderSnapshotRepository;
+    OrderSnapshotRepository orderSnapshotRepository;
 
     @Mock
     TokenService tokenService;

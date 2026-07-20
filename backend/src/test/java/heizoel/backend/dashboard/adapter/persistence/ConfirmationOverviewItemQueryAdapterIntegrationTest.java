@@ -1,6 +1,6 @@
 package heizoel.backend.dashboard.adapter.persistence;
 
-import heizoel.backend.adapter.out.persistence.overview.ConfirmationOverviewQueryAdapter;
+import heizoel.backend.adapter.out.persistence.ConfirmationOverviewQueryAdapter;
 import heizoel.backend.domain.Company;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.OrderSnapshot;

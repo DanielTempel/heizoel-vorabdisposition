@@ -2,10 +2,10 @@ package heizoel.backend.application.service.confirmation;
 
 import heizoel.backend.application.port.in.confirmation.GetConfirmationPreviewResult;
 import heizoel.backend.application.port.in.confirmation.GetConfirmationPreviewUseCase;
-import heizoel.backend.application.port.out.persistence.ConfirmationRequestRepositoryPort;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class GetConfirmationPreviewService implements GetConfirmationPreviewUseCase {
 
-    private final ConfirmationRequestRepositoryPort confirmationRequestRepository;
+    private final ConfirmationRequestRepository confirmationRequestRepository;
 
     @Override
     @Transactional(readOnly = true)

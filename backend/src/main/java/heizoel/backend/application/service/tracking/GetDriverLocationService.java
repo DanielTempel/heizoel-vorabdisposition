@@ -3,9 +3,9 @@ package heizoel.backend.application.service.tracking;
 import heizoel.backend.application.port.in.tracking.DriverLocationResult;
 import heizoel.backend.application.port.in.tracking.GetDriverLocationUseCase;
 import heizoel.backend.application.port.out.location.LocationTrackingService;
-import heizoel.backend.application.port.out.persistence.ConfirmationRequestRepositoryPort;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.domain.ConfirmationRequest;
+import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +17,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GetDriverLocationService implements GetDriverLocationUseCase {
 
-    private final ConfirmationRequestRepositoryPort confirmationRequestRepository;
+    private final ConfirmationRequestRepository confirmationRequestRepository;
     private final LocationTrackingService locationTrackingService;
 
     @Override
