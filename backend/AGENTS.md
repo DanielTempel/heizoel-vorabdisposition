@@ -1,7 +1,5 @@
 # AGENTS.md
 
-do tests only if I ask you, 
-
 ## Project Context
 
 Backend prototype for Heizöl delivery confirmation.
