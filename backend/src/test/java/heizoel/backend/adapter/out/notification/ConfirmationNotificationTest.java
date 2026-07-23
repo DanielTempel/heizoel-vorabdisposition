@@ -3,7 +3,7 @@ package heizoel.backend.adapter.out.notification;
 import heizoel.backend.application.port.out.workflow.NoResponseWorkflowService;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackService;
 import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.Order;
 import heizoel.backend.application.port.out.location.GeocodingClient;
 import heizoel.backend.application.model.GeoCoordinate;
 import heizoel.backend.adapter.out.notification.email.EmailNotificationSender;
@@ -108,9 +108,9 @@ class ConfirmationNotificationTest {
         when(geocodingClient.geocode(anyString()))
                 .thenReturn(java.util.Optional.of(new GeoCoordinate(9.9372D, 49.7935D)));
         doNothing().when(emailSender)
-                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
         doNothing().when(smsConfirmationSender)
-                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
     @Test
@@ -136,8 +136,8 @@ class ConfirmationNotificationTest {
         assertThat(getCustomerPhoneNumber(externalOrderId))
                 .isNull();
 
-        ArgumentCaptor<OrderSnapshot> orderCaptor =
-                ArgumentCaptor.forClass(OrderSnapshot.class);
+        ArgumentCaptor<Order> orderCaptor =
+                ArgumentCaptor.forClass(Order.class);
 
         ArgumentCaptor<ConfirmationRequest> requestCaptor =
                 ArgumentCaptor.forClass(ConfirmationRequest.class);
@@ -147,7 +147,7 @@ class ConfirmationNotificationTest {
 
         verifyNoInteractions(smsConfirmationSender);
 
-        OrderSnapshot capturedOrder = orderCaptor.getValue();
+        Order capturedOrder = orderCaptor.getValue();
         ConfirmationRequest capturedRequest = requestCaptor.getValue();
 
         assertThat(capturedOrder.getExternalOrderId())
@@ -189,8 +189,8 @@ class ConfirmationNotificationTest {
         assertThat(getCustomerPhoneNumber(externalOrderId))
                 .isEqualTo("+491701234567");
 
-        ArgumentCaptor<OrderSnapshot> orderCaptor =
-                ArgumentCaptor.forClass(OrderSnapshot.class);
+        ArgumentCaptor<Order> orderCaptor =
+                ArgumentCaptor.forClass(Order.class);
 
         ArgumentCaptor<ConfirmationRequest> requestCaptor =
                 ArgumentCaptor.forClass(ConfirmationRequest.class);
@@ -200,7 +200,7 @@ class ConfirmationNotificationTest {
 
         verifyNoInteractions(emailSender);
 
-        OrderSnapshot capturedOrder = orderCaptor.getValue();
+        Order capturedOrder = orderCaptor.getValue();
         ConfirmationRequest capturedRequest = requestCaptor.getValue();
 
         assertThat(capturedOrder.getExternalOrderId())

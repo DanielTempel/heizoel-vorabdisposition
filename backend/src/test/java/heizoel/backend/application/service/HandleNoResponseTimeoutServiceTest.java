@@ -2,11 +2,7 @@ package heizoel.backend.application.service;
 
 import heizoel.backend.application.port.out.workflow.DispoCallbackWorkflowService;
 import heizoel.backend.application.service.workflow.HandleNoResponseTimeoutService;
-import heizoel.backend.domain.Company;
-import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.ConfirmationStatus;
-import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.*;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
@@ -89,7 +85,7 @@ class HandleNoResponseTimeoutServiceTest {
     @Test
     void handleTimeout_marksNoResponseWhenRequestIsActiveUnansweredAndExpired() {
         ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now().minusSeconds(1));
-        OrderSnapshot orderSnapshot = confirmationRequest.getOrderSnapshot();
+        Order order = confirmationRequest.getOrder();
 
         when(confirmationRequestRepository.findById(1L))
                 .thenReturn(Optional.of(confirmationRequest));
@@ -99,9 +95,9 @@ class HandleNoResponseTimeoutServiceTest {
         service.handleTimeout(1L);
 
         verify(confirmationRequestRepository).save(confirmationRequest);
-        verify(orderSnapshotRepository).save(orderSnapshot);
+        verify(orderSnapshotRepository).save(order);
         verify(dispoCallbackWorkflowService).startDispoCallbackProcess(
-                orderSnapshot.getId(),
+                order.getId(),
                 ConfirmationStatus.NO_RESPONSE,
                 null
         );
@@ -120,7 +116,7 @@ class HandleNoResponseTimeoutServiceTest {
     }
 
     private ConfirmationRequest confirmationRequest(boolean active, Instant expiresAt) {
-        OrderSnapshot orderSnapshot = OrderSnapshot.create(
+        Order order = Order.create(
                 Company.create(
                         "Company", "api-key-hash", "http://localhost/callback"
                 ),
@@ -128,7 +124,7 @@ class HandleNoResponseTimeoutServiceTest {
                 "Address", "Heating oil", 1000, "1,000 EUR"
         );
         ConfirmationRequest confirmationRequest = ConfirmationRequest.create(
-                orderSnapshot,
+                order,
                 "token",
                 CommunicationChannel.EMAIL,
                 java.time.LocalDate.now().plusDays(1),

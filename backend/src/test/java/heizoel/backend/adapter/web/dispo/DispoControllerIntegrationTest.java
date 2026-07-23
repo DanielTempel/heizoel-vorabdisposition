@@ -1,11 +1,8 @@
 package heizoel.backend.adapter.web.dispo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import heizoel.backend.domain.ConfirmationStatus;
-import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.*;
 import heizoel.backend.application.port.out.notification.NotificationService;
-import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
@@ -98,26 +95,26 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
                 .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
 
-        List<OrderSnapshot> orderSnapshots = orderSnapshotRepository.findAll();
+        List<Order> orders = orderSnapshotRepository.findAll();
         List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
 
-        assertThat(orderSnapshots).hasSize(1);
+        assertThat(orders).hasSize(1);
         assertThat(confirmationRequests).hasSize(1);
 
-        OrderSnapshot orderSnapshot = orderSnapshots.get(0);
+        Order order = orders.get(0);
         ConfirmationRequest confirmationRequest = confirmationRequests.get(0);
 
-        assertThat(orderSnapshot.getExternalOrderId()).isEqualTo("A-1024");
-        assertThat(orderSnapshot.getCustomerName()).isEqualTo("Max Muller");
-        assertThat(orderSnapshot.getCustomerEmail()).isEqualTo("daniel@example.com");
-        assertThat(orderSnapshot.getCustomerPhoneNumber()).isNull();
-        assertThat(orderSnapshot.getDeliveryAddress()).isEqualTo("Beispielstrase 12, 97070 Wurzburg");
-        assertThat(orderSnapshot.getProduct()).isEqualTo("Heizol");
-        assertThat(orderSnapshot.getQuantityLiters()).isEqualTo(3000);
-        assertThat(orderSnapshot.getPriceDisplayText()).isEqualTo("100 EUR");
-        assertThat(orderSnapshot.getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
+        assertThat(order.getExternalOrderId()).isEqualTo("A-1024");
+        assertThat(order.getCustomerName()).isEqualTo("Max Muller");
+        assertThat(order.getCustomerEmail()).isEqualTo("daniel@example.com");
+        assertThat(order.getCustomerPhoneNumber()).isNull();
+        assertThat(order.getDeliveryAddress()).isEqualTo("Beispielstrase 12, 97070 Wurzburg");
+        assertThat(order.getProduct()).isEqualTo("Heizol");
+        assertThat(order.getQuantityLiters()).isEqualTo(3000);
+        assertThat(order.getPriceDisplayText()).isEqualTo("100 EUR");
+        assertThat(order.getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
 
-        assertThat(confirmationRequest.getOrderSnapshot().getId()).isEqualTo(orderSnapshot.getId());
+        assertThat(confirmationRequest.getOrder().getId()).isEqualTo(order.getId());
         assertThat(confirmationRequest.getToken()).isNotBlank();
         assertThat(confirmationRequest.getCommunicationChannel()).isEqualTo(CommunicationChannel.EMAIL);
         assertThat(confirmationRequest.getDeliveryDate()).hasToString("2099-06-12");
@@ -129,7 +126,7 @@ class DispoControllerIntegrationTest {
         assertThat(confirmationRequest.getExpiresAt()).isAfter(confirmationRequest.getSentAt());
 
         Mockito.verify(notificationService, times(1))
-                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
     @Test
@@ -141,30 +138,30 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value("A-SMS-1024"))
                 .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
 
-        List<OrderSnapshot> orderSnapshots = orderSnapshotRepository.findAll();
+        List<Order> orders = orderSnapshotRepository.findAll();
         List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
 
-        assertThat(orderSnapshots).hasSize(1);
+        assertThat(orders).hasSize(1);
         assertThat(confirmationRequests).hasSize(1);
 
-        OrderSnapshot orderSnapshot = orderSnapshots.get(0);
+        Order order = orders.get(0);
         ConfirmationRequest confirmationRequest = confirmationRequests.get(0);
 
-        assertThat(orderSnapshot.getExternalOrderId()).isEqualTo("A-SMS-1024");
-        assertThat(orderSnapshot.getCustomerName()).isEqualTo("Max Muller");
-        assertThat(orderSnapshot.getCustomerEmail()).isNull();
-        assertThat(orderSnapshot.getCustomerPhoneNumber()).isEqualTo("+491701234567");
-        assertThat(orderSnapshot.getPriceDisplayText()).isEqualTo("100 EUR");
-        assertThat(orderSnapshot.getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
+        assertThat(order.getExternalOrderId()).isEqualTo("A-SMS-1024");
+        assertThat(order.getCustomerName()).isEqualTo("Max Muller");
+        assertThat(order.getCustomerEmail()).isNull();
+        assertThat(order.getCustomerPhoneNumber()).isEqualTo("+491701234567");
+        assertThat(order.getPriceDisplayText()).isEqualTo("100 EUR");
+        assertThat(order.getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
 
-        assertThat(confirmationRequest.getOrderSnapshot().getId()).isEqualTo(orderSnapshot.getId());
+        assertThat(confirmationRequest.getOrder().getId()).isEqualTo(order.getId());
         assertThat(confirmationRequest.getToken()).isNotBlank();
         assertThat(confirmationRequest.getCommunicationChannel()).isEqualTo(CommunicationChannel.SMS);
         assertThat(confirmationRequest.getResponseDeadlineHours()).isEqualTo(24);
         assertThat(confirmationRequest.isActive()).isTrue();
 
         Mockito.verify(notificationService, times(1))
-                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
     @Test
@@ -181,15 +178,15 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
                 .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
 
-        List<OrderSnapshot> orderSnapshots = orderSnapshotRepository.findAll();
+        List<Order> orders = orderSnapshotRepository.findAll();
         List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
 
-        assertThat(orderSnapshots).hasSize(1);
+        assertThat(orders).hasSize(1);
         assertThat(confirmationRequests).hasSize(1);
         assertThat(confirmationRequests.get(0).isActive()).isTrue();
 
         Mockito.verify(notificationService, times(1))
-                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
     @Test
@@ -212,7 +209,7 @@ class DispoControllerIntegrationTest {
         assertThat(confirmationRequestRepository.findAll()).hasSize(1);
 
         Mockito.verify(notificationService, times(1))
-                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
     @Test
@@ -235,7 +232,7 @@ class DispoControllerIntegrationTest {
         assertThat(confirmationRequestRepository.findAll()).hasSize(1);
 
         Mockito.verify(notificationService, times(1))
-                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
     @Test
@@ -263,7 +260,7 @@ class DispoControllerIntegrationTest {
                 .hasSize(1);
 
         Mockito.verify(notificationService, times(2))
-                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
     @Test
@@ -280,10 +277,10 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
                 .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
 
-        List<OrderSnapshot> orderSnapshots = orderSnapshotRepository.findAll();
+        List<Order> orders = orderSnapshotRepository.findAll();
         List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
 
-        assertThat(orderSnapshots).hasSize(1);
+        assertThat(orders).hasSize(1);
         assertThat(confirmationRequests).hasSize(2);
 
         long activeCount = confirmationRequests.stream()
@@ -307,7 +304,7 @@ class DispoControllerIntegrationTest {
         assertThat(activeRequest.getCommunicationChannel()).isEqualTo(CommunicationChannel.EMAIL);
 
         Mockito.verify(notificationService, times(2))
-                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
     @Test
@@ -324,10 +321,10 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
                 .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
 
-        List<OrderSnapshot> orderSnapshots = orderSnapshotRepository.findAll();
+        List<Order> orders = orderSnapshotRepository.findAll();
         List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
 
-        assertThat(orderSnapshots).hasSize(1);
+        assertThat(orders).hasSize(1);
         assertThat(confirmationRequests).hasSize(2);
 
         long activeCount = confirmationRequests.stream()
@@ -341,10 +338,10 @@ class DispoControllerIntegrationTest {
         assertThat(activeCount).isEqualTo(1);
         assertThat(inactiveCount).isEqualTo(1);
 
-        OrderSnapshot orderSnapshot = orderSnapshots.get(0);
+        Order order = orders.get(0);
 
-        assertThat(orderSnapshot.getCustomerEmail()).isNull();
-        assertThat(orderSnapshot.getCustomerPhoneNumber()).isEqualTo("+491701234567");
+        assertThat(order.getCustomerEmail()).isNull();
+        assertThat(order.getCustomerPhoneNumber()).isEqualTo("+491701234567");
 
         ConfirmationRequest activeRequest = confirmationRequests.stream()
                 .filter(ConfirmationRequest::isActive)
@@ -354,7 +351,7 @@ class DispoControllerIntegrationTest {
         assertThat(activeRequest.getCommunicationChannel()).isEqualTo(CommunicationChannel.SMS);
 
         Mockito.verify(notificationService, times(2))
-                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
     @Test
@@ -547,7 +544,7 @@ class DispoControllerIntegrationTest {
                 .isEqualTo(confirmationRequests.get(0).getSentAt().plusSeconds(168L * 60 * 60));
 
         Mockito.verify(notificationService, times(1))
-                .sendConfirmationRequest(any(OrderSnapshot.class), any(ConfirmationRequest.class));
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
     private String emailRequest(
@@ -723,24 +720,24 @@ class DispoControllerIntegrationTest {
             String externalOrderId,
             ConfirmationStatus status
     ) {
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findTopByOrderSnapshotOrderByIdDesc(orderSnapshot)
+                .findTopByOrderSnapshotOrderByIdDesc(order)
                 .orElseThrow();
 
         confirmationRequest.markInactive();
         confirmationRequestRepository.save(confirmationRequest);
 
         switch (status) {
-            case SENT -> orderSnapshot.markSent();
-            case CONFIRMED -> orderSnapshot.markConfirmed();
-            case REJECTED -> orderSnapshot.markRejected();
-            case NO_RESPONSE -> orderSnapshot.markNoResponse();
+            case SENT -> order.markSent();
+            case CONFIRMED -> order.markConfirmed();
+            case REJECTED -> order.markRejected();
+            case NO_RESPONSE -> order.markNoResponse();
         }
-        orderSnapshotRepository.save(orderSnapshot);
+        orderSnapshotRepository.save(order);
     }
 
     private record TestDispoRequest(

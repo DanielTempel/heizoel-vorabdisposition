@@ -4,7 +4,7 @@ import heizoel.backend.application.port.in.workflow.HandleNoResponseTimeoutUseCa
 import heizoel.backend.application.port.out.workflow.DispoCallbackWorkflowService;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.Order;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
@@ -43,15 +43,15 @@ public class HandleNoResponseTimeoutService implements HandleNoResponseTimeoutUs
             return;
         }
 
-        OrderSnapshot orderSnapshot = confirmationRequest.getOrderSnapshot();
+        Order order = confirmationRequest.getOrder();
 
         confirmationRequest.markInactive();
         confirmationRequestRepository.save(confirmationRequest);
-        orderSnapshot.markNoResponse();
-        orderSnapshotRepository.save(orderSnapshot);
+        order.markNoResponse();
+        orderSnapshotRepository.save(order);
 
         dispoCallbackWorkflowService.startDispoCallbackProcess(
-                orderSnapshot.getId(),
+                order.getId(),
                 ConfirmationStatus.NO_RESPONSE,
                 null
         );

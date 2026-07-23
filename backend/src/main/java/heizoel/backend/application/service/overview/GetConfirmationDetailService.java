@@ -7,7 +7,7 @@ import heizoel.backend.application.port.in.overview.*;
 import heizoel.backend.application.exception.OrderSnapshotNotFoundException;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.CustomerResponse;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.Order;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
@@ -24,7 +24,7 @@ public class GetConfirmationDetailService implements GetConfirmationDetailUseCas
 
     @Override
     public ConfirmationDetail getOrderDetail(GetConfirmationDetailQuery query) {
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(
                         query.companyContext().companyId(),
                         query.externalOrderId()
@@ -34,7 +34,7 @@ public class GetConfirmationDetailService implements GetConfirmationDetailUseCas
                 ));
 
         ConfirmationRequest latestRequest = confirmationRequestRepository
-                .findTopByOrderSnapshotOrderByIdDesc(orderSnapshot)
+                .findTopByOrderSnapshotOrderByIdDesc(order)
                 .orElse(null);
 
         LatestConfirmationRequest latestRequestResult = latestRequest != null
@@ -46,13 +46,13 @@ public class GetConfirmationDetailService implements GetConfirmationDetailUseCas
                 : null;
 
         return new ConfirmationDetail(
-                orderSnapshot.getExternalOrderId(),
-                orderSnapshot.getCustomerName(),
-                orderSnapshot.getDeliveryAddress(),
-                orderSnapshot.getProduct(),
-                orderSnapshot.getQuantityLiters(),
-                orderSnapshot.getPriceDisplayText(),
-                orderSnapshot.getConfirmationStatus(),
+                order.getExternalOrderId(),
+                order.getCustomerName(),
+                order.getDeliveryAddress(),
+                order.getProduct(),
+                order.getQuantityLiters(),
+                order.getPriceDisplayText(),
+                order.getConfirmationStatus(),
                 latestRequestResult,
                 latestCustomerResponseResult
         );

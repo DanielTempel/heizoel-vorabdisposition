@@ -2,13 +2,10 @@ package heizoel.backend.adapter.web.dispo;
 
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackRequest;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackService;
-import heizoel.backend.domain.ConfirmationStatus;
-import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.*;
 import heizoel.backend.application.port.out.location.GeocodingClient;
 import heizoel.backend.application.model.GeoCoordinate;
 import heizoel.backend.application.port.out.notification.NotificationService;
-import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
@@ -181,11 +178,11 @@ class DispoCallbackIntegrationTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
-        assertThat(orderSnapshot.getConfirmationStatus())
+        assertThat(order.getConfirmationStatus())
                 .isEqualTo(ConfirmationStatus.CONFIRMED);
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
@@ -222,13 +219,13 @@ class DispoCallbackIntegrationTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
-        assertThat(orderSnapshot.getCustomerEmail()).isNull();
-        assertThat(orderSnapshot.getCustomerPhoneNumber()).isEqualTo("+491701234567");
-        assertThat(orderSnapshot.getConfirmationStatus()).isEqualTo(ConfirmationStatus.CONFIRMED);
+        assertThat(order.getCustomerEmail()).isNull();
+        assertThat(order.getCustomerPhoneNumber()).isEqualTo("+491701234567");
+        assertThat(order.getConfirmationStatus()).isEqualTo(ConfirmationStatus.CONFIRMED);
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
                 .findByToken(token)
@@ -315,12 +312,12 @@ class DispoCallbackIntegrationTest {
     }
 
     private String findActiveToken(String externalOrderId) {
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findTopByOrderSnapshotOrderByIdDesc(orderSnapshot)
+                .findTopByOrderSnapshotOrderByIdDesc(order)
                 .orElseThrow();
 
         return confirmationRequest.getToken();

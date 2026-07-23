@@ -2,7 +2,7 @@ package heizoel.backend.adapter.out.notification.email;
 
 import heizoel.backend.domain.CustomerResponseType;
 import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.Order;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.adapter.out.notification.NotificationChannelSender;
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
@@ -40,19 +40,19 @@ public class EmailNotificationSender implements NotificationChannelSender {
 
     @Override
     public void sendConfirmationRequest(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest confirmationRequest
     ) {
         String confirmationUrl = buildConfirmationUrl(confirmationRequest);
 
         String htmlBody = mailRenderer.renderConfirmationRequestMail(
-                orderSnapshot,
+                order,
                 confirmationRequest,
                 confirmationUrl
         );
 
         sendHtmlMail(
-                orderSnapshot,
+                order,
                 SUBJECT_CONFIRMATION_REQUEST,
                 htmlBody
         );
@@ -60,7 +60,7 @@ public class EmailNotificationSender implements NotificationChannelSender {
 
     @Override
     public void sendCustomerResponseReceived(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest confirmationRequest,
             CustomerResponseType responseType
     ) {
@@ -68,19 +68,19 @@ public class EmailNotificationSender implements NotificationChannelSender {
 
         String htmlBody = switch (responseType) {
             case CONFIRM -> mailRenderer.renderCustomerConfirmedMail(
-                    orderSnapshot,
+                    order,
                     confirmationRequest,
                     confirmationUrl
             );
             case REJECT -> mailRenderer.renderCustomerRejectedMail(
-                    orderSnapshot,
+                    order,
                     confirmationRequest,
                     confirmationUrl
             );
         };
 
         sendHtmlMail(
-                orderSnapshot,
+                order,
                 SUBJECT_CUSTOMER_RESPONSE_RECEIVED,
                 htmlBody
         );
@@ -93,7 +93,7 @@ public class EmailNotificationSender implements NotificationChannelSender {
     }
 
     private void sendHtmlMail(
-            OrderSnapshot orderSnapshot,
+            Order order,
             String subject,
             String htmlBody
     ) {
@@ -102,7 +102,7 @@ public class EmailNotificationSender implements NotificationChannelSender {
             MimeMessageHelper helper = new MimeMessageHelper(message, true,"UTF-8");
 
             helper.setFrom(mailProperties.getFrom());
-            helper.setTo(orderSnapshot.getCustomerEmail());
+            helper.setTo(order.getCustomerEmail());
             helper.setSubject(subject);
             helper.setText(htmlBody, true);
             helper.addInline(
@@ -116,7 +116,7 @@ public class EmailNotificationSender implements NotificationChannelSender {
             throw new NotificationDeliveryException(
                     CommunicationChannel.EMAIL,
                     "Notification could not be delivered for externalOrderId="
-                            + orderSnapshot.getExternalOrderId(),
+                            + order.getExternalOrderId(),
                     ex
             );
         }

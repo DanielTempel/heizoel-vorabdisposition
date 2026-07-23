@@ -1,37 +1,27 @@
-\clearpage
-\section{Rolle von DISPO und Systemgrenze}
+\section{Systemaufbau und Komponenten}
 
-\subsection{Rolle von DISPO}
+\subsection{DISPO}
 
-DISPO ist die führende Arbeitsumgebung für die Planung und Bearbeitung von Lieferaufträgen.
-Es verwaltet unter anderem Aufträge, Touren, Fahrzeuge, Lieferdaten und Zeitfenster. Die
-digitale Lieferavisierung erhält daraus die Daten eines bereits geplanten Liefertermins und
-gibt die Kundenreaktion zurück.
+DISPO ist das führende System für die Planung und Änderung von Aufträgen, Touren, Fahrzeugen,
+Lieferdaten und Zeitfenstern. Die digitale Lieferavisierung arbeitet ausschließlich mit bereits
+geplanten Lieferdaten.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{assets/screenshots/dispo-overview-anonymized.png}
-  \caption{Anonymisierte DISPO-Ansicht mit Karte, Auftragsliste, Tour und Lieferdetails}
-  \label{fig:dispo-overview}
-\end{figure}
+\subsection{Avisierungsservice}
 
-Die Schaltfläche zum Starten einer Avisierung und die Darstellung des Rückmeldestatus sind
-noch keine vorhandenen oder zugesagten DISPO-Funktionen. Sie bilden einen Vorschlag für die
-spätere Integration und müssen mit dem DISPO-Produktteam abgestimmt werden.
+Der Avisierungsservice bildet die fachliche Schnittstelle zwischen DISPO,
+Bestätigungsseite und Dashboard. Er verwaltet die Avisierung und stellt den beteiligten
+Oberflächen den jeweiligen Datenstand bereit.
 
-\subsection{Verantwortungsgrenze}
+\subsection{Bestätigungsseite}
 
-\begin{center}
-\begin{tabularx}{0.94\textwidth}{>{\bfseries}L{3.2cm}X}
-\hline
-DISPO & Plant und ändert Aufträge, Touren, Fahrzeuge, Lieferdaten und Zeitfenster.\\
-\hline
-Lieferavisierung & Versendet die Lieferankündigung, speichert die Kundenantwort und macht sie sichtbar.\\
-\hline
-\end{tabularx}
-\end{center}
+Die Bestätigungsseite ist die öffentliche Kundenoberfläche. Sie stellt die wesentlichen
+Lieferdaten dar und erfasst die Rückmeldung einschließlich eines optionalen Kommentars.
 
-\infobox{Klare Systemgrenze}{%
-Planung und Änderung von Aufträgen, Touren und Zeitfenstern erfolgen ausschlie\ss{}lich in
-DISPO. Die digitale Lieferavisierung kommuniziert die bereits geplanten Daten und erfasst die
-Antwort des Kunden.}
+\subsection{Avisierungsdashboard}
+
+Das Avisierungsdashboard ist die interne Arbeits- und Konfigurationsoberfläche. Es bietet eine
+zentrale Sicht auf Status, Kommentare und Verlauf. Seine Einstellungen umfassen die Anbindung
+des unternehmenseigenen SMTP-Servers, die für WhatsApp und SMS verwendete Telefonnummer sowie
+Sprache und hellen oder dunklen Darstellungsmodus.
+
+\input{diagrams/uml-component-overview}

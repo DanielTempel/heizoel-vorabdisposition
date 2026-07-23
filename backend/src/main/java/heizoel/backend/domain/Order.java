@@ -24,7 +24,7 @@ import java.util.Objects;
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class OrderSnapshot {
+public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -62,7 +62,7 @@ public class OrderSnapshot {
     @Column(name = "confirmation_status", nullable = false)
     private ConfirmationStatus confirmationStatus;
 
-    public static OrderSnapshot create(
+    public static Order create(
             Company company,
             String externalOrderId,
             String customerName,
@@ -73,18 +73,18 @@ public class OrderSnapshot {
             Integer quantityLiters,
             String priceDisplayText
     ) {
-        OrderSnapshot orderSnapshot = new OrderSnapshot();
-        orderSnapshot.company = company;
-        orderSnapshot.externalOrderId = externalOrderId;
-        orderSnapshot.customerName = customerName;
-        orderSnapshot.customerEmail = customerEmail;
-        orderSnapshot.customerPhoneNumber = customerPhoneNumber;
-        orderSnapshot.deliveryAddress = deliveryAddress;
-        orderSnapshot.product = product;
-        orderSnapshot.quantityLiters = quantityLiters;
-        orderSnapshot.priceDisplayText = priceDisplayText;
-        orderSnapshot.confirmationStatus = ConfirmationStatus.SENT;
-        return orderSnapshot;
+        Order order = new Order();
+        order.company = company;
+        order.externalOrderId = externalOrderId;
+        order.customerName = customerName;
+        order.customerEmail = customerEmail;
+        order.customerPhoneNumber = customerPhoneNumber;
+        order.deliveryAddress = deliveryAddress;
+        order.product = product;
+        order.quantityLiters = quantityLiters;
+        order.priceDisplayText = priceDisplayText;
+        order.confirmationStatus = ConfirmationStatus.SENT;
+        return order;
     }
 
     public void update(

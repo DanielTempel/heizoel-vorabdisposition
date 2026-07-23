@@ -33,7 +33,7 @@ public class GetTrackingInfoService implements GetTrackingInfoUseCase {
 
         Optional<GeoCoordinate> targetCoordinate = trackingAvailable
                 ? deliveryAddressCoordinateResolver.resolve(
-                confirmationRequest.getOrderSnapshot().getDeliveryAddress()
+                confirmationRequest.getOrder().getDeliveryAddress()
         )
                 : Optional.empty();
 

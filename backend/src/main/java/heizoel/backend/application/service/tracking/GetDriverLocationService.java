@@ -33,7 +33,7 @@ public class GetDriverLocationService implements GetDriverLocationUseCase {
         }
 
         return locationTrackingService
-                .getDriverLocation(confirmationRequest.getOrderSnapshot().getExternalOrderId())
+                .getDriverLocation(confirmationRequest.getOrder().getExternalOrderId())
                 .map(DriverLocationResult::new);
     }
 }

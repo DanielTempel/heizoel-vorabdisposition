@@ -3,12 +3,7 @@ package heizoel.backend.application.service.confirmation;
 import heizoel.backend.application.port.in.confirmation.ConfirmationRequestCreationResult;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestCommand;
 import heizoel.backend.application.port.out.token.TokenService;
-import heizoel.backend.domain.Company;
-import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
-import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.ConfirmationStatus;
-import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
+import heizoel.backend.domain.*;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +15,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ConfirmationRequestPreparationService  {
-
-    private static final ZoneId DELIVERY_ZONE = ZoneId.of("Europe/Berlin");
 
     private final OrderSnapshotRepository orderSnapshotRepository;
     private final ConfirmationRequestRepository confirmationRequestRepository;
@@ -35,29 +28,29 @@ public class ConfirmationRequestPreparationService  {
         OrderData orderData = OrderData.from(command);
         RequestData requestData = RequestData.from(command);
 
-        Optional<OrderSnapshot> existingOrder =
+        Optional<Order> existingOrder =
                 orderSnapshotRepository.findByCompanyIdAndExternalOrderId(
                         company.getId(),
                         orderData.externalOrderId()
                 );
 
         if (existingOrder.isEmpty()) {
-            OrderSnapshot orderSnapshot = createOrderSnapshot(company, orderData);
-            OrderSnapshot savedOrderSnapshot = orderSnapshotRepository.save(orderSnapshot);
-            return createNewRequest(savedOrderSnapshot, requestData);
+            Order order = createOrderSnapshot(company, orderData);
+            Order savedOrder = orderSnapshotRepository.save(order);
+            return createNewRequest(savedOrder, requestData);
         }
 
-        OrderSnapshot orderSnapshot = existingOrder.get();
+        Order order = existingOrder.get();
 
         Optional<ConfirmationRequest> latestRequest =
-                confirmationRequestRepository.findTopByOrderSnapshotOrderByIdDesc(orderSnapshot);
+                confirmationRequestRepository.findTopByOrderSnapshotOrderByIdDesc(order);
 
         if (latestRequest.isPresent()) {
             ConfirmationRequest request = latestRequest.get();
 
-            if (isReusable(orderSnapshot, request, orderData, requestData)) {
+            if (isReusable(order, request, orderData, requestData)) {
                 return new ConfirmationRequestCreationResult(
-                        orderSnapshot,
+                        order,
                         request,
                         false
                 );
@@ -69,43 +62,22 @@ public class ConfirmationRequestPreparationService  {
             }
         }
 
-        OrderSnapshot updatedOrderSnapshot = updateOrderSnapshot(orderSnapshot, orderData);
-        return createNewRequest(updatedOrderSnapshot, requestData);
+        Order updatedOrder = updateOrderSnapshot(order, orderData);
+        return createNewRequest(updatedOrder, requestData);
     }
 
     private ConfirmationRequestCreationResult createNewRequest(
-            OrderSnapshot orderSnapshot,
+            Order order,
             RequestData data
     ) {
         Instant sentAt = Instant.now();
 
-        Instant deliveryStartsAt = data.deliveryDate()
-                .atTime(data.deliveryWindowStart())
-                .atZone(DELIVERY_ZONE)
-                .toInstant();
-
-        if (!deliveryStartsAt.isAfter(sentAt)) {
-            throw new InvalidDeliveryWindowException(
-                    "Delivery window must start in the future."
-            );
-        }
-
-        Instant requestedExpiresAt =
-                sentAt.plus(Duration.ofHours(data.responseDeadlineHours()));
-
-        Instant effectiveExpiresAt = requestedExpiresAt.isBefore(deliveryStartsAt)
-                ? requestedExpiresAt
-                : deliveryStartsAt;
-
         ConfirmationRequest confirmationRequest = ConfirmationRequest.create(
-                orderSnapshot,
+                order,
                 tokenService.generateToken(),
                 data.communicationChannel(),
-                data.deliveryDate(),
-                data.deliveryWindowStart(),
-                data.deliveryWindowEnd(),
+                data.deliverySlot(),
                 sentAt,
-                effectiveExpiresAt,
                 data.responseDeadlineHours()
         );
 
@@ -113,19 +85,19 @@ public class ConfirmationRequestPreparationService  {
                 confirmationRequestRepository.save(confirmationRequest);
 
         return new ConfirmationRequestCreationResult(
-                orderSnapshot,
+                order,
                 savedConfirmationRequest,
                 true
         );
     }
 
     private boolean isReusable(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest latestRequest,
             OrderData orderData,
             RequestData requestData
     ) {
-        boolean sameOrderData = orderSnapshot.hasSameData(
+        boolean sameOrderData = order.hasSameData(
                 orderData.customerName(),
                 orderData.customerEmail(),
                 orderData.customerPhoneNumber(),
@@ -136,26 +108,24 @@ public class ConfirmationRequestPreparationService  {
         );
 
         boolean sameRequestData = latestRequest.hasSameData(
-                requestData.deliveryDate(),
-                requestData.deliveryWindowStart(),
-                requestData.deliveryWindowEnd(),
+                requestData.deliverySlot(),
                 requestData.communicationChannel(),
                 requestData.responseDeadlineHours()
         );
 
         boolean reusableState =
                 latestRequest.isActive()
-                        || orderSnapshot.getConfirmationStatus() == ConfirmationStatus.CONFIRMED
-                        || orderSnapshot.getConfirmationStatus() == ConfirmationStatus.REJECTED;
+                        || order.getConfirmationStatus() == ConfirmationStatus.CONFIRMED
+                        || order.getConfirmationStatus() == ConfirmationStatus.REJECTED;
 
         return sameOrderData && sameRequestData && reusableState;
     }
 
-    private OrderSnapshot createOrderSnapshot(
+    private Order createOrderSnapshot(
             Company company,
             OrderData data
     ) {
-        return OrderSnapshot.create(
+        return Order.create(
                 company,
                 data.externalOrderId(),
                 data.customerName(),
@@ -168,11 +138,11 @@ public class ConfirmationRequestPreparationService  {
         );
     }
 
-    private OrderSnapshot updateOrderSnapshot(
-            OrderSnapshot orderSnapshot,
+    private Order updateOrderSnapshot(
+            Order order,
             OrderData data
     ) {
-        orderSnapshot.update(
+        order.update(
                 data.customerName(),
                 data.customerEmail(),
                 data.customerPhoneNumber(),
@@ -182,7 +152,7 @@ public class ConfirmationRequestPreparationService  {
                 data.priceDisplayText()
         );
 
-        return orderSnapshotRepository.save(orderSnapshot);
+        return orderSnapshotRepository.save(order);
     }
 
 
@@ -211,17 +181,17 @@ public class ConfirmationRequestPreparationService  {
     }
 
     private record RequestData(
-            LocalDate deliveryDate,
-            LocalTime deliveryWindowStart,
-            LocalTime deliveryWindowEnd,
+            DeliverySlot deliverySlot,
             CommunicationChannel communicationChannel,
             Integer responseDeadlineHours
     ) {
         static RequestData from(CreateConfirmationRequestCommand command) {
             return new RequestData(
-                    command.deliveryDate(),
-                    command.deliveryWindowStart(),
-                    command.deliveryWindowEnd(),
+                    DeliverySlot.of(
+                            command.deliveryDate(),
+                            command.deliveryWindowStart(),
+                            command.deliveryWindowEnd()
+                    ),
                     command.communicationChannel(),
                     command.responseDeadlineHours()
             );

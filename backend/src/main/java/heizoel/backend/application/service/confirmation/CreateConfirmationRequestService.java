@@ -10,7 +10,6 @@ import heizoel.backend.application.port.in.confirmation.ConfirmationRequestCreat
 import heizoel.backend.domain.Company;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.application.exception.CompanyNotFoundException;
-import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.domain.exception.MissingDigitalContactException;
 import heizoel.backend.adapter.out.persistence.CompanyRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,10 +29,10 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
     @Transactional
     public CreateConfirmationRequestResult createConfirmationRequest(CreateConfirmationRequestCommand command) {
 
-        validateDeliveryWindow(command);
         validateCommunicationChannel(command);
 
-        Company company = companyRepository.findById(command.companyContext().companyId())
+        Company company = companyRepository
+                .findById(command.companyContext().companyId())
                 .orElseThrow(() -> new CompanyNotFoundException("Company was not found."));
 
         ConfirmationRequestCreationResult creationResult =
@@ -44,7 +43,7 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
 
         if (creationResult.created()) {
             notificationService.sendConfirmationRequest(
-                    creationResult.orderSnapshot(),
+                    creationResult.order(),
                     creationResult.confirmationRequest()
             );
             noResponseWorkflowService.startTimeoutProcess(
@@ -54,18 +53,10 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
         }
 
         return new CreateConfirmationRequestResult(
-                creationResult.orderSnapshot().getExternalOrderId(),
-                creationResult.orderSnapshot().getConfirmationStatus(),
+                creationResult.order().getExternalOrderId(),
+                creationResult.order().getConfirmationStatus(),
                 creationResult.created()
         );
-    }
-
-    private void validateDeliveryWindow(CreateConfirmationRequestCommand command) {
-        if (!command.deliveryWindowStart().isBefore(command.deliveryWindowEnd())) {
-            throw new InvalidDeliveryWindowException(
-                    "Delivery window start must be before delivery window end."
-            );
-        }
     }
 
     private void validateCommunicationChannel(CreateConfirmationRequestCommand command) {

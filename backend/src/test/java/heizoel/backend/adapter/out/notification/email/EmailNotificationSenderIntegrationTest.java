@@ -1,10 +1,6 @@
 package heizoel.backend.adapter.out.notification.email;
 
-import heizoel.backend.domain.Company;
-import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.CustomerResponseType;
-import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.*;
 import heizoel.backend.configuration.properties.ConfirmationProperties;
 import heizoel.backend.configuration.properties.MailProperties;
 import jakarta.mail.BodyPart;
@@ -155,8 +151,8 @@ class EmailNotificationSenderIntegrationTest {
         return "";
     }
 
-    private OrderSnapshot orderSnapshot() {
-        return OrderSnapshot.create(
+    private Order orderSnapshot() {
+        return Order.create(
                 Company.create(
                         "Company", "api-key-hash", "http://localhost/callback"
                 ),

@@ -2,16 +2,12 @@ package heizoel.backend.adapter.web.customer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import heizoel.backend.adapter.in.web.customer.dto.CustomerResponseRequestDto;
-import heizoel.backend.domain.ConfirmationStatus;
-import heizoel.backend.domain.CustomerResponseType;
-import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.*;
 import heizoel.backend.application.port.out.location.GeocodingClient;
 import heizoel.backend.application.port.out.location.LocationTrackingService;
 import heizoel.backend.application.model.GeoCoordinate;
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
 import heizoel.backend.application.port.out.notification.NotificationService;
-import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
@@ -192,11 +188,11 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
-        assertThat(orderSnapshot.getConfirmationStatus())
+        assertThat(order.getConfirmationStatus())
                 .isEqualTo(ConfirmationStatus.CONFIRMED);
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
@@ -232,7 +228,7 @@ class CustomerConfirmationIntegrationTest {
                 ))
                 .when(notificationService)
                 .sendCustomerResponseReceived(
-                        any(OrderSnapshot.class),
+                        any(Order.class),
                         any(ConfirmationRequest.class),
                         any(CustomerResponseType.class)
                 );
@@ -248,14 +244,14 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
                 .findByToken(token)
                 .orElseThrow();
 
-        assertThat(orderSnapshot.getConfirmationStatus())
+        assertThat(order.getConfirmationStatus())
                 .isEqualTo(ConfirmationStatus.CONFIRMED);
         assertThat(confirmationRequest.isActive()).isFalse();
         assertThat(customerResponseRepository.existsByConfirmationRequest(confirmationRequest))
@@ -281,11 +277,11 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
-        assertThat(orderSnapshot.getConfirmationStatus())
+        assertThat(order.getConfirmationStatus())
                 .isEqualTo(ConfirmationStatus.REJECTED);
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
@@ -348,7 +344,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.status").value(410))
                 .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/response"));
 
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
@@ -356,7 +352,7 @@ class CustomerConfirmationIntegrationTest {
                 .findByToken(token)
                 .orElseThrow();
 
-        assertThat(orderSnapshot.getConfirmationStatus())
+        assertThat(order.getConfirmationStatus())
                 .isEqualTo(ConfirmationStatus.SENT);
         assertThat(confirmationRequest.isActive()).isTrue();
         assertThat(customerResponseRepository.findAll()).isEmpty();
@@ -379,11 +375,11 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/response"));
 
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
-        assertThat(orderSnapshot.getConfirmationStatus())
+        assertThat(order.getConfirmationStatus())
                 .isEqualTo(ConfirmationStatus.SENT);
         assertThat(customerResponseRepository.findAll()).isEmpty();
     }
@@ -435,7 +431,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Customer comment must not exceed 2000 characters."))
                 .andExpect(jsonPath("$.status").value(400));
 
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
@@ -443,7 +439,7 @@ class CustomerConfirmationIntegrationTest {
                 .findByToken(token)
                 .orElseThrow();
 
-        assertThat(orderSnapshot.getConfirmationStatus())
+        assertThat(order.getConfirmationStatus())
                 .isEqualTo(ConfirmationStatus.SENT);
         assertThat(confirmationRequest.isActive()).isTrue();
         assertThat(customerResponseRepository.findAll()).isEmpty();
@@ -457,7 +453,7 @@ class CustomerConfirmationIntegrationTest {
 
         Mockito.verify(notificationService, times(1))
                 .sendConfirmationRequest(
-                        any(OrderSnapshot.class),
+                        any(Order.class),
                         any(ConfirmationRequest.class)
                 );
     }
@@ -498,23 +494,23 @@ class CustomerConfirmationIntegrationTest {
     }
 
     private String findActiveTokenByExternalOrderId(String externalOrderId) {
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         return confirmationRequestRepository
-                .findTopByOrderSnapshotOrderByIdDesc(orderSnapshot)
+                .findTopByOrderSnapshotOrderByIdDesc(order)
                 .orElseThrow()
                 .getToken();
     }
 
     private void setLatestDeliveryDate(String externalOrderId, LocalDate deliveryDate) {
-        OrderSnapshot orderSnapshot = orderSnapshotRepository
+        Order order = orderSnapshotRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findTopByOrderSnapshotOrderByIdDesc(orderSnapshot)
+                .findTopByOrderSnapshotOrderByIdDesc(order)
                 .orElseThrow();
 
         jdbcTemplate.update(

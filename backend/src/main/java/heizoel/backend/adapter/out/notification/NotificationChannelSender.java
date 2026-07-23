@@ -1,21 +1,18 @@
 package heizoel.backend.adapter.out.notification;
 
-import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
-import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.CustomerResponseType;
+import heizoel.backend.domain.*;
 
 public interface NotificationChannelSender {
 
     CommunicationChannel channel();
 
     void sendConfirmationRequest(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest confirmationRequest
     );
 
     void sendCustomerResponseReceived(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest confirmationRequest,
             CustomerResponseType responseType
     );

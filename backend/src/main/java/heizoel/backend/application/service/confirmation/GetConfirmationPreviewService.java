@@ -4,7 +4,7 @@ import heizoel.backend.application.port.in.confirmation.GetConfirmationPreviewRe
 import heizoel.backend.application.port.in.confirmation.GetConfirmationPreviewUseCase;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.Order;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,19 +23,19 @@ public class GetConfirmationPreviewService implements GetConfirmationPreviewUseC
                 .orElseThrow(() -> new ConfirmationRequestNotFoundException(
                         "Confirmation request was not found."
                 ));
-        OrderSnapshot orderSnapshot = confirmationRequest.getOrderSnapshot();
+        Order order = confirmationRequest.getOrder();
 
         return new GetConfirmationPreviewResult(
-                orderSnapshot.getExternalOrderId(),
-                orderSnapshot.getCustomerName(),
-                orderSnapshot.getDeliveryAddress(),
-                orderSnapshot.getProduct(),
-                orderSnapshot.getQuantityLiters(),
+                order.getExternalOrderId(),
+                order.getCustomerName(),
+                order.getDeliveryAddress(),
+                order.getProduct(),
+                order.getQuantityLiters(),
                 confirmationRequest.getDeliveryDate(),
                 confirmationRequest.getDeliveryWindowStart(),
                 confirmationRequest.getDeliveryWindowEnd(),
-                orderSnapshot.getPriceDisplayText(),
-                orderSnapshot.getConfirmationStatus()
+                order.getPriceDisplayText(),
+                order.getConfirmationStatus()
         );
     }
 }

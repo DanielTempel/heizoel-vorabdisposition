@@ -18,11 +18,11 @@ class ConfirmationRequestTest {
 
     @Test
     void createBuildsActiveRequestFromReadyValues() {
-        OrderSnapshot orderSnapshot = new OrderSnapshot();
+        Order order = new Order();
 
-        ConfirmationRequest request = request(orderSnapshot);
+        ConfirmationRequest request = request(order);
 
-        assertThat(request.getOrderSnapshot()).isSameAs(orderSnapshot);
+        assertThat(request.getOrder()).isSameAs(order);
         assertThat(request.getToken()).isEqualTo("token");
         assertThat(request.isActive()).isTrue();
         assertThat(request.getSentAt()).isEqualTo(SENT_AT);
@@ -31,7 +31,7 @@ class ConfirmationRequestTest {
 
     @Test
     void markInactiveMakesRequestInactive() {
-        ConfirmationRequest request = request(new OrderSnapshot());
+        ConfirmationRequest request = request(new Order());
 
         request.markInactive();
 
@@ -40,7 +40,7 @@ class ConfirmationRequestTest {
 
     @Test
     void requestExpiresAtDeadline() {
-        ConfirmationRequest request = request(new OrderSnapshot());
+        ConfirmationRequest request = request(new Order());
 
         assertThat(request.isExpiredAt(EXPIRES_AT.minusNanos(1))).isFalse();
         assertThat(request.isExpiredAt(EXPIRES_AT)).isTrue();
@@ -48,7 +48,7 @@ class ConfirmationRequestTest {
 
     @Test
     void hasSameDataComparesAllDuplicateRelevantRequestData() {
-        ConfirmationRequest request = request(new OrderSnapshot());
+        ConfirmationRequest request = request(new Order());
 
         assertThat(request.hasSameData(
                 DELIVERY_DATE,
@@ -66,9 +66,9 @@ class ConfirmationRequestTest {
         )).isFalse();
     }
 
-    private ConfirmationRequest request(OrderSnapshot orderSnapshot) {
+    private ConfirmationRequest request(Order order) {
         return ConfirmationRequest.create(
-                orderSnapshot,
+                order,
                 "token",
                 CommunicationChannel.EMAIL,
                 DELIVERY_DATE,

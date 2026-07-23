@@ -3,7 +3,7 @@ package heizoel.backend.dashboard.adapter.persistence;
 import heizoel.backend.adapter.out.persistence.ConfirmationOverviewQueryAdapter;
 import heizoel.backend.domain.Company;
 import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.Order;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.application.model.overview.ConfirmationOverviewItem;
@@ -171,7 +171,7 @@ class ConfirmationOverviewItemQueryAdapterIntegrationTest {
     @Test
     void findDashboardOrders_returnsLatestConfirmationRequestOnly() {
         Company company = company("Latest request tenant");
-        OrderSnapshot snapshot = snapshot(
+        Order snapshot = snapshot(
                 company,
                 "RESENT-ORDER",
                 "Resent Customer",
@@ -317,7 +317,7 @@ class ConfirmationOverviewItemQueryAdapterIntegrationTest {
             LocalTime deliveryWindowStart,
             ConfirmationStatus status
     ) {
-        OrderSnapshot snapshot = snapshot(
+        Order snapshot = snapshot(
                 company,
                 externalOrderId,
                 customerName,
@@ -333,14 +333,14 @@ class ConfirmationOverviewItemQueryAdapterIntegrationTest {
         );
     }
 
-    private OrderSnapshot snapshot(
+    private Order snapshot(
             Company company,
             String externalOrderId,
             String customerName,
             String address,
             ConfirmationStatus status
     ) {
-        OrderSnapshot snapshot = OrderSnapshot.create(
+        Order snapshot = Order.create(
                 company,
                 externalOrderId,
                 customerName,
@@ -357,7 +357,7 @@ class ConfirmationOverviewItemQueryAdapterIntegrationTest {
     }
 
     private void confirmationRequest(
-            OrderSnapshot snapshot,
+            Order snapshot,
             LocalDate deliveryDate,
             LocalTime deliveryWindowStart,
             LocalTime deliveryWindowEnd,
@@ -377,7 +377,7 @@ class ConfirmationOverviewItemQueryAdapterIntegrationTest {
         entityManager.flush();
     }
 
-    private void setStatus(OrderSnapshot snapshot, ConfirmationStatus status) {
+    private void setStatus(Order snapshot, ConfirmationStatus status) {
         switch (status) {
             case SENT -> snapshot.markSent();
             case CONFIRMED -> snapshot.markConfirmed();

@@ -5,15 +5,11 @@ import heizoel.backend.application.port.in.confirmation.SubmitCustomerResponseUs
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
 import heizoel.backend.application.port.out.notification.NotificationService;
 import heizoel.backend.application.port.out.workflow.DispoCallbackWorkflowService;
+import heizoel.backend.domain.*;
 import heizoel.backend.domain.exception.ConfirmationRequestExpiredException;
 import heizoel.backend.domain.exception.ConfirmationRequestInactiveException;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.domain.exception.CustomerResponseAlreadyExistsException;
-import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.CustomerResponse;
-import heizoel.backend.domain.ConfirmationStatus;
-import heizoel.backend.domain.CustomerResponseType;
-import heizoel.backend.domain.OrderSnapshot;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
@@ -65,7 +61,7 @@ public class SubmitCustomerResponseService implements SubmitCustomerResponseUseC
             );
         }
 
-        OrderSnapshot orderSnapshot = confirmationRequest.getOrderSnapshot();
+        Order order = confirmationRequest.getOrder();
 
         CustomerResponse customerResponse = CustomerResponse.create(
                 confirmationRequest,
@@ -78,24 +74,24 @@ public class SubmitCustomerResponseService implements SubmitCustomerResponseUseC
         confirmationRequest.markInactive();
         confirmationRequestRepository.save(confirmationRequest);
         switch (confirmationStatus) {
-            case CONFIRMED -> orderSnapshot.markConfirmed();
-            case REJECTED -> orderSnapshot.markRejected();
+            case CONFIRMED -> order.markConfirmed();
+            case REJECTED -> order.markRejected();
             default -> throw new IllegalArgumentException(
                     "Unsupported customer response status: " + confirmationStatus
             );
         }
-        orderSnapshotRepository.save(orderSnapshot);
+        orderSnapshotRepository.save(order);
 
         try {
             notificationService.sendCustomerResponseReceived(
-                    orderSnapshot,
+                    order,
                     confirmationRequest,
                     responseType
             );
         } catch (NotificationDeliveryException ex) {
             log.warn(
                     "Customer response follow-up notification could not be delivered. externalOrderId={}, responseType={}, channel={}",
-                    orderSnapshot.getExternalOrderId(),
+                    order.getExternalOrderId(),
                     responseType,
                     ex.getChannel(),
                     ex
@@ -103,7 +99,7 @@ public class SubmitCustomerResponseService implements SubmitCustomerResponseUseC
         }
 
         dispoCallbackWorkflowService.startDispoCallbackProcess(
-                orderSnapshot.getId(),
+                order.getId(),
                 confirmationStatus,
                 customerComment
         );

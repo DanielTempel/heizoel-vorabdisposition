@@ -1,7 +1,7 @@
 package heizoel.backend.adapter.out.notification.email;
 
 import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
@@ -27,12 +27,12 @@ public class ThymeleafConfirmationMailRenderer {
     private final TemplateEngine templateEngine;
 
     public String renderConfirmationRequestMail(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest confirmationRequest,
             String confirmationUrl
     ) {
         Context context = createBaseContext(
-                orderSnapshot,
+                order,
                 confirmationRequest,
                 confirmationUrl
         );
@@ -46,12 +46,12 @@ public class ThymeleafConfirmationMailRenderer {
     }
 
     public String renderCustomerConfirmedMail(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest confirmationRequest,
             String confirmationUrl
     ) {
         Context context = createBaseContext(
-                orderSnapshot,
+                order,
                 confirmationRequest,
                 confirmationUrl
         );
@@ -60,12 +60,12 @@ public class ThymeleafConfirmationMailRenderer {
     }
 
     public String renderCustomerRejectedMail(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest confirmationRequest,
             String confirmationUrl
     ) {
         Context context = createBaseContext(
-                orderSnapshot,
+                order,
                 confirmationRequest,
                 confirmationUrl
         );
@@ -74,18 +74,18 @@ public class ThymeleafConfirmationMailRenderer {
     }
 
     private Context createBaseContext(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest confirmationRequest,
             String confirmationUrl
     ) {
         Context context = new Context(Locale.GERMANY);
 
-        context.setVariable("customerName", orderSnapshot.getCustomerName());
-        context.setVariable("externalOrderId", orderSnapshot.getExternalOrderId());
-        context.setVariable("deliveryAddress", orderSnapshot.getDeliveryAddress());
-        context.setVariable("product", orderSnapshot.getProduct());
-        context.setVariable("quantityLiters", orderSnapshot.getQuantityLiters());
-        context.setVariable("priceDisplayText", orderSnapshot.getPriceDisplayText());
+        context.setVariable("customerName", order.getCustomerName());
+        context.setVariable("externalOrderId", order.getExternalOrderId());
+        context.setVariable("deliveryAddress", order.getDeliveryAddress());
+        context.setVariable("product", order.getProduct());
+        context.setVariable("quantityLiters", order.getQuantityLiters());
+        context.setVariable("priceDisplayText", order.getPriceDisplayText());
         context.setVariable("deliveryDate", confirmationRequest.getDeliveryDate());
         context.setVariable("deliveryWindowStart", confirmationRequest.getDeliveryWindowStart());
         context.setVariable("deliveryWindowEnd", confirmationRequest.getDeliveryWindowEnd());

@@ -12,7 +12,6 @@
 \usepackage{enumitem}
 \usepackage{xcolor}
 \usepackage{hyperref}
-\usepackage{fancyhdr}
 \usepackage{titlesec}
 \usepackage{caption}
 \usepackage{float}
@@ -49,12 +48,7 @@
 \titleformat{\section}{\Large\bfseries\color{MinovaDark}}{\thesection}{0.8em}{}
 \titleformat{\subsection}{\large\bfseries\color{MinovaDark}}{\thesubsection}{0.7em}{}
 
-\pagestyle{fancy}
-\fancyhf{}
-\lhead{\small Digitale Lieferavisierung}
-\rhead{\small Gesamtübersicht}
-\cfoot{\thepage}
-\setlength{\headheight}{14pt}
+\pagestyle{plain}
 
 \newcommand{\infobox}[2]{%
   \begin{center}
@@ -66,46 +60,15 @@
 
 \begin{document}
 
-\begin{titlepage}
-  \begin{tikzpicture}[remember picture,overlay]
-    \fill[MinovaDark] (current page.north west) rectangle
-      ([yshift=-8.7cm]current page.north east);
-    \fill[MinovaBlue] ([yshift=-8.7cm]current page.north west) rectangle
-      ([yshift=-8.95cm]current page.north east);
-  \end{tikzpicture}
+\begin{center}
+  {\LARGE\bfseries\color{MinovaDark} Digitale Lieferavisierung\par}
+  \vspace{0.25cm}
+  {\large\color{MinovaBlue} Fachlicher Überblick und Komponentenmodell\par}
+\end{center}
+\vspace{0.7cm}
 
-  \vspace*{1.6cm}
-  {\color{white}\Huge\bfseries System zur digitalen\par}
-  \vspace{0.18cm}
-  {\color{white}\Huge\bfseries Lieferavisierung\par}
-  \vspace{0.35cm}
-  {\color{white}\Large Gesamtübersicht und Komponentenmodell\par}
-
-  \vspace{6.0cm}
-  {\Large\bfseries Integration in das DISPO-Umfeld\par}
-  \vspace{0.5cm}
-  {\large Zweck, Systemgrenze, Komponenten und Zusammenspiel\par}
-
-  \vfill
-  \begin{tabular}{@{}ll@{}}
-    Dokumenttyp: & Fachlich-technischer Überblick\\
-    Sprache: & Deutsch\\
-    Stand: & 19. Juli 2026\\
-  \end{tabular}
-\end{titlepage}
-
-\pagenumbering{roman}
-\tableofcontents
-\clearpage
-\pagenumbering{arabic}
-
-\input{sections/01-ziel-und-einordnung}
 \input{sections/02-dispo}
 \input{sections/03-ausgangslage-und-zielbild}
-\input{sections/04-systemkontext}
-\input{sections/05-komponenten}
 \input{sections/06-ablauf}
-\input{sections/07-statusmodell}
-\input{sections/08-umsetzungsstand}
 
 \end{document}

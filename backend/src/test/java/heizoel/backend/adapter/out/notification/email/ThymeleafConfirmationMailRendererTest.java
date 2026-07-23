@@ -1,9 +1,6 @@
 package heizoel.backend.adapter.out.notification.email;
 
-import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.Company;
-import heizoel.backend.domain.OrderSnapshot;
-import heizoel.backend.domain.CommunicationChannel;
+import heizoel.backend.domain.*;
 import org.junit.jupiter.api.Test;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
@@ -41,23 +38,23 @@ class ThymeleafConfirmationMailRendererTest {
                 templateEngine()
         );
 
-        OrderSnapshot orderSnapshot = orderSnapshot();
+        Order order = orderSnapshot();
         ConfirmationRequest confirmationRequest = confirmationRequest();
 
         assertThat(renderer.renderConfirmationRequestMail(
-                orderSnapshot,
+                order,
                 confirmationRequest,
                 "http://localhost:3000/confirmation/token"
         )).contains("src=\"cid:minovaLogo\"");
 
         assertThat(renderer.renderCustomerConfirmedMail(
-                orderSnapshot,
+                order,
                 confirmationRequest,
                 "http://localhost:3000/confirmation/token"
         )).contains("src=\"cid:minovaLogo\"");
 
         assertThat(renderer.renderCustomerRejectedMail(
-                orderSnapshot,
+                order,
                 confirmationRequest,
                 "http://localhost:3000/confirmation/token"
         )).contains("src=\"cid:minovaLogo\"");
@@ -75,8 +72,8 @@ class ThymeleafConfirmationMailRendererTest {
         return templateEngine;
     }
 
-    private OrderSnapshot orderSnapshot() {
-        return OrderSnapshot.create(
+    private Order orderSnapshot() {
+        return Order.create(
                 Company.create(
                         "Company", "api-key-hash", "http://localhost/callback"
                 ),

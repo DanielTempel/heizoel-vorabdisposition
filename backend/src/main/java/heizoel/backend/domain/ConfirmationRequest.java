@@ -1,13 +1,13 @@
 package heizoel.backend.domain;
 
+import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Entity
 @Table(
@@ -38,20 +38,14 @@ public class ConfirmationRequest {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_snapshot_id", nullable = false)
-    private OrderSnapshot orderSnapshot;
+    private Order order;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "communication_channel", nullable = false, length = 20)
     private CommunicationChannel communicationChannel;
 
-    @Column(name = "delivery_date", nullable = false)
-    private LocalDate deliveryDate;
-
-    @Column(name = "delivery_window_start", nullable = false)
-    private LocalTime deliveryWindowStart;
-
-    @Column(name = "delivery_window_end", nullable = false)
-    private LocalTime deliveryWindowEnd;
+    @Embedded
+    private DeliverySlot deliverySlot;
 
     @Column(name = "active", nullable = false)
     private boolean active;
@@ -66,26 +60,37 @@ public class ConfirmationRequest {
     private Integer responseDeadlineHours;
 
     public static ConfirmationRequest create(
-            OrderSnapshot orderSnapshot,
+            Order order,
             String token,
             CommunicationChannel communicationChannel,
-            LocalDate deliveryDate,
-            LocalTime deliveryWindowStart,
-            LocalTime deliveryWindowEnd,
+            DeliverySlot deliverySlot,
             Instant sentAt,
-            Instant expiresAt,
             Integer responseDeadlineHours
     ) {
+        Instant deliveryStartsAt = deliverySlot.startsAt();
+
+        if (!deliveryStartsAt.isAfter(sentAt)) {
+            throw new InvalidDeliveryWindowException(
+                    "Delivery window must start in the future."
+            );
+        }
+
+        Instant requestedExpiresAt = sentAt.plus(
+                Duration.ofHours(responseDeadlineHours)
+        );
+
+        Instant effectiveExpiresAt = requestedExpiresAt.isBefore(deliveryStartsAt)
+                ? requestedExpiresAt
+                : deliveryStartsAt;
+
         ConfirmationRequest confirmationRequest = new ConfirmationRequest();
-        confirmationRequest.orderSnapshot = orderSnapshot;
+        confirmationRequest.order = order;
         confirmationRequest.token = token;
         confirmationRequest.communicationChannel = communicationChannel;
-        confirmationRequest.deliveryDate = deliveryDate;
-        confirmationRequest.deliveryWindowStart = deliveryWindowStart;
-        confirmationRequest.deliveryWindowEnd = deliveryWindowEnd;
+        confirmationRequest.deliverySlot = deliverySlot;
         confirmationRequest.active = true;
         confirmationRequest.sentAt = sentAt;
-        confirmationRequest.expiresAt = expiresAt;
+        confirmationRequest.expiresAt = effectiveExpiresAt;
         confirmationRequest.responseDeadlineHours = responseDeadlineHours;
         return confirmationRequest;
     }
@@ -99,17 +104,14 @@ public class ConfirmationRequest {
     }
 
     public boolean hasSameData(
-            LocalDate deliveryDate,
-            LocalTime deliveryWindowStart,
-            LocalTime deliveryWindowEnd,
+            DeliverySlot deliverySlot,
             CommunicationChannel communicationChannel,
             Integer responseDeadlineHours
     ) {
-        return this.deliveryDate.equals(deliveryDate)
-                && this.deliveryWindowStart.equals(deliveryWindowStart)
-                && this.deliveryWindowEnd.equals(deliveryWindowEnd)
+        return this.deliverySlot.equals(deliverySlot)
                 && this.communicationChannel == communicationChannel
                 && this.responseDeadlineHours.equals(responseDeadlineHours);
     }
+
 }
 

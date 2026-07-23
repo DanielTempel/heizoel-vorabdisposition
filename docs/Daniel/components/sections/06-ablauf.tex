@@ -7,16 +7,13 @@ Der Standardfall beschreibt eine erfolgreiche Bestätigung des vorgeschlagenen
 Lieferzeitfensters:
 
 \begin{enumerate}
-  \item Der Disponent plant Auftrag und Tour in DISPO.
-  \item Er startet die Avisierung für einen einzelnen Auftrag.
-  \item DISPO übergibt die geplanten Lieferdaten an den Avisierungsservice.
+  \item Der Disponent startet die Avisierung für einen bereits geplanten Auftrag.
+  \item DISPO übergibt die zugehörigen Lieferdaten an den Avisierungsservice.
   \item Der Avisierungsservice versendet eine Nachricht mit persönlichem Link.
   \item Der Kunde öffnet die Bestätigungsseite und bestätigt das Zeitfenster.
   \item Der Avisierungsservice speichert die Rückmeldung als \texttt{CONFIRMED}.
   \item Das Ergebnis erscheint im Avisierungsdashboard und wird an DISPO zurückgemeldet.
 \end{enumerate}
-
-\input{diagrams/sequence}
 
 \subsection{Fälle mit Handlungsbedarf}
 

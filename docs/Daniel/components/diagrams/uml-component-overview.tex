@@ -49,11 +49,9 @@ Komponenten, Abhängigkeiten und Benutzer der digitalen Lieferavisierung\par}
 ]
   % Externe Systeme und Akteure
   \node[external] (dispo) at (3.15,0.7)
-    {\textbf{DISPO}\\Führendes Planungssystem};
+    {\textbf{DISPO}\\Planung und Änderung};
 
-  % UML-Notizen: fachliche Hinweise, keine Komponenten
-  \node[note,minimum width=4.8cm] (integrationNote) at (3.15,3.05)
-    {DISPO-Integration ist noch\\fachlich abzustimmen};
+  % UML-Notiz: fachlicher Hinweis, keine Komponente
   \node[note] (deliveryNote) at (21.45,0.7)
     {Benachrichtigung über\\E-Mail, SMS oder WhatsApp};
 
@@ -79,7 +77,7 @@ Komponenten, Abhängigkeiten und Benutzer der digitalen Lieferavisierung\par}
   }
 
   % Gefaltete Ecken der UML-Notizen
-  \foreach \noteNode in {integrationNote,deliveryNote}{
+  \foreach \noteNode in {deliveryNote}{
     \fill[white]
       ([xshift=-0.36cm]\noteNode.north east) --
       (\noteNode.north east) --
@@ -155,23 +153,20 @@ Komponenten, Abhängigkeiten und Benutzer der digitalen Lieferavisierung\par}
 
   % UML-Assoziationen der Benutzer mit ihren Oberflächen
   \draw[association] (3.15,-3.05) --
-    node[edgeLabel,right] {Planung}
+    node[edgeLabel,right] {plant Lieferungen}
     (dispo.south);
   \draw[association] (3.60,-4.05) --
-    node[edgeLabel,above] {Fälle bearbeiten}
+    node[edgeLabel,above] {bearbeitet Fälle}
     (dashboard.west);
   \draw[association] (21.0,-4.05) --
-    node[edgeLabel,above] {Bestätigen, ablehnen\\oder kommentieren}
+    node[edgeLabel,above] {bestätigt, lehnt ab\\oder kommentiert}
     (page.east);
 
   % Verbindungen von UML-Notizen zu den beschriebenen Elementen
-  \draw[noteLink] (integrationNote.south) -- (dispo.north);
   \draw[noteLink] (service.east) -- (deliveryNote.west);
 \end{tikzpicture}%
 }
 
-\caption{UML-Komponentendiagramm der digitalen Lieferavisierung}
-\label{fig:uml-component-overview}
 \end{figure}
 
 \end{landscape}

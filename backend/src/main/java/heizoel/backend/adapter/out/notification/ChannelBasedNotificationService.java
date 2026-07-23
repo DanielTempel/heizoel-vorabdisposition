@@ -1,7 +1,7 @@
 package heizoel.backend.adapter.out.notification;
 
 import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.Order;
 import heizoel.backend.application.port.out.notification.NotificationService;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.CustomerResponseType;
@@ -22,22 +22,22 @@ public class ChannelBasedNotificationService implements NotificationService {
 
     @Override
     public void sendConfirmationRequest(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest confirmationRequest
     ) {
         senderFor(confirmationRequest.getCommunicationChannel())
-                .sendConfirmationRequest(orderSnapshot, confirmationRequest);
+                .sendConfirmationRequest(order, confirmationRequest);
     }
 
     @Override
     public void sendCustomerResponseReceived(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest confirmationRequest,
             CustomerResponseType responseType
     ) {
         senderFor(confirmationRequest.getCommunicationChannel())
                 .sendCustomerResponseReceived(
-                        orderSnapshot,
+                        order,
                         confirmationRequest,
                         responseType
                 );

@@ -5,7 +5,7 @@ import heizoel.backend.application.port.in.workflow.SendDispoStatusCallbackUseCa
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackRequest;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackService;
 import heizoel.backend.application.exception.OrderSnapshotNotFoundException;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.Order;
 import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,15 +20,15 @@ public class SendDispoStatusCallbackService implements SendDispoStatusCallbackUs
     @Override
     public void sendDispoStatusCallback(SendDispoStatusCallbackCommand command) {
 
-        OrderSnapshot orderSnapshot = orderSnapshotRepository.findById(command.orderSnapshotId())
+        Order order = orderSnapshotRepository.findById(command.orderSnapshotId())
                 .orElseThrow(() -> new OrderSnapshotNotFoundException(
                         "Order snapshot was not found."
                 ));
 
         dispoStatusCallbackService.sendStatusUpdate(
                 new DispoStatusCallbackRequest(
-                        orderSnapshot.getCompany().getCallbackUrl(),
-                        orderSnapshot.getExternalOrderId(),
+                        order.getCompany().getCallbackUrl(),
+                        order.getExternalOrderId(),
                         command.confirmationStatus(),
                         command.customerComment()
                 )

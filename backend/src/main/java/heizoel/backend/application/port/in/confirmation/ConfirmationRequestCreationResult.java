@@ -1,10 +1,10 @@
 package heizoel.backend.application.port.in.confirmation;
 
 import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
+import heizoel.backend.domain.Order;
 
 public record ConfirmationRequestCreationResult(
-        OrderSnapshot orderSnapshot,
+        Order order,
         ConfirmationRequest confirmationRequest,
         boolean created
 ) {

@@ -2,10 +2,7 @@ package heizoel.backend.adapter.out.notification.whatsapp;
 
 import heizoel.backend.adapter.out.notification.NotificationChannelSender;
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
-import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.OrderSnapshot;
-import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.CustomerResponseType;
+import heizoel.backend.domain.*;
 import heizoel.backend.configuration.properties.ConfirmationProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +25,7 @@ public class WhatsAppNotificationSender implements NotificationChannelSender {
 
     @Override
     public void sendConfirmationRequest(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest confirmationRequest
     ) {
         String link = properties.getFrontendUrl()
@@ -36,7 +33,7 @@ public class WhatsAppNotificationSender implements NotificationChannelSender {
                 + confirmationRequest.getToken();
 
         WhatsAppSendRequestDto request = new WhatsAppSendRequestDto(
-                orderSnapshot.getCustomerPhoneNumber(),
+                order.getCustomerPhoneNumber(),
                 "Bitte bestätigen Sie Ihren Liefertermin: " + link
         );
 
@@ -50,7 +47,7 @@ public class WhatsAppNotificationSender implements NotificationChannelSender {
             throw new NotificationDeliveryException(
                     CommunicationChannel.WHATSAPP,
                     "Notification could not be delivered for externalOrderId="
-                            + orderSnapshot.getExternalOrderId(),
+                            + order.getExternalOrderId(),
                     ex
             );
         }
@@ -58,13 +55,13 @@ public class WhatsAppNotificationSender implements NotificationChannelSender {
 
     @Override
     public void sendCustomerResponseReceived(
-            OrderSnapshot orderSnapshot,
+            Order order,
             ConfirmationRequest confirmationRequest,
             CustomerResponseType responseType
     ) {
         log.info(
                 "Customer response follow-up WhatsApp message skipped because it is not implemented in the MVP. externalOrderId={}, responseType={}",
-                orderSnapshot.getExternalOrderId(),
+                order.getExternalOrderId(),
                 responseType
         );
     }
