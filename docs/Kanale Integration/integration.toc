@@ -1,0 +1,12 @@
+\babel@toc {ngerman}{}\relax 
+\contentsline {section}{\numberline {1}Zielsetzung}{2}{section.1}%
+\contentsline {section}{\numberline {2}Warum Twilio}{2}{section.2}%
+\contentsline {section}{\numberline {3}Einsatzszenario}{2}{section.3}%
+\contentsline {section}{\numberline {4}Technische Architektur}{3}{section.4}%
+\contentsline {section}{\numberline {5}Benötigte Konfigurationswerte}{3}{section.5}%
+\contentsline {section}{\numberline {6}Relevante Fachfelder im Projekt}{3}{section.6}%
+\contentsline {section}{\numberline {7}Twilio-Requests}{4}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Gemeinsames Nachrichtenmodell für SMS und WhatsApp}{4}{subsection.7.1}%
+\contentsline {section}{\numberline {8}Testumgebung}{5}{section.8}%
+\contentsline {section}{\numberline {9}Produktivperspektive}{6}{section.9}%
+\contentsline {section}{\numberline {10}Fazit}{6}{section.10}%

@@ -4,7 +4,7 @@
 \contentsline {subsection}{\numberline {2.1}Aktuell abgeschlossene bzw. bearbeitete Aufgaben}{2}{}%
 \contentsline {subsection}{\numberline {2.2}Verschobene Aufgaben}{2}{}%
 \contentsline {section}{\numberline {3}Besprochene Punkte}{2}{}%
-\contentsline {section}{\numberline {4}Nächste Schritte (nächste 2 Wochen)}{3}{}%
+\contentsline {section}{\numberline {4}Nächste Schritte (nächste 2 Wochen)}{2}{}%
 \contentsline {section}{\numberline {5}Nächste Projektphase}{3}{}%
 \contentsline {section}{\numberline {6}Nächste Meilensteine}{3}{}%
 \contentsline {section}{\numberline {7}Zusammenfassung}{3}{}%

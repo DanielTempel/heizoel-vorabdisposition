@@ -1,0 +1,389 @@
+\documentclass[12pt,a4paper]{article}
+
+% -------------------------------------------------
+% Pakete
+% -------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{parskip}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue
+}
+
+\definecolor{codegray}{RGB}{245,245,245}
+
+\lstset{
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible,
+    showstringspaces=false
+}
+
+% -------------------------------------------------
+% Dokument
+% -------------------------------------------------
+\begin{document}
+
+\begin{titlepage}
+    \centering
+
+    \vspace*{3cm}
+
+    {\Huge\textbf{Integration von Twilio für WhatsApp und SMS}}\\[0.8cm]
+
+    {\Large Technisches Konzept für den Nachrichtenversand}\\[2cm]
+
+    \rule{13cm}{0.5pt}\\[0.5cm]
+
+    {\large Projekt: Workflowbasierte Rückbestätigung von Lieferterminen}\\[0.3cm]
+    {\large Autorin: Buse Okcu}\\[0.3cm]
+    {\large Datum: \today}\\[0.5cm]
+
+    \rule{13cm}{0.5pt}
+
+    \vfill
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% =================================================
+\section{Zielsetzung}
+% =================================================
+
+Im Projekt besteht bereits ein E-Mail-Versand, der in der lokalen
+Entwicklungsumgebung über Mailpit getestet werden kann. Aufbauend auf
+dieser bestehenden Kommunikationsfunktion soll das System um zwei weitere Kanäle erweitert werden: SMS und WhatsApp.
+
+Ziel ist es, Kundenbenachrichtigungen und
+Liefertermin-Bestätigungsanfragen nicht nur per E-Mail, sondern
+zusätzlich auch über mobile Nachrichtenkanäle bereitzustellen.
+
+Diese Dokumentation beschreibt die geplante technische Erweiterung des
+bestehenden Kommunikationsmodells um \textbf{Twilio} als zentralen
+Provider für SMS- und WhatsApp-Nachrichten. Dabei werden die relevanten
+Felder, Konfigurationswerte und die vorgesehene Nachrichtenstruktur
+erläutert.
+
+% =================================================
+\section{Warum Twilio}
+% =================================================
+
+Im Rahmen der Technologieauswahl wurden auch alternative
+Messaging-Lösungen betrachtet und mit Twilio verglichen. Ausschlaggebend
+für Twilio war insbesondere, dass bereits in der Testphase mit einem
+kostenlosen Trial-Setup beziehungsweise einer Twilio-Testnummer erste
+Nachrichtenflüsse erprobt werden können. Zusätzlich stellt Twilio mit
+dem \emph{Content Template Builder} eine Benutzeroberfläche bereit, über
+die Nachrichtenvorlagen für den Versand verwaltet und erstellt werden
+können. Dadurch lassen sich wiederverwendbare Templates nicht nur per
+API, sondern auch komfortabel über die Konsole pflegen.
+
+Die Wahl von Twilio bietet folgende Vorteile:
+
+\begin{itemize}
+    \item Gemeinsame API für WhatsApp und SMS
+    \item Unterstützung von WhatsApp-Sandbox für Entwicklungszwecke
+    \item Versand von SMS über dieselbe Plattform
+    \item Frühe Testmöglichkeiten über ein kostenloses Trial-Setup
+    \item Erstellung und Verwaltung von Nachrichtentemplates über die Twilio-Oberfläche
+\end{itemize}
+
+Dadurch kann die Anwendung beide Kommunikationskanäle mit einer
+ähnlichen Integrationslogik ansprechen, ohne für jeden Kanal einen
+vollständig separaten Dienst einführen zu müssen.
+
+% =================================================
+\section{Einsatzszenario}
+% =================================================
+
+Im Projekt wird Twilio als externer Messaging-Provider eingesetzt.
+Das Backend erzeugt aus den vorliegenden Auftrags- und Kundendaten eine
+Nachricht und übermittelt diese an die Twilio Messaging API. Twilio
+übernimmt anschließend die Zustellung an die angegebene Zielrufnummer.
+
+Dadurch wird die bereits vorhandene E-Mail-Kommunikation um die
+Kommunikationskanäle SMS und WhatsApp erweitert, ohne dass die
+bestehende Fachlogik grundlegend angepasst werden muss.
+
+% =================================================
+\section{Technische Architektur}
+% =================================================
+
+Die Anwendung verwaltet ihre Geschäftslogik intern unabhängig von
+Twilio. Für den Versand wird jedoch ein Adapter vorgesehen, der die
+internen Daten in Twilio-kompatible Requests übersetzt.
+
+Der geplante Ablauf ist wie folgt:
+
+\begin{enumerate}
+    \item Das Backend erhält einen neuen Kommunikationsauftrag.
+    \item Der gewünschte Kanal wird ermittelt, zum Beispiel SMS oder
+    WhatsApp.
+    \item Aus den vorhandenen Auftrags- und Kundendaten wird eine
+    Nachricht erzeugt.
+    \item Die Nachricht wird an die Twilio API gesendet.
+    \item Twilio übernimmt die Zustellung an die Zielrufnummer.
+\end{enumerate}
+
+Dadurch bleibt die Fachlogik von der externen API weitgehend getrennt
+und kann später bei Bedarf auf andere Anbieter erweitert werden.
+
+% =================================================
+\section{Benötigte Konfigurationswerte}
+% =================================================
+
+Für die Anbindung an Twilio werden insbesondere folgende
+Konfigurationswerte benötigt:
+
+\begin{table}[h]
+    \centering
+    \begin{tabularx}{\textwidth}{l l X}
+        \toprule
+        \textbf{Konfiguration} & \textbf{Typ} & \textbf{Beschreibung} \\
+        \midrule
+        TWILIO\_ACCOUNT\_SID
+        & String
+        & Eindeutige Konto-ID des Twilio-Accounts \\
+
+        TWILIO\_AUTH\_TOKEN
+        & String
+        & Authentifizierungs-Token für API-Aufrufe \\
+
+        TWILIO\_SMS\_FROM
+        & String
+        & Twilio-Telefonnummer für den SMS-Versand \\
+
+        TWILIO\_WHATSAPP\_FROM
+        & String
+        & WhatsApp-Absenderkennung, z.\,B. \texttt{whatsapp:+14155238886} in der Sandbox \\
+
+        TWILIO\_CONTENT\_TEMPLATE\_SID
+        & String
+        & SID eines gemeinsamen Twilio-Content-Templates für SMS und WhatsApp \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Erforderliche Konfigurationswerte}
+\end{table}
+
+% =================================================
+\section{Relevante Fachfelder im Projekt}
+% =================================================
+
+Für den Versand einer Bestätigungsanfrage werden im Projekt bereits
+fachliche Daten übergeben, aus denen anschließend die jeweilige
+E-Mail-, SMS- oder WhatsApp-Nachricht erzeugt werden kann.
+
+Die relevanten Felder sind dabei:
+
+\begin{table}[h]
+    \centering
+    \begin{tabularx}{\textwidth}{l l X}
+        \toprule
+        \textbf{Feld} & \textbf{Datentyp} & \textbf{Beschreibung} \\
+        \midrule
+        externalOrderId
+        & String
+        & Eindeutige externe Auftragsnummer \\
+
+        customerName
+        & String
+        & Name der Kundin oder des Kunden \\
+
+        communicationChannel
+        & Enum
+        & Gewählter Kommunikationskanal, z.\,B. EMAIL, SMS oder WHATSAPP \\
+
+        customerEmail
+        & String
+        & E-Mail-Adresse der Kundin oder des Kunden \\
+
+        customerPhoneNumber
+        & String
+        & Telefonnummer im E.164-Format für SMS oder WhatsApp \\
+
+        deliveryAddress
+        & String
+        & Lieferadresse \\
+
+        product
+        & String
+        & Bestelltes Produkt \\
+
+        quantityLiters
+        & Integer
+        & Bestellte Menge in Litern \\
+
+        deliveryDate
+        & LocalDate
+        & Geplantes Lieferdatum \\
+
+        deliveryWindowStart
+        & LocalTime
+        & Beginn des Lieferzeitfensters \\
+
+        deliveryWindowEnd
+        & LocalTime
+        & Ende des Lieferzeitfensters \\
+
+        responseDeadlineHours
+        & Integer
+        & Frist in Stunden für die Rückmeldung \\
+
+        priceDisplayText
+        & String
+        & Preisangabe zur Anzeige für die Kundin oder den Kunden \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Fachliche Eingabefelder für eine Kommunikationsanfrage}
+\end{table}
+
+% =================================================
+\section{Twilio-Requests}
+% =================================================
+
+\subsection{Gemeinsames Nachrichtenmodell für SMS und WhatsApp}
+
+Sowohl für SMS als auch für WhatsApp wird im Projekt die
+Twilio Messages API verwendet. Beide Kanäle nutzen dabei
+dieselbe Template-Struktur über ein gemeinsames
+Twilio Content Template.
+
+Der technische Aufbau der Requests ist daher weitgehend identisch.
+Unterschiede ergeben sich im Wesentlichen nur beim jeweiligen
+Absender- und Empfängerformat der Kanäle, insbesondere bei
+WhatsApp durch das Präfix \texttt{whatsapp:}.
+
+Relevante Felder sind dabei:
+
+\begin{itemize}
+    \item \texttt{From}
+    \item \texttt{To}
+    \item \texttt{ContentSid}
+    \item \texttt{ContentVariables}
+\end{itemize}
+
+Dabei verweist \texttt{ContentSid} auf ein in Twilio hinterlegtes
+Content Template. Die eigentlichen fachlichen Daten werden über
+\texttt{ContentVariables} als Variablen an das Template übergeben.
+
+Ein mögliches Template kann beispielsweise folgende Variablen verwenden:
+
+\begin{itemize}
+    \item \texttt{\{\{1\}\}} Kundinnen- oder Kundenname
+    \item \texttt{\{\{2\}\}} Auftragsnummer
+    \item \texttt{\{\{3\}\}} Produkt
+    \item \texttt{\{\{4\}\}} Menge
+    \item \texttt{\{\{5\}\}} Lieferdatum
+    \item \texttt{\{\{6\}\}} Lieferzeitfenster
+    \item \texttt{\{\{7\}\}} Lieferadresse
+    \item \texttt{\{\{8\}\}} Bestätigungslink
+\end{itemize}
+
+Beispiel für \texttt{ContentVariables}:
+
+\begin{lstlisting}[language={}]
+{
+  "1": "Max Mustermann",
+  "2": "A-1001",
+  "3": "Heizoel",
+  "4": "3000 Liter",
+  "5": "12.06.2099",
+  "6": "10:00 - 11:00 Uhr",
+  "7": "Beispielstrasse 12, 97070 Wuerzburg",
+  "8": "https://example.com/confirmation/abc123"
+}
+\end{lstlisting}
+
+Ein mögliches Nachrichten-Template kann beispielsweise wie folgt
+aussehen:
+
+\begin{lstlisting}[language={}]
+Guten Tag {{1}},
+
+für Ihren Auftrag {{2}} ist die Lieferung von {{3}} ({{4}})
+am {{5}} im Zeitfenster {{6}} geplant.
+
+Lieferadresse:
+{{7}}
+
+Bitte bestätigen Sie Ihren Liefertermin über folgenden Link:
+{{8}}
+
+Vielen Dank.
+\end{lstlisting}
+
+Beispielhaft werden daraus kanalabhängig Nachrichten mit
+gleicher inhaltlicher Struktur erzeugt, wobei SMS und WhatsApp
+dieselben fachlichen Werte verwenden.
+
+% =================================================
+\section{Testumgebung}
+% =================================================
+
+Für die Entwicklung und den Test der Kommunikationskanäle wird ein
+Twilio-Trial-Account verwendet. Dadurch können sowohl der SMS- als auch
+der WhatsApp-Versand bereits vor der Produktivsetzung getestet werden,
+ohne einen produktiven Messaging-Dienst einzusetzen.
+
+Für WhatsApp wird die \emph{Twilio WhatsApp Sandbox} genutzt. Das
+jeweilige Testgerät muss zuvor in der Sandbox registriert werden, bevor
+Nachrichten empfangen werden können. Der Versand erfolgt im Rahmen der
+Sandbox über freigegebene Testabläufe beziehungsweise
+Nachrichtentemplates.
+
+Für den SMS-Versand wird eine von Twilio bereitgestellte Testnummer
+verwendet. Im Trial-Modus können SMS ausschließlich an zuvor
+verifizierte Rufnummern versendet werden. Außerdem erfolgt der Versand
+nur im Rahmen des verfügbaren Trial-Guthabens.
+
+Die erfolgreiche Zustellung kann sowohl über die Twilio-Konsole als auch
+anhand der Log-Ausgaben des Backends überprüft werden.
+
+% =================================================
+\section{Produktivperspektive}
+% =================================================
+
+Für eine spätere Produktivumgebung kann derselbe technische Ansatz
+beibehalten werden. Dabei müssen jedoch produktive Twilio-Ressourcen
+verwendet werden, insbesondere:
+
+\begin{itemize}
+    \item produktive SMS-fähige Absendernummer
+    \item freigegebener WhatsApp-Business-Sender
+    \item freigegebenes Twilio-Content-Template für die genutzten Kanäle
+    \item produktive Frontend-URL für Bestätigungslinks
+\end{itemize}
+
+Damit kann die Testarchitektur mit geringem Anpassungsaufwand in eine
+produktive Architektur überführt werden.
+
+% =================================================
+\section{Fazit}
+% =================================================
+
+Twilio eignet sich als zentraler Messaging-Dienst für die geplante
+Integration von WhatsApp und SMS. Durch die gemeinsame API, die
+vergleichbare Request-Struktur und die vorhandenen Testmöglichkeiten
+kann eine einheitliche technische Lösung aufgebaut werden.
+
+Für das Projekt bietet Twilio insbesondere den Vorteil, dass sowohl
+SMS als auch WhatsApp mit ähnlichen Integrationsprinzipien umgesetzt
+werden können. Dadurch wird die Implementierung vereinfacht und eine
+spätere Erweiterung für produktive Nutzung vorbereitet.
+
+\end{document}

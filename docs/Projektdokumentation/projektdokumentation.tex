@@ -188,14 +188,22 @@ direkt nachvollzogen werden konnte.
 Im SOLL-Prozess wird die Kommunikation mit dem Kunden
 standardisiert ausgelöst und systemseitig begleitet. Nach
 Eingang eines relevanten Vorgangs wird automatisch eine
-Benachrichtigung versendet, auf die der Kunde mit einer klar
-strukturierten Rückmeldung reagiert.
+Benachrichtigung mit einem personalisierten Link versendet.
+Der Versand kann je nach hinterlegtem Kommunikationsweg über
+E-Mail, SMS oder WhatsApp erfolgen. Über diesen Link gelangt
+der Kunde auf eine Bestätigungsseite, auf der er strukturiert
+auf den vorgeschlagenen Liefertermin reagieren kann.
 
 Diese Rückmeldung wird automatisiert verarbeitet, in einen
 Status überführt und den beteiligten Stellen ohne manuelle
 Zwischenschritte bereitgestellt. Dadurch entsteht ein
 durchgängiger Prozess von der Auslösung bis zur Anzeige des
-aktuellen Bearbeitungsstands.
+aktuellen Bearbeitungsstands. Erfolgt eine Bestätigung, kann
+am Tag der Lieferung zusätzlich eine Fahrerkartenansicht
+bereitgestellt werden, um den Lieferkontext für den Kunden
+transparent darzustellen. Parallel dazu behält die Disposition
+über ein Dashboard den Überblick über offene, bestätigte oder
+problematische Vorgänge.
 
 \subsection{BPMN-Modell}
 
@@ -213,9 +221,11 @@ aktuellen Bearbeitungsstands.
 \toprule
 ID & Beschreibung \\
 \midrule
-A1 & Kunde erhält E-Mail \\
-A2 & Kunde bestätigt Lieferfenster \\
-A3 & Status wird aktualisiert \\
+A1 & Das System versendet einen Bestätigungslink über E-Mail, SMS oder WhatsApp. \\
+A2 & Der Kunde kann über eine Bestätigungsseite auf den vorgeschlagenen Liefertermin reagieren. \\
+A3 & Nach Eingang der Kundenrückmeldung wird der Status automatisch im System aktualisiert. \\
+A4 & Bei bestätigten Lieferungen kann am Liefertag eine Fahrerkartenansicht bereitgestellt werden. \\
+A5 & Die Disposition erhält über ein Dashboard eine Übersicht aller relevanten Vorgänge und Statuswerte. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -294,21 +304,101 @@ Rückmeldung & Bestätigung/Ablehnung \\
 \section{Benutzeroberfläche}
 % =================================================
 
+\subsection{Überblick}
+
+Dieser Abschnitt beschreibt die Benutzeroberfläche des
+Systems aus Sicht der Anwender. Je nach Projekt können hier
+zentrale Ansichten, Bedienkonzepte, Navigationsstrukturen und
+Gestaltungsentscheidungen dokumentiert werden.
+
+Im vorliegenden Projekt umfasst die Benutzeroberfläche sowohl
+interne Ansichten für die Disposition als auch externe
+Ansichten für den Kunden. Die Oberfläche unterstützt damit
+unterschiedliche Nutzungssituationen: die Überwachung und
+Steuerung von Bestätigungsvorgängen im Dashboard, die Reaktion
+des Kunden über den zugesendeten Link sowie die optionale
+Anzeige einer Fahrerkartenansicht am Liefertag.
+
+\subsection{Gestaltungsziele}
+
+\begin{itemize}
+\item \textbf{Platzhalter:} Übersichtlichkeit und klare visuelle Struktur
+\item \textbf{Platzhalter:} Einfache Navigation zwischen den Hauptfunktionen
+\item \textbf{Platzhalter:} Reduzierung von Fehlbedienungen
+\item \textbf{Platzhalter:} Konsistente Darstellung von Statusinformationen
+\end{itemize}
+
+\subsection{Navigationskonzept}
+
+Die Navigation orientiert sich an den jeweiligen
+Benutzerrollen. Die Disposition arbeitet primär innerhalb des
+Dashboards und wechselt von dort aus in Detailansichten eines
+konkreten Vorgangs. Kunden gelangen dagegen direkt über den
+zugesendeten Link auf die Bestätigungsseite und werden von
+dort aus durch den jeweiligen Anwendungsfall geführt. Für
+bestätigte Lieferungen kann am Liefertag zusätzlich eine
+Fahrerkartenansicht aufgerufen werden.
+
 \subsection{Dashboard}
+
+Das Dashboard bildet die zentrale Arbeitsoberfläche der
+Disposition. Hier werden relevante Vorgänge mit ihren
+Statusinformationen gebündelt dargestellt, sodass offene,
+bestätigte oder auffällige Fälle schnell erkannt und bei
+Bedarf weiterbearbeitet werden können.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{assets/dashboard.png}
-\caption{Dashboard}
+\caption{Platzhalter: Dashboard bzw. Hauptübersicht}
+\end{figure}
+
+\subsection{Bestätigungsseite für Kunden}
+
+Die Bestätigungsseite wird über einen personalisierten Link
+aufgerufen, der dem Kunden je nach Kommunikationskanal per
+E-Mail, SMS oder WhatsApp zugesendet wird. Auf dieser Seite
+kann der Kunde auf den vorgeschlagenen Liefertermin reagieren
+und erhält eine klar strukturierte Rückmeldemöglichkeit.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{assets/bestaetigungsseite.png}
+\caption{Platzhalter: Bestätigungsseite für Kunden}
 \end{figure}
 
 \subsection{Detailansicht}
 
+Die Detailansicht ergänzt das Dashboard um eine vertiefte Sicht
+auf einen einzelnen Vorgang. Hier können beispielsweise
+Auftragsdaten, Kommunikationsverlauf, Rückmeldungen und
+Statusänderungen nachvollzogen werden.
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{assets/detailansicht.png}
-\caption{Detailansicht}
+\caption{Platzhalter: Detailansicht eines Vorgangs}
 \end{figure}
+
+\subsection{Fahrerkartenansicht}
+
+Für bestätigte Lieferungen kann am Tag der Auslieferung eine
+Fahrerkartenansicht bereitgestellt werden. Diese Ansicht dient
+dazu, den Lieferkontext für den Kunden transparenter zu machen
+und den Bezug zur bevorstehenden Lieferung visuell zu
+unterstützen.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{assets/fahrerkartenansicht.png}
+\caption{Platzhalter: Fahrerkartenansicht am Liefertag}
+\end{figure}
+
+\subsection{Status- und Fehlermeldungen}
+
+\textbf{Platzhalter:} Beschreiben, wie Rückmeldungen an
+Benutzer erfolgen, z.\,B. Erfolgsmeldungen, Warnungen,
+Validierungsfehler oder technische Fehlermeldungen.
 
 % =================================================
 \section{Test und Validierung}
@@ -415,11 +505,9 @@ xx.xx.2026 & Team & Integrationstest und Ergebnisabstimmung & 4 \\
 
 \subsection{Aufwandsbewertung}
 
-Der größte Aufwand entstand in den Bereichen
-Schnittstellenabstimmung, Statuslogik und Integration der
-einzelnen Komponenten. Weniger zeitintensiv, aber inhaltlich
-wichtig, waren die Abstimmungen mit dem Auftraggeber zur
-Absicherung des fachlichen Verständnisses.
+\textbf{Platzhalter:} In diesem Abschnitt kann bewertet
+werden, welche Arbeitspakete besonders aufwändig waren und
+welche Ursachen oder Erkenntnisse sich daraus ergeben haben.
 
 % =================================================
 \section{Verwendete Technologien}
@@ -454,17 +542,6 @@ abbildet.
 \item E-Mail-Versand
 \item Statusverwaltung
 \item Workflowsteuerung
-\end{itemize}
-
-% =================================================
-\section{Nutzenbewertung}
-% =================================================
-
-\begin{itemize}
-\item Reduzierung manueller Tätigkeiten
-\item Schnellere Rückmeldungen
-\item Höhere Transparenz
-\item Verbesserte Nachverfolgbarkeit
 \end{itemize}
 
 % =================================================
