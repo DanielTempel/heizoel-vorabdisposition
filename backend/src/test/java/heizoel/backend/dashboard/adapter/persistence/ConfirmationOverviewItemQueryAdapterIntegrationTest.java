@@ -6,6 +6,7 @@ import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.Order;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationStatus;
+import heizoel.backend.domain.DeliverySlot;
 import heizoel.backend.application.model.overview.ConfirmationOverviewItem;
 import heizoel.backend.application.port.out.persistence.ConfirmationOverviewFilter;
 import heizoel.backend.configuration.QueryDslConfig;
@@ -37,8 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ConfirmationOverviewItemQueryAdapterIntegrationTest {
 
     private static final LocalDate TODAY = LocalDate.of(2026, 7, 6);
-    private static final Instant SENT_AT = Instant.parse("2026-07-01T10:00:00Z");
-    private static final Instant EXPIRES_AT = Instant.parse("2026-07-02T10:00:00Z");
+    private static final Instant SENT_AT = Instant.parse("2026-06-30T10:00:00Z");
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16")
@@ -171,7 +171,7 @@ class ConfirmationOverviewItemQueryAdapterIntegrationTest {
     @Test
     void findDashboardOrders_returnsLatestConfirmationRequestOnly() {
         Company company = company("Latest request tenant");
-        Order snapshot = snapshot(
+        Order orderEntity = orderEntity(
                 company,
                 "RESENT-ORDER",
                 "Resent Customer",
@@ -179,14 +179,14 @@ class ConfirmationOverviewItemQueryAdapterIntegrationTest {
                 ConfirmationStatus.SENT
         );
         confirmationRequest(
-                snapshot,
+                orderEntity,
                 TODAY.plusDays(1),
                 LocalTime.of(8, 0),
                 LocalTime.of(9, 0),
                 CommunicationChannel.EMAIL
         );
         confirmationRequest(
-                snapshot,
+                orderEntity,
                 TODAY.plusDays(3),
                 LocalTime.of(14, 0),
                 LocalTime.of(16, 0),
@@ -317,7 +317,7 @@ class ConfirmationOverviewItemQueryAdapterIntegrationTest {
             LocalTime deliveryWindowStart,
             ConfirmationStatus status
     ) {
-        Order snapshot = snapshot(
+        Order orderEntity = orderEntity(
                 company,
                 externalOrderId,
                 customerName,
@@ -325,7 +325,7 @@ class ConfirmationOverviewItemQueryAdapterIntegrationTest {
                 status
         );
         confirmationRequest(
-                snapshot,
+                orderEntity,
                 deliveryDate,
                 deliveryWindowStart,
                 deliveryWindowStart.plusHours(1),
@@ -333,14 +333,14 @@ class ConfirmationOverviewItemQueryAdapterIntegrationTest {
         );
     }
 
-    private Order snapshot(
+    private Order orderEntity(
             Company company,
             String externalOrderId,
             String customerName,
             String address,
             ConfirmationStatus status
     ) {
-        Order snapshot = Order.create(
+        Order orderEntity = Order.create(
                 company,
                 externalOrderId,
                 customerName,
@@ -351,38 +351,39 @@ class ConfirmationOverviewItemQueryAdapterIntegrationTest {
                 2_500,
                 "2.500 EUR"
         );
-        setStatus(snapshot, status);
-        entityManager.persist(snapshot);
-        return snapshot;
+        setStatus(orderEntity, status);
+        entityManager.persist(orderEntity);
+        return orderEntity;
     }
 
     private void confirmationRequest(
-            Order snapshot,
+            Order orderEntity,
             LocalDate deliveryDate,
             LocalTime deliveryWindowStart,
             LocalTime deliveryWindowEnd,
             CommunicationChannel channel
     ) {
         entityManager.persist(ConfirmationRequest.create(
-                snapshot,
+                orderEntity,
                 UUID.randomUUID().toString(),
                 channel,
-                deliveryDate,
-                deliveryWindowStart,
-                deliveryWindowEnd,
+                DeliverySlot.of(
+                        deliveryDate,
+                        deliveryWindowStart,
+                        deliveryWindowEnd
+                ),
                 SENT_AT,
-                EXPIRES_AT,
                 24
         ));
         entityManager.flush();
     }
 
-    private void setStatus(Order snapshot, ConfirmationStatus status) {
+    private void setStatus(Order orderEntity, ConfirmationStatus status) {
         switch (status) {
-            case SENT -> snapshot.markSent();
-            case CONFIRMED -> snapshot.markConfirmed();
-            case REJECTED -> snapshot.markRejected();
-            case NO_RESPONSE -> snapshot.markNoResponse();
+            case SENT -> orderEntity.markSent();
+            case CONFIRMED -> orderEntity.markConfirmed();
+            case REJECTED -> orderEntity.markRejected();
+            case NO_RESPONSE -> orderEntity.markNoResponse();
         }
     }
 }

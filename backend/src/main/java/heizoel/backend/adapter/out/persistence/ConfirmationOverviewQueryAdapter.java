@@ -6,7 +6,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import heizoel.backend.domain.QConfirmationRequest;
-import heizoel.backend.domain.QOrderSnapshot;
+import heizoel.backend.domain.QOrder;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.application.model.overview.ConfirmationOverviewItem;
 import heizoel.backend.application.port.out.persistence.ConfirmationOverviewFilter;
@@ -35,45 +35,45 @@ public class ConfirmationOverviewQueryAdapter implements ConfirmationOverviewQue
             ConfirmationOverviewFilter filter,
             Pageable pageable
     ) {
-        QOrderSnapshot orderSnapshot = QOrderSnapshot.orderSnapshot;
+        QOrder order = QOrder.order;
         QConfirmationRequest confirmationRequest = QConfirmationRequest.confirmationRequest;
 
         BooleanBuilder where = buildWhere(
                 filter,
-                orderSnapshot,
+                order,
                 confirmationRequest
         );
 
         List<ConfirmationOverviewItem> content = queryFactory
                 .select(Projections.constructor(
                         ConfirmationOverviewItem.class,
-                        orderSnapshot.externalOrderId,
-                        orderSnapshot.customerName,
-                        confirmationRequest.deliveryDate,
-                        confirmationRequest.deliveryWindowStart,
-                        confirmationRequest.deliveryWindowEnd,
+                        order.externalOrderId,
+                        order.customerName,
+                        confirmationRequest.deliverySlot.date,
+                        confirmationRequest.deliverySlot.start,
+                        confirmationRequest.deliverySlot.end,
                         confirmationRequest.communicationChannel,
-                        orderSnapshot.confirmationStatus,
+                        order.confirmationStatus,
                         confirmationRequest.expiresAt
                 ))
-                .from(orderSnapshot)
+                .from(order)
                 .join(confirmationRequest)
-                .on(confirmationRequest.orderSnapshot.eq(orderSnapshot))
+                .on(confirmationRequest.order.eq(order))
                 .where(where)
                 .orderBy(
-                        confirmationRequest.deliveryDate.asc(),
-                        confirmationRequest.deliveryWindowStart.asc(),
-                        orderSnapshot.externalOrderId.asc()
+                        confirmationRequest.deliverySlot.date.asc(),
+                        confirmationRequest.deliverySlot.start.asc(),
+                        order.externalOrderId.asc()
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         Long total = queryFactory
-                .select(orderSnapshot.id.count())
-                .from(orderSnapshot)
+                .select(order.id.count())
+                .from(order)
                 .join(confirmationRequest)
-                .on(confirmationRequest.orderSnapshot.eq(orderSnapshot))
+                .on(confirmationRequest.order.eq(order))
                 .where(where)
                 .fetchOne();
 
@@ -86,42 +86,42 @@ public class ConfirmationOverviewQueryAdapter implements ConfirmationOverviewQue
 
     private BooleanBuilder buildWhere(
             ConfirmationOverviewFilter filter,
-            QOrderSnapshot orderSnapshot,
+            QOrder order,
             QConfirmationRequest confirmationRequest
     ) {
         BooleanBuilder where = new BooleanBuilder();
 
-        where.and(orderSnapshot.company.id.eq(filter.companyId()));
+        where.and(order.company.id.eq(filter.companyId()));
 
         where.and(latestConfirmationRequestOnly(
-                orderSnapshot,
+                order,
                 confirmationRequest
         ));
 
         applyDashboardScope(
                 where,
                 filter,
-                orderSnapshot,
+                order,
                 confirmationRequest
         );
 
         applyStatusFilter(
                 where,
                 filter,
-                orderSnapshot
+                order
         );
 
         applySearchFilter(
                 where,
                 filter,
-                orderSnapshot
+                order
         );
 
         return where;
     }
 
     private BooleanBuilder latestConfirmationRequestOnly(
-            QOrderSnapshot orderSnapshot,
+            QOrder order,
             QConfirmationRequest confirmationRequest
     ) {
         QConfirmationRequest latestConfirmationRequest =
@@ -132,7 +132,7 @@ public class ConfirmationOverviewQueryAdapter implements ConfirmationOverviewQue
                         JPAExpressions
                                 .select(latestConfirmationRequest.id.max())
                                 .from(latestConfirmationRequest)
-                                .where(latestConfirmationRequest.orderSnapshot.eq(orderSnapshot))
+                                .where(latestConfirmationRequest.order.eq(order))
                 )
         );
     }
@@ -140,36 +140,36 @@ public class ConfirmationOverviewQueryAdapter implements ConfirmationOverviewQue
     private void applyDashboardScope(
             BooleanBuilder where,
             ConfirmationOverviewFilter filter,
-            QOrderSnapshot orderSnapshot,
+            QOrder order,
             QConfirmationRequest confirmationRequest
     ) {
         if (filter.deliveryDate() != null) {
-            where.and(confirmationRequest.deliveryDate.eq(filter.deliveryDate()));
+            where.and(confirmationRequest.deliverySlot.date.eq(filter.deliveryDate()));
             return;
         }
 
         where.and(
-                confirmationRequest.deliveryDate.goe(filter.today())
-                        .or(orderSnapshot.confirmationStatus.in(PROBLEM_STATUSES)
+                confirmationRequest.deliverySlot.date.goe(filter.today())
+                        .or(order.confirmationStatus.in(PROBLEM_STATUSES)
         ));
     }
 
     private void applyStatusFilter(
             BooleanBuilder where,
             ConfirmationOverviewFilter filter,
-            QOrderSnapshot orderSnapshot
+            QOrder order
     ) {
         if (filter.status() == null) {
             return;
         }
 
-        where.and(orderSnapshot.confirmationStatus.eq(filter.status()));
+        where.and(order.confirmationStatus.eq(filter.status()));
     }
 
     private void applySearchFilter(
             BooleanBuilder where,
             ConfirmationOverviewFilter filter,
-            QOrderSnapshot orderSnapshot
+            QOrder order
     ) {
         if (filter.search() == null) {
             return;
@@ -178,8 +178,8 @@ public class ConfirmationOverviewQueryAdapter implements ConfirmationOverviewQue
         String search = filter.search().toLowerCase();
 
         where.and(
-                orderSnapshot.externalOrderId.lower().contains(search)
-                        .or(orderSnapshot.customerName.lower().contains(search))
+                order.externalOrderId.lower().contains(search)
+                        .or(order.customerName.lower().contains(search))
         );
     }
 }

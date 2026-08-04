@@ -5,6 +5,7 @@ import heizoel.backend.application.port.in.tracking.TrackingInfoResult;
 import heizoel.backend.application.port.out.location.DeliveryAddressCoordinateResolver;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.domain.ConfirmationRequest;
+import heizoel.backend.domain.DeliverySlot;
 import heizoel.backend.application.model.GeoCoordinate;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +29,9 @@ public class GetTrackingInfoService implements GetTrackingInfoUseCase {
                 .orElseThrow(() -> new ConfirmationRequestNotFoundException(
                         "Confirmation request was not found."
                 ));
+        DeliverySlot deliverySlot = confirmationRequest.getDeliverySlot();
 
-        boolean trackingAvailable = confirmationRequest.getDeliveryDate().isEqual(LocalDate.now());
+        boolean trackingAvailable = deliverySlot.getDate().isEqual(LocalDate.now());
 
         Optional<GeoCoordinate> targetCoordinate = trackingAvailable
                 ? deliveryAddressCoordinateResolver.resolve(

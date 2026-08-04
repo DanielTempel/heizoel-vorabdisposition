@@ -5,7 +5,7 @@ import heizoel.backend.application.port.in.confirmation.CreateConfirmationReques
 import heizoel.backend.application.port.out.token.TokenService;
 import heizoel.backend.domain.*;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
-import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
+import heizoel.backend.adapter.out.persistence.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ConfirmationRequestPreparationService  {
 
-    private final OrderSnapshotRepository orderSnapshotRepository;
+    private final OrderRepository orderRepository;
     private final ConfirmationRequestRepository confirmationRequestRepository;
     private final TokenService tokenService;
 
@@ -29,21 +29,21 @@ public class ConfirmationRequestPreparationService  {
         RequestData requestData = RequestData.from(command);
 
         Optional<Order> existingOrder =
-                orderSnapshotRepository.findByCompanyIdAndExternalOrderId(
+                orderRepository.findByCompanyIdAndExternalOrderId(
                         company.getId(),
                         orderData.externalOrderId()
                 );
 
         if (existingOrder.isEmpty()) {
-            Order order = createOrderSnapshot(company, orderData);
-            Order savedOrder = orderSnapshotRepository.save(order);
+            Order order = createOrder(company, orderData);
+            Order savedOrder = orderRepository.save(order);
             return createNewRequest(savedOrder, requestData);
         }
 
         Order order = existingOrder.get();
 
         Optional<ConfirmationRequest> latestRequest =
-                confirmationRequestRepository.findTopByOrderSnapshotOrderByIdDesc(order);
+                confirmationRequestRepository.findTopByOrderOrderByIdDesc(order);
 
         if (latestRequest.isPresent()) {
             ConfirmationRequest request = latestRequest.get();
@@ -62,7 +62,7 @@ public class ConfirmationRequestPreparationService  {
             }
         }
 
-        Order updatedOrder = updateOrderSnapshot(order, orderData);
+        Order updatedOrder = updateOrder(order, orderData);
         return createNewRequest(updatedOrder, requestData);
     }
 
@@ -121,7 +121,7 @@ public class ConfirmationRequestPreparationService  {
         return sameOrderData && sameRequestData && reusableState;
     }
 
-    private Order createOrderSnapshot(
+    private Order createOrder(
             Company company,
             OrderData data
     ) {
@@ -138,7 +138,7 @@ public class ConfirmationRequestPreparationService  {
         );
     }
 
-    private Order updateOrderSnapshot(
+    private Order updateOrder(
             Order order,
             OrderData data
     ) {
@@ -152,7 +152,7 @@ public class ConfirmationRequestPreparationService  {
                 data.priceDisplayText()
         );
 
-        return orderSnapshotRepository.save(order);
+        return orderRepository.save(order);
     }
 
 

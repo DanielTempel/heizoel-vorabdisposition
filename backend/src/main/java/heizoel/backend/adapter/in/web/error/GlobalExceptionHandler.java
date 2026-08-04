@@ -11,7 +11,7 @@ import heizoel.backend.application.exception.ConfirmationRequestNotFoundExceptio
 import heizoel.backend.domain.exception.CustomerResponseAlreadyExistsException;
 import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.domain.exception.MissingDigitalContactException;
-import heizoel.backend.application.exception.OrderSnapshotNotFoundException;
+import heizoel.backend.application.exception.OrderNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -78,8 +78,8 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.NOT_FOUND, "COMPANY_NOT_FOUND", e.getMessage(), req.getRequestURI());
     }
 
-    @ExceptionHandler(OrderSnapshotNotFoundException.class)
-    ResponseEntity<ErrorResponseDto> orderSnapshotNotFound(OrderSnapshotNotFoundException e, HttpServletRequest req) {
+    @ExceptionHandler(OrderNotFoundException.class)
+    ResponseEntity<ErrorResponseDto> orderNotFound(OrderNotFoundException e, HttpServletRequest req) {
         return respond(HttpStatus.NOT_FOUND, "ORDER_SNAPSHOT_NOT_FOUND", e.getMessage(), req.getRequestURI());
     }
 

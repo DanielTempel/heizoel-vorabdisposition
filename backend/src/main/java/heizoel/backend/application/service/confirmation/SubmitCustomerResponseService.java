@@ -12,7 +12,7 @@ import heizoel.backend.application.exception.ConfirmationRequestNotFoundExceptio
 import heizoel.backend.domain.exception.CustomerResponseAlreadyExistsException;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
-import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
+import heizoel.backend.adapter.out.persistence.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ import java.time.Instant;
 public class SubmitCustomerResponseService implements SubmitCustomerResponseUseCase {
 
     private final ConfirmationRequestRepository confirmationRequestRepository;
-    private final OrderSnapshotRepository orderSnapshotRepository;
+    private final OrderRepository orderRepository;
     private final CustomerResponseRepository customerResponseRepository;
     private final DispoCallbackWorkflowService dispoCallbackWorkflowService;
     private final NotificationService notificationService;
@@ -80,7 +80,7 @@ public class SubmitCustomerResponseService implements SubmitCustomerResponseUseC
                     "Unsupported customer response status: " + confirmationStatus
             );
         }
-        orderSnapshotRepository.save(order);
+        orderRepository.save(order);
 
         try {
             notificationService.sendCustomerResponseReceived(

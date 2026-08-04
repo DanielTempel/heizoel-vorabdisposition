@@ -5,7 +5,7 @@ import heizoel.backend.domain.*;
 import heizoel.backend.application.port.out.notification.NotificationService;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
-import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
+import heizoel.backend.adapter.out.persistence.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -66,7 +66,7 @@ class DispoControllerIntegrationTest {
     ObjectMapper objectMapper;
 
     @Autowired
-    OrderSnapshotRepository orderSnapshotRepository;
+    OrderRepository orderRepository;
 
     @Autowired
     ConfirmationRequestRepository confirmationRequestRepository;
@@ -81,13 +81,13 @@ class DispoControllerIntegrationTest {
     void cleanDatabase() {
         customerResponseRepository.deleteAll();
         confirmationRequestRepository.deleteAll();
-        orderSnapshotRepository.deleteAll();
+        orderRepository.deleteAll();
 
         Mockito.reset(notificationService);
     }
 
     @Test
-    void createConfirmationRequest_emailChannel_createsOrderSnapshotAndConfirmationRequest() throws Exception {
+    void createConfirmationRequest_emailChannel_createsOrderAndConfirmationRequest() throws Exception {
         mockMvc.perform(post("/api/dispo/confirmation-requests")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(emailRequest("A-1024", "10:00", "11:00")))
@@ -95,7 +95,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
                 .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
 
-        List<Order> orders = orderSnapshotRepository.findAll();
+        List<Order> orders = orderRepository.findAll();
         List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
 
         assertThat(orders).hasSize(1);
@@ -117,9 +117,9 @@ class DispoControllerIntegrationTest {
         assertThat(confirmationRequest.getOrder().getId()).isEqualTo(order.getId());
         assertThat(confirmationRequest.getToken()).isNotBlank();
         assertThat(confirmationRequest.getCommunicationChannel()).isEqualTo(CommunicationChannel.EMAIL);
-        assertThat(confirmationRequest.getDeliveryDate()).hasToString("2099-06-12");
-        assertThat(confirmationRequest.getDeliveryWindowStart()).hasToString("10:00");
-        assertThat(confirmationRequest.getDeliveryWindowEnd()).hasToString("11:00");
+        assertThat(confirmationRequest.getDeliverySlot().getDate()).hasToString("2099-06-12");
+        assertThat(confirmationRequest.getDeliverySlot().getStart()).hasToString("10:00");
+        assertThat(confirmationRequest.getDeliverySlot().getEnd()).hasToString("11:00");
         assertThat(confirmationRequest.getResponseDeadlineHours()).isEqualTo(24);
         assertThat(confirmationRequest.isActive()).isTrue();
         assertThat(confirmationRequest.getSentAt()).isNotNull();
@@ -130,7 +130,7 @@ class DispoControllerIntegrationTest {
     }
 
     @Test
-    void createConfirmationRequest_smsChannel_createsOrderSnapshotAndConfirmationRequest() throws Exception {
+    void createConfirmationRequest_smsChannel_createsOrderAndConfirmationRequest() throws Exception {
         mockMvc.perform(post("/api/dispo/confirmation-requests")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(smsRequest("A-SMS-1024")))
@@ -138,7 +138,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value("A-SMS-1024"))
                 .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
 
-        List<Order> orders = orderSnapshotRepository.findAll();
+        List<Order> orders = orderRepository.findAll();
         List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
 
         assertThat(orders).hasSize(1);
@@ -178,7 +178,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
                 .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
 
-        List<Order> orders = orderSnapshotRepository.findAll();
+        List<Order> orders = orderRepository.findAll();
         List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
 
         assertThat(orders).hasSize(1);
@@ -205,7 +205,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
                 .andExpect(jsonPath("$.confirmationStatus").value("CONFIRMED"));
 
-        assertThat(orderSnapshotRepository.findAll()).hasSize(1);
+        assertThat(orderRepository.findAll()).hasSize(1);
         assertThat(confirmationRequestRepository.findAll()).hasSize(1);
 
         Mockito.verify(notificationService, times(1))
@@ -228,7 +228,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
                 .andExpect(jsonPath("$.confirmationStatus").value("REJECTED"));
 
-        assertThat(orderSnapshotRepository.findAll()).hasSize(1);
+        assertThat(orderRepository.findAll()).hasSize(1);
         assertThat(confirmationRequestRepository.findAll()).hasSize(1);
 
         Mockito.verify(notificationService, times(1))
@@ -253,7 +253,7 @@ class DispoControllerIntegrationTest {
 
         List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
 
-        assertThat(orderSnapshotRepository.findAll()).hasSize(1);
+        assertThat(orderRepository.findAll()).hasSize(1);
         assertThat(confirmationRequests).hasSize(2);
         assertThat(confirmationRequests)
                 .filteredOn(ConfirmationRequest::isActive)
@@ -277,7 +277,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
                 .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
 
-        List<Order> orders = orderSnapshotRepository.findAll();
+        List<Order> orders = orderRepository.findAll();
         List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
 
         assertThat(orders).hasSize(1);
@@ -299,8 +299,8 @@ class DispoControllerIntegrationTest {
                 .findFirst()
                 .orElseThrow();
 
-        assertThat(activeRequest.getDeliveryWindowStart()).hasToString("13:00");
-        assertThat(activeRequest.getDeliveryWindowEnd()).hasToString("14:00");
+        assertThat(activeRequest.getDeliverySlot().getStart()).hasToString("13:00");
+        assertThat(activeRequest.getDeliverySlot().getEnd()).hasToString("14:00");
         assertThat(activeRequest.getCommunicationChannel()).isEqualTo(CommunicationChannel.EMAIL);
 
         Mockito.verify(notificationService, times(2))
@@ -321,7 +321,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.externalOrderId").value("A-1024"))
                 .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
 
-        List<Order> orders = orderSnapshotRepository.findAll();
+        List<Order> orders = orderRepository.findAll();
         List<ConfirmationRequest> confirmationRequests = confirmationRequestRepository.findAll();
 
         assertThat(orders).hasSize(1);
@@ -366,7 +366,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.path").value("/api/dispo/confirmation-requests"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        assertThat(orderSnapshotRepository.findAll()).isEmpty();
+        assertThat(orderRepository.findAll()).isEmpty();
         assertThat(confirmationRequestRepository.findAll()).isEmpty();
 
         Mockito.verifyNoInteractions(notificationService);
@@ -392,7 +392,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Delivery window must start in the future."))
                 .andExpect(jsonPath("$.status").value(400));
 
-        assertThat(orderSnapshotRepository.findAll()).isEmpty();
+        assertThat(orderRepository.findAll()).isEmpty();
         assertThat(confirmationRequestRepository.findAll()).isEmpty();
         Mockito.verifyNoInteractions(notificationService);
     }
@@ -435,7 +435,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.path").value("/api/dispo/confirmation-requests"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        assertThat(orderSnapshotRepository.findAll()).isEmpty();
+        assertThat(orderRepository.findAll()).isEmpty();
         assertThat(confirmationRequestRepository.findAll()).isEmpty();
 
         Mockito.verifyNoInteractions(notificationService);
@@ -453,7 +453,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.path").value("/api/dispo/confirmation-requests"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        assertThat(orderSnapshotRepository.findAll()).isEmpty();
+        assertThat(orderRepository.findAll()).isEmpty();
         assertThat(confirmationRequestRepository.findAll()).isEmpty();
 
         Mockito.verifyNoInteractions(notificationService);
@@ -470,7 +470,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.path").value("/api/dispo/confirmation-requests"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        assertThat(orderSnapshotRepository.findAll()).isEmpty();
+        assertThat(orderRepository.findAll()).isEmpty();
         assertThat(confirmationRequestRepository.findAll()).isEmpty();
 
         Mockito.verifyNoInteractions(notificationService);
@@ -487,7 +487,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.path").value("/api/dispo/confirmation-requests"));
 
-        assertThat(orderSnapshotRepository.findAll()).isEmpty();
+        assertThat(orderRepository.findAll()).isEmpty();
         assertThat(confirmationRequestRepository.findAll()).isEmpty();
 
         Mockito.verifyNoInteractions(notificationService);
@@ -504,7 +504,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.path").value("/api/dispo/confirmation-requests"));
 
-        assertThat(orderSnapshotRepository.findAll()).isEmpty();
+        assertThat(orderRepository.findAll()).isEmpty();
         assertThat(confirmationRequestRepository.findAll()).isEmpty();
 
         Mockito.verifyNoInteractions(notificationService);
@@ -521,7 +521,7 @@ class DispoControllerIntegrationTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.path").value("/api/dispo/confirmation-requests"));
 
-        assertThat(orderSnapshotRepository.findAll()).isEmpty();
+        assertThat(orderRepository.findAll()).isEmpty();
         assertThat(confirmationRequestRepository.findAll()).isEmpty();
 
         Mockito.verifyNoInteractions(notificationService);
@@ -720,12 +720,12 @@ class DispoControllerIntegrationTest {
             String externalOrderId,
             ConfirmationStatus status
     ) {
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findTopByOrderSnapshotOrderByIdDesc(order)
+                .findTopByOrderOrderByIdDesc(order)
                 .orElseThrow();
 
         confirmationRequest.markInactive();
@@ -737,7 +737,7 @@ class DispoControllerIntegrationTest {
             case REJECTED -> order.markRejected();
             case NO_RESPONSE -> order.markNoResponse();
         }
-        orderSnapshotRepository.save(order);
+        orderRepository.save(order);
     }
 
     private record TestDispoRequest(

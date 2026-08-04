@@ -4,13 +4,14 @@ import heizoel.backend.application.model.overview.ConfirmationDetail;
 import heizoel.backend.application.model.overview.LatestConfirmationRequest;
 import heizoel.backend.application.model.overview.LatestCustomerResponse;
 import heizoel.backend.application.port.in.overview.*;
-import heizoel.backend.application.exception.OrderSnapshotNotFoundException;
+import heizoel.backend.application.exception.OrderNotFoundException;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.CustomerResponse;
+import heizoel.backend.domain.DeliverySlot;
 import heizoel.backend.domain.Order;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
-import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
+import heizoel.backend.adapter.out.persistence.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,23 +19,23 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class GetConfirmationDetailService implements GetConfirmationDetailUseCase {
 
-    private final OrderSnapshotRepository orderSnapshotRepository;
+    private final OrderRepository orderRepository;
     private final ConfirmationRequestRepository confirmationRequestRepository;
     private final CustomerResponseRepository customerResponseRepository;
 
     @Override
     public ConfirmationDetail getOrderDetail(GetConfirmationDetailQuery query) {
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(
                         query.companyContext().companyId(),
                         query.externalOrderId()
                 )
-                .orElseThrow(() -> new OrderSnapshotNotFoundException(
-                        "Order snapshot was not found."
+                .orElseThrow(() -> new OrderNotFoundException(
+                        "Order was not found."
                 ));
 
         ConfirmationRequest latestRequest = confirmationRequestRepository
-                .findTopByOrderSnapshotOrderByIdDesc(order)
+                .findTopByOrderOrderByIdDesc(order)
                 .orElse(null);
 
         LatestConfirmationRequest latestRequestResult = latestRequest != null
@@ -68,10 +69,12 @@ public class GetConfirmationDetailService implements GetConfirmationDetailUseCas
     }
 
     private LatestConfirmationRequest toLatestRequest(ConfirmationRequest request) {
+        DeliverySlot deliverySlot = request.getDeliverySlot();
+
         return new LatestConfirmationRequest(
-                request.getDeliveryDate(),
-                request.getDeliveryWindowStart(),
-                request.getDeliveryWindowEnd(),
+                deliverySlot.getDate(),
+                deliverySlot.getStart(),
+                deliverySlot.getEnd(),
                 request.getCommunicationChannel(),
                 request.getSentAt(),
                 request.getExpiresAt(),

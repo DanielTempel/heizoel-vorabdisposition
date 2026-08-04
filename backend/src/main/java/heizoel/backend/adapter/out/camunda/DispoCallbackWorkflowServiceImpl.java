@@ -16,7 +16,7 @@ public class DispoCallbackWorkflowServiceImpl  implements DispoCallbackWorkflowS
 
     private static final String PROCESS_KEY = "dispo-callback-process";
 
-    private static final String VAR_ORDER_SNAPSHOT_ID = "orderSnapshotId";
+    private static final String VAR_ORDER_ID = "orderSnapshotId";
     private static final String VAR_CONFIRMATION_STATUS = "confirmationStatus";
     private static final String VAR_CUSTOMER_COMMENT = "customerComment";
 
@@ -24,18 +24,18 @@ public class DispoCallbackWorkflowServiceImpl  implements DispoCallbackWorkflowS
 
     @Override
     public void startDispoCallbackProcess(
-            Long orderSnapshotId,
+            Long orderId,
             ConfirmationStatus confirmationStatus,
             String customerComment
     ) {
         Map<String, Object> variables = new HashMap<>();
-        variables.put(VAR_ORDER_SNAPSHOT_ID, orderSnapshotId);
+        variables.put(VAR_ORDER_ID, orderId);
         variables.put(VAR_CONFIRMATION_STATUS, confirmationStatus.name());
         variables.put(VAR_CUSTOMER_COMMENT, customerComment);
 
         runtimeService.startProcessInstanceByKey(
                 PROCESS_KEY,
-                orderSnapshotId.toString(),
+                orderId.toString(),
                 variables
         );
     }

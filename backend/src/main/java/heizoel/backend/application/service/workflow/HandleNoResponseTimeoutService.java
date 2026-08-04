@@ -8,7 +8,7 @@ import heizoel.backend.domain.Order;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
-import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
+import heizoel.backend.adapter.out.persistence.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +20,7 @@ import java.time.Instant;
 public class HandleNoResponseTimeoutService implements HandleNoResponseTimeoutUseCase {
 
     private final ConfirmationRequestRepository confirmationRequestRepository;
-    private final OrderSnapshotRepository orderSnapshotRepository;
+    private final OrderRepository orderRepository;
     private final CustomerResponseRepository customerResponseRepository;
     private final DispoCallbackWorkflowService dispoCallbackWorkflowService;
 
@@ -48,7 +48,7 @@ public class HandleNoResponseTimeoutService implements HandleNoResponseTimeoutUs
         confirmationRequest.markInactive();
         confirmationRequestRepository.save(confirmationRequest);
         order.markNoResponse();
-        orderSnapshotRepository.save(order);
+        orderRepository.save(order);
 
         dispoCallbackWorkflowService.startDispoCallbackProcess(
                 order.getId(),

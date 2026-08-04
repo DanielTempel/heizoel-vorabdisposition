@@ -4,6 +4,7 @@ import heizoel.backend.application.port.in.confirmation.GetConfirmationPreviewRe
 import heizoel.backend.application.port.in.confirmation.GetConfirmationPreviewUseCase;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.domain.ConfirmationRequest;
+import heizoel.backend.domain.DeliverySlot;
 import heizoel.backend.domain.Order;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class GetConfirmationPreviewService implements GetConfirmationPreviewUseC
                         "Confirmation request was not found."
                 ));
         Order order = confirmationRequest.getOrder();
+        DeliverySlot deliverySlot = confirmationRequest.getDeliverySlot();
 
         return new GetConfirmationPreviewResult(
                 order.getExternalOrderId(),
@@ -31,9 +33,9 @@ public class GetConfirmationPreviewService implements GetConfirmationPreviewUseC
                 order.getDeliveryAddress(),
                 order.getProduct(),
                 order.getQuantityLiters(),
-                confirmationRequest.getDeliveryDate(),
-                confirmationRequest.getDeliveryWindowStart(),
-                confirmationRequest.getDeliveryWindowEnd(),
+                deliverySlot.getDate(),
+                deliverySlot.getStart(),
+                deliverySlot.getEnd(),
                 order.getPriceDisplayText(),
                 order.getConfirmationStatus()
         );

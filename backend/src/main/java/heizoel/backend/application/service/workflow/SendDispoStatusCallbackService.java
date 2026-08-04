@@ -4,9 +4,9 @@ import heizoel.backend.application.port.in.workflow.SendDispoStatusCallbackComma
 import heizoel.backend.application.port.in.workflow.SendDispoStatusCallbackUseCase;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackRequest;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackService;
-import heizoel.backend.application.exception.OrderSnapshotNotFoundException;
+import heizoel.backend.application.exception.OrderNotFoundException;
 import heizoel.backend.domain.Order;
-import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
+import heizoel.backend.adapter.out.persistence.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,14 +15,14 @@ import org.springframework.stereotype.Service;
 public class SendDispoStatusCallbackService implements SendDispoStatusCallbackUseCase {
 
     private final DispoStatusCallbackService dispoStatusCallbackService;
-    private final OrderSnapshotRepository orderSnapshotRepository;
+    private final OrderRepository orderRepository;
 
     @Override
     public void sendDispoStatusCallback(SendDispoStatusCallbackCommand command) {
 
-        Order order = orderSnapshotRepository.findById(command.orderSnapshotId())
-                .orElseThrow(() -> new OrderSnapshotNotFoundException(
-                        "Order snapshot was not found."
+        Order order = orderRepository.findById(command.orderId())
+                .orElseThrow(() -> new OrderNotFoundException(
+                        "Order was not found."
                 ));
 
         dispoStatusCallbackService.sendStatusUpdate(

@@ -5,6 +5,7 @@ import heizoel.backend.application.port.in.tracking.GetDriverLocationUseCase;
 import heizoel.backend.application.port.out.location.LocationTrackingService;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.domain.ConfirmationRequest;
+import heizoel.backend.domain.DeliverySlot;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,8 +28,9 @@ public class GetDriverLocationService implements GetDriverLocationUseCase {
                 .orElseThrow(() -> new ConfirmationRequestNotFoundException(
                         "Confirmation request was not found."
                 ));
+        DeliverySlot deliverySlot = confirmationRequest.getDeliverySlot();
 
-        if (!confirmationRequest.getDeliveryDate().isEqual(LocalDate.now())) {
+        if (!deliverySlot.getDate().isEqual(LocalDate.now())) {
             return Optional.empty();
         }
 

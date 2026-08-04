@@ -22,12 +22,15 @@ class ThymeleafConfirmationMailRendererTest {
         ConfirmationRequest confirmationRequest = confirmationRequest();
 
         String html = renderer.renderConfirmationRequestMail(
-                orderSnapshot(),
+                order(),
                 confirmationRequest,
                 "http://localhost:3000/confirmation/token"
         );
 
         assertThat(html)
+                .contains("13.06.2026")
+                .contains("10:15")
+                .contains("11:45")
                 .contains("11.06.2026, 18 Uhr")
                 .doesNotContain("18:09 Uhr");
     }
@@ -38,7 +41,7 @@ class ThymeleafConfirmationMailRendererTest {
                 templateEngine()
         );
 
-        Order order = orderSnapshot();
+        Order order = order();
         ConfirmationRequest confirmationRequest = confirmationRequest();
 
         assertThat(renderer.renderConfirmationRequestMail(
@@ -72,7 +75,7 @@ class ThymeleafConfirmationMailRendererTest {
         return templateEngine;
     }
 
-    private Order orderSnapshot() {
+    private Order order() {
         return Order.create(
                 Company.create(
                         "Company", "api-key-hash", "http://localhost/callback"
@@ -85,15 +88,16 @@ class ThymeleafConfirmationMailRendererTest {
 
     private ConfirmationRequest confirmationRequest() {
         return ConfirmationRequest.create(
-                orderSnapshot(),
+                order(),
                 "token",
                 CommunicationChannel.EMAIL,
-                LocalDate.of(2026, 6, 12),
-                LocalTime.of(10, 0),
-                LocalTime.of(11, 0),
-                Instant.parse("2026-06-11T15:00:00Z"),
-                Instant.parse("2026-06-11T16:09:00Z"),
-                24
+                DeliverySlot.of(
+                        LocalDate.of(2026, 6, 13),
+                        LocalTime.of(10, 15),
+                        LocalTime.of(11, 45)
+                ),
+                Instant.parse("2026-06-11T15:09:00Z"),
+                1
         );
     }
 }

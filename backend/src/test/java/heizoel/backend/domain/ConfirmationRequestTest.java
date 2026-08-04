@@ -15,6 +15,11 @@ class ConfirmationRequestTest {
     private static final LocalDate DELIVERY_DATE = LocalDate.of(2026, 7, 3);
     private static final LocalTime WINDOW_START = LocalTime.of(10, 0);
     private static final LocalTime WINDOW_END = LocalTime.of(12, 0);
+    private static final DeliverySlot DELIVERY_SLOT = DeliverySlot.of(
+            DELIVERY_DATE,
+            WINDOW_START,
+            WINDOW_END
+    );
 
     @Test
     void createBuildsActiveRequestFromReadyValues() {
@@ -51,16 +56,12 @@ class ConfirmationRequestTest {
         ConfirmationRequest request = request(new Order());
 
         assertThat(request.hasSameData(
-                DELIVERY_DATE,
-                WINDOW_START,
-                WINDOW_END,
+                DELIVERY_SLOT,
                 CommunicationChannel.EMAIL,
                 24
         )).isTrue();
         assertThat(request.hasSameData(
-                DELIVERY_DATE,
-                WINDOW_START,
-                WINDOW_END,
+                DELIVERY_SLOT,
                 CommunicationChannel.SMS,
                 24
         )).isFalse();
@@ -71,11 +72,8 @@ class ConfirmationRequestTest {
                 order,
                 "token",
                 CommunicationChannel.EMAIL,
-                DELIVERY_DATE,
-                WINDOW_START,
-                WINDOW_END,
+                DELIVERY_SLOT,
                 SENT_AT,
-                EXPIRES_AT,
                 24
         );
     }

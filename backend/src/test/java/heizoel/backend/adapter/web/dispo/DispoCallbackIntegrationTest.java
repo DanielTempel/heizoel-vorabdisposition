@@ -8,7 +8,7 @@ import heizoel.backend.application.model.GeoCoordinate;
 import heizoel.backend.application.port.out.notification.NotificationService;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
-import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
+import heizoel.backend.adapter.out.persistence.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
@@ -62,7 +62,7 @@ class DispoCallbackIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private OrderSnapshotRepository orderSnapshotRepository;
+    private OrderRepository orderRepository;
 
     @Autowired
     private ConfirmationRequestRepository confirmationRequestRepository;
@@ -83,7 +83,7 @@ class DispoCallbackIntegrationTest {
     void setUp() {
         customerResponseRepository.deleteAll();
         confirmationRequestRepository.deleteAll();
-        orderSnapshotRepository.deleteAll();
+        orderRepository.deleteAll();
 
         reset(dispoStatusCallbackService, notificationService, geocodingClient);
         when(geocodingClient.geocode(any()))
@@ -178,7 +178,7 @@ class DispoCallbackIntegrationTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
@@ -219,7 +219,7 @@ class DispoCallbackIntegrationTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
@@ -312,12 +312,12 @@ class DispoCallbackIntegrationTest {
     }
 
     private String findActiveToken(String externalOrderId) {
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findTopByOrderSnapshotOrderByIdDesc(order)
+                .findTopByOrderOrderByIdDesc(order)
                 .orElseThrow();
 
         return confirmationRequest.getToken();

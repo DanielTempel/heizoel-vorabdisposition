@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface ConfirmationRequestRepository extends JpaRepository<ConfirmationRequest, Long> {
 
-    Optional<ConfirmationRequest> findTopByOrderSnapshotOrderByIdDesc(
+    Optional<ConfirmationRequest> findTopByOrderOrderByIdDesc(
             Order order
     );
 

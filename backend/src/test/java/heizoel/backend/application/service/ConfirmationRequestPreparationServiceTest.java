@@ -10,7 +10,7 @@ import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
-import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
+import heizoel.backend.adapter.out.persistence.OrderRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,7 +36,7 @@ class ConfirmationRequestPreparationServiceTest {
     ConfirmationRequestRepository confirmationRequestRepository;
 
     @Mock
-    OrderSnapshotRepository orderSnapshotRepository;
+    OrderRepository orderRepository;
 
     @Mock
     TokenService tokenService;
@@ -54,9 +54,9 @@ class ConfirmationRequestPreparationServiceTest {
 
         when(tokenService.generateToken()).thenReturn("token");
         when(company.getId()).thenReturn(1L);
-        when(orderSnapshotRepository.findByCompanyIdAndExternalOrderId(1L, "ORDER-1"))
+        when(orderRepository.findByCompanyIdAndExternalOrderId(1L, "ORDER-1"))
                 .thenReturn(java.util.Optional.empty());
-        when(orderSnapshotRepository.save(any()))
+        when(orderRepository.save(any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(confirmationRequestRepository.save(any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -80,9 +80,9 @@ class ConfirmationRequestPreparationServiceTest {
 
         when(tokenService.generateToken()).thenReturn("token");
         when(company.getId()).thenReturn(1L);
-        when(orderSnapshotRepository.findByCompanyIdAndExternalOrderId(1L, "ORDER-1"))
+        when(orderRepository.findByCompanyIdAndExternalOrderId(1L, "ORDER-1"))
                 .thenReturn(java.util.Optional.empty());
-        when(orderSnapshotRepository.save(any()))
+        when(orderRepository.save(any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(confirmationRequestRepository.save(any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -101,9 +101,9 @@ class ConfirmationRequestPreparationServiceTest {
         LocalDate deliveryDate = LocalDate.now(DELIVERY_ZONE).minusDays(1);
 
         when(company.getId()).thenReturn(1L);
-        when(orderSnapshotRepository.findByCompanyIdAndExternalOrderId(1L, "ORDER-1"))
+        when(orderRepository.findByCompanyIdAndExternalOrderId(1L, "ORDER-1"))
                 .thenReturn(java.util.Optional.empty());
-        when(orderSnapshotRepository.save(any()))
+        when(orderRepository.save(any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         assertThatThrownBy(() -> service.prepareConfirmationRequest(

@@ -59,7 +59,7 @@ class EmailNotificationSenderIntegrationTest {
 
     @Test
     void sendConfirmationRequest_rendersTemplateAndAttachesMinovaLogoAsInlineImage() throws Exception {
-        emailSender.sendConfirmationRequest(orderSnapshot(), confirmationRequest());
+        emailSender.sendConfirmationRequest(order(), confirmationRequest());
 
         verify(mailSender).send(message);
         message.saveChanges();
@@ -76,7 +76,7 @@ class EmailNotificationSenderIntegrationTest {
     @Test
     void sendCustomerResponseReceived_confirmed_rendersFollowUpTemplateAndAttachesLogo() throws Exception {
         emailSender.sendCustomerResponseReceived(
-                orderSnapshot(),
+                order(),
                 confirmationRequest(),
                 CustomerResponseType.CONFIRM
         );
@@ -94,7 +94,7 @@ class EmailNotificationSenderIntegrationTest {
     @Test
     void sendCustomerResponseReceived_rejected_rendersFollowUpTemplateAndAttachesLogo() throws Exception {
         emailSender.sendCustomerResponseReceived(
-                orderSnapshot(),
+                order(),
                 confirmationRequest(),
                 CustomerResponseType.REJECT
         );
@@ -151,7 +151,7 @@ class EmailNotificationSenderIntegrationTest {
         return "";
     }
 
-    private Order orderSnapshot() {
+    private Order order() {
         return Order.create(
                 Company.create(
                         "Company", "api-key-hash", "http://localhost/callback"
@@ -164,15 +164,16 @@ class EmailNotificationSenderIntegrationTest {
 
     private ConfirmationRequest confirmationRequest() {
         return ConfirmationRequest.create(
-                orderSnapshot(),
+                order(),
                 "token",
                 CommunicationChannel.EMAIL,
-                LocalDate.of(2026, 6, 12),
-                LocalTime.of(10, 0),
-                LocalTime.of(11, 0),
-                Instant.parse("2026-06-11T15:00:00Z"),
-                Instant.parse("2026-06-11T16:09:00Z"),
-                24
+                DeliverySlot.of(
+                        LocalDate.of(2026, 6, 12),
+                        LocalTime.of(10, 0),
+                        LocalTime.of(11, 0)
+                ),
+                Instant.parse("2026-06-11T15:09:00Z"),
+                1
         );
     }
 

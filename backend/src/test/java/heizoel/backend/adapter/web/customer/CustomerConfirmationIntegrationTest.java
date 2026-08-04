@@ -10,7 +10,7 @@ import heizoel.backend.application.port.out.notification.NotificationDeliveryExc
 import heizoel.backend.application.port.out.notification.NotificationService;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
-import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
+import heizoel.backend.adapter.out.persistence.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -93,7 +93,7 @@ class CustomerConfirmationIntegrationTest {
     ObjectMapper objectMapper;
 
     @Autowired
-    OrderSnapshotRepository orderSnapshotRepository;
+    OrderRepository orderRepository;
 
     @Autowired
     ConfirmationRequestRepository confirmationRequestRepository;
@@ -105,7 +105,7 @@ class CustomerConfirmationIntegrationTest {
     void cleanDatabase() {
         customerResponseRepository.deleteAll();
         confirmationRequestRepository.deleteAll();
-        orderSnapshotRepository.deleteAll();
+        orderRepository.deleteAll();
 
         Mockito.reset(notificationService, locationTrackingService, geocodingClient);
         when(locationTrackingService.getDriverLocation(any()))
@@ -188,7 +188,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
@@ -244,7 +244,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
@@ -277,7 +277,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
@@ -344,7 +344,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.status").value(410))
                 .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/response"));
 
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
@@ -375,7 +375,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.path").value("/api/customer/confirmations/" + token + "/response"));
 
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
@@ -431,7 +431,7 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Customer comment must not exceed 2000 characters."))
                 .andExpect(jsonPath("$.status").value(400));
 
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
@@ -494,23 +494,23 @@ class CustomerConfirmationIntegrationTest {
     }
 
     private String findActiveTokenByExternalOrderId(String externalOrderId) {
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         return confirmationRequestRepository
-                .findTopByOrderSnapshotOrderByIdDesc(order)
+                .findTopByOrderOrderByIdDesc(order)
                 .orElseThrow()
                 .getToken();
     }
 
     private void setLatestDeliveryDate(String externalOrderId, LocalDate deliveryDate) {
-        Order order = orderSnapshotRepository
+        Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findTopByOrderSnapshotOrderByIdDesc(order)
+                .findTopByOrderOrderByIdDesc(order)
                 .orElseThrow();
 
         jdbcTemplate.update(

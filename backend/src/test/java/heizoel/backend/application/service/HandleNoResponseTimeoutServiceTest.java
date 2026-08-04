@@ -6,13 +6,14 @@ import heizoel.backend.domain.*;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
-import heizoel.backend.adapter.out.persistence.OrderSnapshotRepository;
+import heizoel.backend.adapter.out.persistence.OrderRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -26,7 +27,7 @@ class HandleNoResponseTimeoutServiceTest {
     ConfirmationRequestRepository confirmationRequestRepository;
 
     @Mock
-    OrderSnapshotRepository orderSnapshotRepository;
+    OrderRepository orderRepository;
 
     @Mock
     CustomerResponseRepository customerResponseRepository;
@@ -46,7 +47,7 @@ class HandleNoResponseTimeoutServiceTest {
 
         service.handleTimeout(1L);
 
-        verifyNoInteractions(customerResponseRepository, orderSnapshotRepository, dispoCallbackWorkflowService);
+        verifyNoInteractions(customerResponseRepository, orderRepository, dispoCallbackWorkflowService);
         verify(confirmationRequestRepository, never()).save(any());
     }
 
@@ -62,7 +63,7 @@ class HandleNoResponseTimeoutServiceTest {
         service.handleTimeout(1L);
 
         verify(customerResponseRepository).existsByConfirmationRequest(confirmationRequest);
-        verifyNoInteractions(orderSnapshotRepository, dispoCallbackWorkflowService);
+        verifyNoInteractions(orderRepository, dispoCallbackWorkflowService);
         verify(confirmationRequestRepository, never()).save(any());
     }
 
@@ -78,7 +79,7 @@ class HandleNoResponseTimeoutServiceTest {
         service.handleTimeout(1L);
 
         verify(customerResponseRepository).existsByConfirmationRequest(confirmationRequest);
-        verifyNoInteractions(orderSnapshotRepository, dispoCallbackWorkflowService);
+        verifyNoInteractions(orderRepository, dispoCallbackWorkflowService);
         verify(confirmationRequestRepository, never()).save(any());
     }
 
@@ -95,7 +96,7 @@ class HandleNoResponseTimeoutServiceTest {
         service.handleTimeout(1L);
 
         verify(confirmationRequestRepository).save(confirmationRequest);
-        verify(orderSnapshotRepository).save(order);
+        verify(orderRepository).save(order);
         verify(dispoCallbackWorkflowService).startDispoCallbackProcess(
                 order.getId(),
                 ConfirmationStatus.NO_RESPONSE,
@@ -112,7 +113,7 @@ class HandleNoResponseTimeoutServiceTest {
                 .isInstanceOf(ConfirmationRequestNotFoundException.class)
                 .hasMessage("Confirmation request was not found.");
 
-        verifyNoInteractions(customerResponseRepository, orderSnapshotRepository, dispoCallbackWorkflowService);
+        verifyNoInteractions(customerResponseRepository, orderRepository, dispoCallbackWorkflowService);
     }
 
     private ConfirmationRequest confirmationRequest(boolean active, Instant expiresAt) {
@@ -127,11 +128,12 @@ class HandleNoResponseTimeoutServiceTest {
                 order,
                 "token",
                 CommunicationChannel.EMAIL,
-                java.time.LocalDate.now().plusDays(1),
-                java.time.LocalTime.of(10, 0),
-                java.time.LocalTime.of(11, 0),
-                Instant.now(),
-                expiresAt,
+                DeliverySlot.of(
+                        java.time.LocalDate.now().plusDays(1),
+                        java.time.LocalTime.of(10, 0),
+                        java.time.LocalTime.of(11, 0)
+                ),
+                expiresAt.minus(Duration.ofHours(24)),
                 24
         );
         if (!active) {

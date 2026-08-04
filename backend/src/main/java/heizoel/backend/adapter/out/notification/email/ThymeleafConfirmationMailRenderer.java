@@ -1,6 +1,7 @@
 package heizoel.backend.adapter.out.notification.email;
 
 import heizoel.backend.domain.ConfirmationRequest;
+import heizoel.backend.domain.DeliverySlot;
 import heizoel.backend.domain.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,15 @@ import java.util.Locale;
 @Component
 @RequiredArgsConstructor
 public class ThymeleafConfirmationMailRenderer {
+
+    private static final Locale MAIL_LOCALE = Locale.GERMANY;
+    private static final ZoneId DELIVERY_ZONE = ZoneId.of("Europe/Berlin");
+    private static final DateTimeFormatter DELIVERY_DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("dd.MM.yyyy", MAIL_LOCALE);
+    private static final DateTimeFormatter DELIVERY_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("HH:mm", MAIL_LOCALE);
+    private static final DateTimeFormatter DEADLINE_FORMATTER =
+            DateTimeFormatter.ofPattern("dd.MM.yyyy, H 'Uhr'", MAIL_LOCALE);
 
     private static final String TEMPLATE_CONFIRMATION_REQUEST =
             "mail/confirmation-request";
@@ -78,7 +88,8 @@ public class ThymeleafConfirmationMailRenderer {
             ConfirmationRequest confirmationRequest,
             String confirmationUrl
     ) {
-        Context context = new Context(Locale.GERMANY);
+        Context context = new Context(MAIL_LOCALE);
+        DeliverySlot deliverySlot = confirmationRequest.getDeliverySlot();
 
         context.setVariable("customerName", order.getCustomerName());
         context.setVariable("externalOrderId", order.getExternalOrderId());
@@ -86,9 +97,18 @@ public class ThymeleafConfirmationMailRenderer {
         context.setVariable("product", order.getProduct());
         context.setVariable("quantityLiters", order.getQuantityLiters());
         context.setVariable("priceDisplayText", order.getPriceDisplayText());
-        context.setVariable("deliveryDate", confirmationRequest.getDeliveryDate());
-        context.setVariable("deliveryWindowStart", confirmationRequest.getDeliveryWindowStart());
-        context.setVariable("deliveryWindowEnd", confirmationRequest.getDeliveryWindowEnd());
+        context.setVariable(
+                "deliveryDate",
+                deliverySlot.getDate().format(DELIVERY_DATE_FORMATTER)
+        );
+        context.setVariable(
+                "deliveryWindowStart",
+                deliverySlot.getStart().format(DELIVERY_TIME_FORMATTER)
+        );
+        context.setVariable(
+                "deliveryWindowEnd",
+                deliverySlot.getEnd().format(DELIVERY_TIME_FORMATTER)
+        );
 
         context.setVariable("confirmationUrl", confirmationUrl);
 
@@ -98,8 +118,8 @@ public class ThymeleafConfirmationMailRenderer {
 
     private String formatDeadline(ConfirmationRequest confirmationRequest) {
         return confirmationRequest.getExpiresAt()
-                .atZone(ZoneId.of("Europe/Berlin"))
-                .format(DateTimeFormatter.ofPattern("dd.MM.yyyy, H 'Uhr'", Locale.GERMANY));
+                .atZone(DELIVERY_ZONE)
+                .format(DEADLINE_FORMATTER);
     }
 
 }
