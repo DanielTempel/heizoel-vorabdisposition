@@ -1,4 +1,4 @@
-package heizoel.backend.adapter.web.dispo;
+package heizoel.backend.adapter.out.web.dispo;
 
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackRequest;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackService;
@@ -253,6 +253,8 @@ class DispoCallbackIntegrationTest {
                         .content("""
                                 {
                                   "externalOrderId": "%s",
+                                  "tourNumber": "17",
+                                  "vehicleLicensePlate": "WÜ-AB 123",
                                   "customerName": "Max Muller",
                                   "customerEmail": "daniel@example.com",
                                   "customerPhoneNumber": null,
@@ -286,6 +288,8 @@ class DispoCallbackIntegrationTest {
                         .content("""
                                 {
                                   "externalOrderId": "%s",
+                                  "tourNumber": "17",
+                                  "vehicleLicensePlate": "WÜ-AB 123",
                                   "customerName": "Max Muller",
                                   "customerEmail": null,
                                   "customerPhoneNumber": "+491701234567",

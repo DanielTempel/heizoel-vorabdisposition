@@ -11,6 +11,13 @@ public record DispoConfirmationRequestDto(
         @NotBlank(message = "External order id must not be blank.")
         String externalOrderId,
 
+        @NotBlank(message = "Tour number must not be blank.")
+        String tourNumber,
+
+        @NotBlank(message = "Vehicle license plate must not be blank.")
+        @Size(max = 50, message = "Vehicle license plate must not exceed 50 characters.")
+        String vehicleLicensePlate,
+
         @NotBlank(message = "Customer name must not be blank.")
         String customerName,
 

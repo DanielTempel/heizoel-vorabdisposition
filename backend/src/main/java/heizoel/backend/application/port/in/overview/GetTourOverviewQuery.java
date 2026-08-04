@@ -4,12 +4,14 @@ import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.domain.ConfirmationStatus;
 
 import java.time.LocalDate;
+import java.util.Set;
 
-public record GetConfirmationOverviewQuery(
+public record GetTourOverviewQuery(
         CompanyContext companyContext,
-        ConfirmationStatus status,
+        Set<ConfirmationStatus> statuses,
         String search,
-        LocalDate deliveryDate,
+        LocalDate dateFrom,
+        LocalDate dateTo,
         int page
 ) {
 }

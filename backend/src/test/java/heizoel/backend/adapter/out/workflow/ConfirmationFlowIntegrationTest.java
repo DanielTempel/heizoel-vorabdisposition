@@ -261,6 +261,8 @@ class ConfirmationFlowIntegrationTest {
                 .content("""
                         {
                           "externalOrderId": "%s",
+                          "tourNumber": "17",
+                          "vehicleLicensePlate": "WÜ-AB 123",
                           "customerName": "Max Muller",
                           "communicationChannel": "%s",
                           "customerEmail": "daniel@example.com",

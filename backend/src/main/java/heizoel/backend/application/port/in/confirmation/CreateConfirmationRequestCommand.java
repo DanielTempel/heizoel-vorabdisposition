@@ -9,6 +9,8 @@ import java.time.LocalTime;
 public record CreateConfirmationRequestCommand(
         CompanyContext companyContext,
         String externalOrderId,
+        String tourNumber,
+        String vehicleLicensePlate,
         String customerName,
         CommunicationChannel communicationChannel,
         String customerEmail,

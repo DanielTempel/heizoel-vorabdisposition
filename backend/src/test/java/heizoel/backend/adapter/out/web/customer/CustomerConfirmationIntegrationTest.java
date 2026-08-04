@@ -1,4 +1,4 @@
-package heizoel.backend.adapter.web.customer;
+package heizoel.backend.adapter.out.web.customer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import heizoel.backend.adapter.in.web.customer.dto.CustomerResponseRequestDto;
@@ -28,8 +28,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.Instant;
 import java.sql.Timestamp;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
@@ -48,6 +49,9 @@ class CustomerConfirmationIntegrationTest {
 
     @Autowired
     JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    Clock clock;
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
@@ -466,6 +470,8 @@ class CustomerConfirmationIntegrationTest {
         String requestJson = """
                 {
                   "externalOrderId": "%s",
+                  "tourNumber": "17",
+                  "vehicleLicensePlate": "WÜ-AB 123",
                   "customerName": "Max Muller",
                   "communicationChannel": "EMAIL",
                   "customerEmail": "daniel@example.com",
@@ -527,7 +533,7 @@ class CustomerConfirmationIntegrationTest {
 
         jdbcTemplate.update(
                 "update confirmation_request set expires_at = ? where id = ?",
-                Timestamp.from(Instant.now().minusSeconds(1)),
+                Timestamp.from(Instant.now(clock).minusSeconds(1)),
                 confirmationRequest.getId()
         );
     }

@@ -1,21 +1,24 @@
 package heizoel.backend.adapter.in.web.overview.dto;
 
-import heizoel.backend.application.model.overview.ConfirmationOverviewPage;
+import heizoel.backend.application.model.overview.TourOverviewPage;
 
 import java.util.List;
 
-public record DashboardOrdersPageResponseDto(
-        List<DashboardOrderResponseDto> items,
+public record ToursPageResponseDto(
+        List<TourResponseDto> items,
         int page,
         int size,
         long totalElements,
         int totalPages
 ) {
-    public static DashboardOrdersPageResponseDto from(ConfirmationOverviewPage result) {
-        return new DashboardOrdersPageResponseDto(
+
+    public static ToursPageResponseDto from(
+            TourOverviewPage result
+    ) {
+        return new ToursPageResponseDto(
                 result.items()
                         .stream()
-                        .map(DashboardOrderResponseDto::from)
+                        .map(TourResponseDto::from)
                         .toList(),
                 result.page(),
                 result.size(),

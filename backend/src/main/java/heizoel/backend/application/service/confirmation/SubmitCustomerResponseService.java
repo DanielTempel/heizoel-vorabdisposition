@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 
 @Service
@@ -30,6 +31,7 @@ public class SubmitCustomerResponseService implements SubmitCustomerResponseUseC
     private final CustomerResponseRepository customerResponseRepository;
     private final DispoCallbackWorkflowService dispoCallbackWorkflowService;
     private final NotificationService notificationService;
+    private final Clock clock;
 
     @Override
     @Transactional
@@ -67,7 +69,7 @@ public class SubmitCustomerResponseService implements SubmitCustomerResponseUseC
                 confirmationRequest,
                 responseType,
                 customerComment,
-                Instant.now()
+                Instant.now(clock)
         );
         customerResponseRepository.save(customerResponse);
 
@@ -117,7 +119,7 @@ public class SubmitCustomerResponseService implements SubmitCustomerResponseUseC
             );
         }
 
-        if (confirmationRequest.isExpiredAt(Instant.now())) {
+        if (confirmationRequest.isExpiredAt(Instant.now(clock))) {
             throw new ConfirmationRequestExpiredException(
                     "This confirmation request has expired."
             );

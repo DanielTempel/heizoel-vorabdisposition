@@ -255,6 +255,8 @@ class DispoCallbackRetryIntegrationTest {
                 .content("""
                         {
                           "externalOrderId": "%s",
+                          "tourNumber": "17",
+                          "vehicleLicensePlate": "WÜ-AB 123",
                           "customerName": "Max Muller",
                           "customerEmail": "daniel@example.com",
                           "customerPhoneNumber": null,

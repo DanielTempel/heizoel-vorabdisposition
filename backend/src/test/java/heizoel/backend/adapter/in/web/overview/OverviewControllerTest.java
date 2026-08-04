@@ -1,0 +1,157 @@
+package heizoel.backend.adapter.in.web.overview;
+
+import heizoel.backend.adapter.in.web.security.CompanyContextResolver;
+import heizoel.backend.application.context.CompanyContext;
+import heizoel.backend.application.exception.InvalidFilterException;
+import heizoel.backend.application.model.overview.TourOverviewPage;
+import heizoel.backend.application.port.in.overview.GetConfirmationDetailUseCase;
+import heizoel.backend.application.port.in.overview.GetTourOverviewQuery;
+import heizoel.backend.application.port.in.overview.GetTourOverviewUseCase;
+import heizoel.backend.domain.ConfirmationStatus;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(DashboardController.class)
+class OverviewControllerTest {
+
+    private static final CompanyContext COMPANY_CONTEXT = new CompanyContext(7L);
+
+    @Autowired
+    MockMvc mockMvc;
+
+    @MockitoBean
+    CompanyContextResolver companyContextResolver;
+
+    @MockitoBean
+    GetTourOverviewUseCase getTourOverviewUseCase;
+
+    @MockitoBean
+    GetConfirmationDetailUseCase getConfirmationDetailUseCase;
+
+    @MockitoBean
+    Clock clock;
+
+    @BeforeEach
+    void setUp() {
+        when(companyContextResolver.resolve()).thenReturn(COMPANY_CONTEXT);
+        when(getTourOverviewUseCase.getTours(any())).thenReturn(
+                new TourOverviewPage(List.of(), 0, 20, 0, 0)
+        );
+        when(clock.instant()).thenReturn(Instant.parse("2026-08-04T10:00:00Z"));
+    }
+
+    @Test
+    void getsToursWithDefaultParametersAndPageMetadata() throws Exception {
+        mockMvc.perform(get("/api/dispo/dashboard/tours"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isArray())
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.totalElements").value(0))
+                .andExpect(jsonPath("$.totalPages").value(0));
+
+        GetTourOverviewQuery query = capturedQuery();
+        assertThat(query.companyContext()).isEqualTo(COMPANY_CONTEXT);
+        assertThat(query.statuses()).isNull();
+        assertThat(query.search()).isNull();
+        assertThat(query.dateFrom()).isNull();
+        assertThat(query.dateTo()).isNull();
+        assertThat(query.page()).isZero();
+    }
+
+    @Test
+    void bindsSeveralStatuses() throws Exception {
+        mockMvc.perform(get("/api/dispo/dashboard/tours")
+                        .param("statuses", "REJECTED", "NO_RESPONSE"))
+                .andExpect(status().isOk());
+
+        assertThat(capturedQuery().statuses()).containsExactlyInAnyOrder(
+                ConfirmationStatus.REJECTED,
+                ConfirmationStatus.NO_RESPONSE
+        );
+    }
+
+    @Test
+    void bindsIsoDates() throws Exception {
+        mockMvc.perform(get("/api/dispo/dashboard/tours")
+                        .param("dateFrom", "2026-08-01")
+                        .param("dateTo", "2026-08-31"))
+                .andExpect(status().isOk());
+
+        GetTourOverviewQuery query = capturedQuery();
+        assertThat(query.dateFrom()).isEqualTo(LocalDate.of(2026, 8, 1));
+        assertThat(query.dateTo()).isEqualTo(LocalDate.of(2026, 8, 31));
+    }
+
+    @Test
+    void passesSearchWithoutNormalizingIt() throws Exception {
+        mockMvc.perform(get("/api/dispo/dashboard/tours")
+                        .param("search", "Müller"))
+                .andExpect(status().isOk());
+
+        assertThat(capturedQuery().search()).isEqualTo("Müller");
+    }
+
+    @Test
+    void rejectsUnknownStatus() throws Exception {
+        mockMvc.perform(get("/api/dispo/dashboard/tours")
+                        .param("statuses", "UNKNOWN"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+
+        verify(getTourOverviewUseCase, never()).getTours(any());
+    }
+
+    @Test
+    void rejectsNonIsoDate() throws Exception {
+        mockMvc.perform(get("/api/dispo/dashboard/tours")
+                        .param("dateFrom", "04.08.2026"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+
+        verify(getTourOverviewUseCase, never()).getTours(any());
+    }
+
+    @Test
+    void returnsValidationErrorForInvalidDateRange() throws Exception {
+        when(getTourOverviewUseCase.getTours(any())).thenThrow(
+                new InvalidFilterException("Date from must not be after date to.")
+        );
+
+        mockMvc.perform(get("/api/dispo/dashboard/tours")
+                        .param("dateFrom", "2026-08-05")
+                        .param("dateTo", "2026-08-04"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message")
+                        .value("Date from must not be after date to."))
+                .andExpect(jsonPath("$.timestamp")
+                        .value("2026-08-04T10:00:00Z"));
+    }
+
+    private GetTourOverviewQuery capturedQuery() {
+        ArgumentCaptor<GetTourOverviewQuery> captor =
+                ArgumentCaptor.forClass(GetTourOverviewQuery.class);
+        verify(getTourOverviewUseCase).getTours(captor.capture());
+        return captor.getValue();
+    }
+}

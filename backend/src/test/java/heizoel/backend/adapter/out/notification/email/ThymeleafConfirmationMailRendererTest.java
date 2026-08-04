@@ -80,7 +80,8 @@ class ThymeleafConfirmationMailRendererTest {
                 Company.create(
                         "Company", "api-key-hash", "http://localhost/callback"
                 ),
-                "A-123", "Max Muller", null, null,
+                "A-123", Tour.of("17", "WÜ-AB 123"),
+                "Max Muller", null, null,
                 "Beispielstrasse 12, 97070 Wuerzburg",
                 "Heizoel", 3000, "100 EUR"
         );

@@ -5,6 +5,11 @@ spring:
     password: heizoel
     driver-class-name: org.postgresql.Driver
 
+  flyway:
+    locations:
+      - classpath:db/migration
+      - classpath:db/dev
+
   jpa:
     show-sql: true
     properties:

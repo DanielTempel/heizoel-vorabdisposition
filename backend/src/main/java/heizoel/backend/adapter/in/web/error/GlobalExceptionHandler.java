@@ -3,6 +3,7 @@ package heizoel.backend.adapter.in.web.error;
 import heizoel.backend.adapter.in.web.security.InvalidApiKeyException;
 import heizoel.backend.adapter.in.web.security.MissingApiKeyException;
 import heizoel.backend.application.exception.CompanyNotFoundException;
+import heizoel.backend.application.exception.InvalidFilterException;
 import heizoel.backend.application.port.out.dispo.DispoCallbackException;
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
 import heizoel.backend.domain.exception.ConfirmationRequestExpiredException;
@@ -13,6 +14,7 @@ import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.domain.exception.MissingDigitalContactException;
 import heizoel.backend.application.exception.OrderNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -21,13 +23,18 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.time.Clock;
 import java.time.Instant;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final Clock clock;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ErrorResponseDto> validation(MethodArgumentNotValidException e, HttpServletRequest req) {
@@ -49,6 +56,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ResponseEntity<ErrorResponseDto> malformedJson(HttpMessageNotReadableException e, HttpServletRequest req) {
         return respond(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Request body is missing or malformed.", req.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<ErrorResponseDto> invalidRequestParameter(
+            MethodArgumentTypeMismatchException e,
+            HttpServletRequest req
+    ) {
+        return respond(
+                HttpStatus.BAD_REQUEST,
+                "VALIDATION_ERROR",
+                "Request parameter has an invalid value.",
+                req.getRequestURI()
         );
     }
 
@@ -125,6 +145,11 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.UNPROCESSABLE_ENTITY, "MISSING_DIGITAL_CONTACT", e.getMessage(), req.getRequestURI());
     }
 
+    @ExceptionHandler(InvalidFilterException.class)
+    ResponseEntity<ErrorResponseDto> invalidDashboardFilter(InvalidFilterException e, HttpServletRequest req) {
+        return respond(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", e.getMessage(), req.getRequestURI());
+    }
+
     @ExceptionHandler(MissingApiKeyException.class)
     ResponseEntity<ErrorResponseDto> missingApiKey(MissingApiKeyException e, HttpServletRequest req) {
         return respond(HttpStatus.UNAUTHORIZED, "MISSING_API_KEY", e.getMessage(), req.getRequestURI());
@@ -148,7 +173,7 @@ public class GlobalExceptionHandler {
                         message,
                         status.value(),
                         path,
-                        Instant.now()
+                        Instant.now(clock)
                 ));
     }
 }

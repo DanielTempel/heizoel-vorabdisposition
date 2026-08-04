@@ -19,6 +19,7 @@ public class ConfirmationRequestPreparationService  {
     private final OrderRepository orderRepository;
     private final ConfirmationRequestRepository confirmationRequestRepository;
     private final TokenService tokenService;
+    private final Clock clock;
 
 
     public ConfirmationRequestCreationResult prepareConfirmationRequest(
@@ -35,7 +36,7 @@ public class ConfirmationRequestPreparationService  {
                 );
 
         if (existingOrder.isEmpty()) {
-            Order order = createOrder(company, orderData);
+            Order order = createOrderSnapshot(company, orderData);
             Order savedOrder = orderRepository.save(order);
             return createNewRequest(savedOrder, requestData);
         }
@@ -62,7 +63,7 @@ public class ConfirmationRequestPreparationService  {
             }
         }
 
-        Order updatedOrder = updateOrder(order, orderData);
+        Order updatedOrder = updateOrderSnapshot(order, orderData);
         return createNewRequest(updatedOrder, requestData);
     }
 
@@ -70,7 +71,7 @@ public class ConfirmationRequestPreparationService  {
             Order order,
             RequestData data
     ) {
-        Instant sentAt = Instant.now();
+        Instant sentAt = Instant.now(clock);
 
         ConfirmationRequest confirmationRequest = ConfirmationRequest.create(
                 order,
@@ -98,6 +99,7 @@ public class ConfirmationRequestPreparationService  {
             RequestData requestData
     ) {
         boolean sameOrderData = order.hasSameData(
+                orderData.tour(),
                 orderData.customerName(),
                 orderData.customerEmail(),
                 orderData.customerPhoneNumber(),
@@ -121,13 +123,14 @@ public class ConfirmationRequestPreparationService  {
         return sameOrderData && sameRequestData && reusableState;
     }
 
-    private Order createOrder(
+    private Order createOrderSnapshot(
             Company company,
             OrderData data
     ) {
         return Order.create(
                 company,
                 data.externalOrderId(),
+                data.tour(),
                 data.customerName(),
                 data.customerEmail(),
                 data.customerPhoneNumber(),
@@ -138,11 +141,12 @@ public class ConfirmationRequestPreparationService  {
         );
     }
 
-    private Order updateOrder(
+    private Order updateOrderSnapshot(
             Order order,
             OrderData data
     ) {
         order.update(
+                data.tour(),
                 data.customerName(),
                 data.customerEmail(),
                 data.customerPhoneNumber(),
@@ -158,6 +162,7 @@ public class ConfirmationRequestPreparationService  {
 
     private record OrderData(
             String externalOrderId,
+            Tour tour,
             String customerName,
             String customerEmail,
             String customerPhoneNumber,
@@ -169,6 +174,10 @@ public class ConfirmationRequestPreparationService  {
         static OrderData from(CreateConfirmationRequestCommand command) {
             return new OrderData(
                     command.externalOrderId(),
+                    Tour.of(
+                            command.tourNumber(),
+                            command.vehicleLicensePlate()
+                    ),
                     command.customerName(),
                     command.customerEmail(),
                     command.customerPhoneNumber(),

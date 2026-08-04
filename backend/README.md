@@ -557,6 +557,22 @@ If confirmation-relevant data changes, the previous request is marked inactive a
 
 An unchanged active request is treated as a duplicate. Unchanged requests that have already reached `CONFIRMED` or `REJECTED` are also returned without creating a second request. After `NO_RESPONSE`, DISPO may send the same data again; in that case the backend creates a new active confirmation request and resets the order status to `SENT`.
 
+### Confirmation request decision matrix
+
+This table documents the current business behavior and serves as a guardrail for refactoring:
+
+| Scenario | Order handling | Confirmation request handling | Customer message | Camunda timeout process | `created` |
+| -------- | -------------- | ----------------------------- | ---------------- | ----------------------- | --------- |
+| No order exists yet | Create a new order snapshot | Create a new request | Send | Start | `true` |
+| Latest request is `SENT`, all relevant data is unchanged | Keep the order unchanged | Return the existing request | Do not send | Do not start | `false` |
+| Latest request is `CONFIRMED`, all relevant data is unchanged | Preserve `CONFIRMED` and the customer response | Return the existing request | Do not send | Do not start | `false` |
+| Latest request is `REJECTED`, all relevant data is unchanged | Preserve `REJECTED` and the customer response | Return the existing request | Do not send | Do not start | `false` |
+| Latest request is `NO_RESPONSE`, all relevant data is unchanged | Reset the order status to `SENT` | Create a new active request | Send | Start | `true` |
+| Request data changed (`DeliverySlot`, communication channel, or response deadline) | Keep order data, reset status to `SENT` | Mark an active previous request inactive and create a new request | Send | Start | `true` |
+| Order data changed, including tour data | Update the order snapshot and reset status to `SENT` | Mark an active previous request inactive and create a new request | Send | Start | `true` |
+
+Relevant order data includes the tour number, vehicle license plate, customer contact and address data, product, quantity, and display price. Relevant request data includes the delivery slot, communication channel, and response deadline hours.
+
 ---
 
 ## Customer Link Behavior

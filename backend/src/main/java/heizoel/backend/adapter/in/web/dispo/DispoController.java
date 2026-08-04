@@ -33,6 +33,8 @@ public class DispoController {
         CreateConfirmationRequestCommand command = new CreateConfirmationRequestCommand(
                 companyContext,
                 request.externalOrderId(),
+                request.tourNumber(),
+                request.vehicleLicensePlate(),
                 request.customerName(),
                 request.communicationChannel(),
                 request.customerEmail(),

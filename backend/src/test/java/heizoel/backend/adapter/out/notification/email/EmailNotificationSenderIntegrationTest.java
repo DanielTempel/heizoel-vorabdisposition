@@ -156,7 +156,8 @@ class EmailNotificationSenderIntegrationTest {
                 Company.create(
                         "Company", "api-key-hash", "http://localhost/callback"
                 ),
-                "A-MAIL-1", "Max Muller", "daniel@example.com", null,
+                "A-MAIL-1", Tour.of("17", "WÜ-AB 123"),
+                "Max Muller", "daniel@example.com", null,
                 "Beispielstrasse 12, 97070 Wuerzburg",
                 "Heizoel", 3000, "100 EUR"
         );
