@@ -4,13 +4,12 @@ import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationStatus;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalTime;
 
-public record ConfirmationOverviewItem(
+public record OrderOverviewItem(
         String externalOrderId,
         String customerName,
-        LocalDate deliveryDate,
+        String deliveryAddress,
         LocalTime deliveryWindowStart,
         LocalTime deliveryWindowEnd,
         CommunicationChannel communicationChannel,

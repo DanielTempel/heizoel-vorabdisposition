@@ -1,4 +1,4 @@
-package heizoel.backend.adapter.web.dispo;
+package heizoel.backend.adapter.out.web.dispo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import heizoel.backend.domain.*;
@@ -554,6 +554,8 @@ class DispoControllerIntegrationTest {
     ) throws Exception {
         return objectMapper.writeValueAsString(new TestDispoRequest(
                 externalOrderId,
+                "17",
+                "WÜ-AB 123",
                 "Max Muller",
                 "daniel@example.com",
                 null,
@@ -582,6 +584,8 @@ class DispoControllerIntegrationTest {
     ) throws Exception {
         return objectMapper.writeValueAsString(new TestDispoRequest(
                 externalOrderId,
+                "17",
+                "WÜ-AB 123",
                 "Max Muller",
                 "daniel@example.com",
                 null,
@@ -607,6 +611,8 @@ class DispoControllerIntegrationTest {
     ) throws Exception {
         return objectMapper.writeValueAsString(new TestDispoRequest(
                 externalOrderId,
+                "17",
+                "WÜ-AB 123",
                 "Max Muller",
                 "daniel@example.com",
                 null,
@@ -631,6 +637,8 @@ class DispoControllerIntegrationTest {
     ) throws Exception {
         return objectMapper.writeValueAsString(new TestDispoRequest(
                 externalOrderId,
+                "17",
+                "WÜ-AB 123",
                 "Max Muller",
                 null,
                 "+491701234567",
@@ -653,6 +661,8 @@ class DispoControllerIntegrationTest {
     private String emailRequestWithoutCustomerEmail() throws Exception {
         return objectMapper.writeValueAsString(new TestDispoRequest(
                 "A-1024",
+                "17",
+                "WÜ-AB 123",
                 "Max Muller",
                 "",
                 null,
@@ -675,6 +685,8 @@ class DispoControllerIntegrationTest {
     private String smsRequestWithoutCustomerPhoneNumber() throws Exception {
         return objectMapper.writeValueAsString(new TestDispoRequest(
                 "A-SMS-1024",
+                "17",
+                "WÜ-AB 123",
                 "Max Muller",
                 null,
                 "",
@@ -697,6 +709,8 @@ class DispoControllerIntegrationTest {
     private String requestWithoutCommunicationChannel() throws Exception {
         return objectMapper.writeValueAsString(new TestDispoRequest(
                 "A-1024",
+                "17",
+                "WÜ-AB 123",
                 "Max Muller",
                 "daniel@example.com",
                 null,
@@ -742,6 +756,8 @@ class DispoControllerIntegrationTest {
 
     private record TestDispoRequest(
             String externalOrderId,
+            String tourNumber,
+            String vehicleLicensePlate,
             String customerName,
             String customerEmail,
             String customerPhoneNumber,

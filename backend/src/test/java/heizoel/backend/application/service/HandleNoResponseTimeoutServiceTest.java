@@ -11,10 +11,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -22,6 +25,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class HandleNoResponseTimeoutServiceTest {
+
+    @Spy
+    Clock clock = Clock.system(ZoneOffset.UTC);
 
     @Mock
     ConfirmationRequestRepository confirmationRequestRepository;
@@ -40,7 +46,7 @@ class HandleNoResponseTimeoutServiceTest {
 
     @Test
     void handleTimeout_doesNothingWhenRequestIsInactive() {
-        ConfirmationRequest confirmationRequest = confirmationRequest(false, Instant.now().minusSeconds(1));
+        ConfirmationRequest confirmationRequest = confirmationRequest(false, Instant.now(clock).minusSeconds(1));
 
         when(confirmationRequestRepository.findById(1L))
                 .thenReturn(Optional.of(confirmationRequest));
@@ -53,7 +59,7 @@ class HandleNoResponseTimeoutServiceTest {
 
     @Test
     void handleTimeout_doesNothingWhenCustomerResponseAlreadyExists() {
-        ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now().minusSeconds(1));
+        ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now(clock).minusSeconds(1));
 
         when(confirmationRequestRepository.findById(1L))
                 .thenReturn(Optional.of(confirmationRequest));
@@ -69,7 +75,7 @@ class HandleNoResponseTimeoutServiceTest {
 
     @Test
     void handleTimeout_doesNothingWhenDeadlineIsStillInTheFuture() {
-        ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now().plusSeconds(60));
+        ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now(clock).plusSeconds(60));
 
         when(confirmationRequestRepository.findById(1L))
                 .thenReturn(Optional.of(confirmationRequest));
@@ -85,7 +91,7 @@ class HandleNoResponseTimeoutServiceTest {
 
     @Test
     void handleTimeout_marksNoResponseWhenRequestIsActiveUnansweredAndExpired() {
-        ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now().minusSeconds(1));
+        ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now(clock).minusSeconds(1));
         Order order = confirmationRequest.getOrder();
 
         when(confirmationRequestRepository.findById(1L))
@@ -121,7 +127,8 @@ class HandleNoResponseTimeoutServiceTest {
                 Company.create(
                         "Company", "api-key-hash", "http://localhost/callback"
                 ),
-                "A-TIMEOUT-1", "Customer", "customer@example.com", null,
+                "A-TIMEOUT-1", Tour.of("17", "WÜ-AB 123"),
+                "Customer", "customer@example.com", null,
                 "Address", "Heating oil", 1000, "1,000 EUR"
         );
         ConfirmationRequest confirmationRequest = ConfirmationRequest.create(
@@ -129,7 +136,7 @@ class HandleNoResponseTimeoutServiceTest {
                 "token",
                 CommunicationChannel.EMAIL,
                 DeliverySlot.of(
-                        java.time.LocalDate.now().plusDays(1),
+                        java.time.LocalDate.now(clock).plusDays(1),
                         java.time.LocalTime.of(10, 0),
                         java.time.LocalTime.of(11, 0)
                 ),

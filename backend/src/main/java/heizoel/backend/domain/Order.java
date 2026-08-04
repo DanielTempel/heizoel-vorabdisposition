@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
 import java.util.Objects;
 
 @Entity
@@ -19,6 +20,10 @@ import java.util.Objects;
                 @Index(
                         name = "idx_order_snapshot_company_id",
                         columnList = "company_id"
+                ),
+                @Index(
+                        name = "idx_order_snapshot_company_tour_number",
+                        columnList = "company_id, tour_number"
                 )
         }
 )
@@ -36,6 +41,9 @@ public class Order {
 
     @Column(name = "external_order_id", nullable = false, length = 100)
     private String externalOrderId;
+
+    @Embedded
+    private Tour tour;
 
     @Column(name = "customer_name", nullable = false)
     private String customerName;
@@ -65,6 +73,7 @@ public class Order {
     public static Order create(
             Company company,
             String externalOrderId,
+            Tour tour,
             String customerName,
             String customerEmail,
             String customerPhoneNumber,
@@ -76,6 +85,7 @@ public class Order {
         Order order = new Order();
         order.company = company;
         order.externalOrderId = externalOrderId;
+        order.tour = tour;
         order.customerName = customerName;
         order.customerEmail = customerEmail;
         order.customerPhoneNumber = customerPhoneNumber;
@@ -88,6 +98,7 @@ public class Order {
     }
 
     public void update(
+            Tour tour,
             String customerName,
             String customerEmail,
             String customerPhoneNumber,
@@ -96,6 +107,7 @@ public class Order {
             Integer quantityLiters,
             String priceDisplayText
     ) {
+        this.tour = tour;
         this.customerName = customerName;
         this.customerEmail = customerEmail;
         this.customerPhoneNumber = customerPhoneNumber;
@@ -107,6 +119,7 @@ public class Order {
     }
 
     public boolean hasSameData(
+            Tour tour,
             String customerName,
             String customerEmail,
             String customerPhoneNumber,
@@ -115,7 +128,8 @@ public class Order {
             Integer quantityLiters,
             String priceDisplayText
     ) {
-        return Objects.equals(this.customerName, customerName)
+        return Objects.equals(this.tour, tour)
+                && Objects.equals(this.customerName, customerName)
                 && Objects.equals(this.customerEmail, customerEmail)
                 && Objects.equals(this.customerPhoneNumber, customerPhoneNumber)
                 && Objects.equals(this.deliveryAddress, deliveryAddress)

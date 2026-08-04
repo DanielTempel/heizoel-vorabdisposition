@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 
 @Service
@@ -23,6 +24,7 @@ public class HandleNoResponseTimeoutService implements HandleNoResponseTimeoutUs
     private final OrderRepository orderRepository;
     private final CustomerResponseRepository customerResponseRepository;
     private final DispoCallbackWorkflowService dispoCallbackWorkflowService;
+    private final Clock clock;
 
     @Override
     @Transactional
@@ -39,7 +41,7 @@ public class HandleNoResponseTimeoutService implements HandleNoResponseTimeoutUs
             return;
         }
 
-        if (confirmationRequest.getExpiresAt().isAfter(Instant.now())) {
+        if (confirmationRequest.getExpiresAt().isAfter(Instant.now(clock))) {
             return;
         }
 

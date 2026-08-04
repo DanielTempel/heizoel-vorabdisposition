@@ -230,6 +230,8 @@ class ConfirmationNotificationTest {
                 .content("""
                         {
                           "externalOrderId": "%s",
+                          "tourNumber": "17",
+                          "vehicleLicensePlate": "WÜ-AB 123",
                           "customerName": "Max Muller",
                           "customerEmail": %s,
                           "customerPhoneNumber": %s,

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,12 +25,13 @@ public class DeliveryAddressCoordinateResolverImpl implements DeliveryAddressCoo
     private final GeocodingClient geocodingClient;
     private final AddressNormalizer addressNormalizer;
     private final LocationGeocodingProperties properties;
+    private final Clock clock;
 
     private final ConcurrentMap<String, CachedCoordinate> cache = new ConcurrentHashMap<>();
 
     @Override
     public Optional<GeoCoordinate> resolve(String deliveryAddress) {
-        Instant now = Instant.now();
+        Instant now = Instant.now(clock);
         String cacheKey = addressNormalizer.cacheKey(deliveryAddress);
         String geocodingQuery = addressNormalizer.toGeocodingQuery(deliveryAddress);
 
