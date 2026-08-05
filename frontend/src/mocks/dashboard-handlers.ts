@@ -1,83 +1,103 @@
 import { delay, http, HttpResponse } from 'msw'
-import type { DashboardConfirmation } from '../types/dashboard'
+import type { OrderSummary, ToursPage } from '../types/dashboard'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
-function addHours(date: Date, hours: number) {
-  return new Date(date.getTime() + hours * 60 * 60 * 1000).toISOString()
+function dateAfter(days: number) {
+  const date = new Date()
+  date.setDate(date.getDate() + days)
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
 }
 
-function getMockDashboardConfirmations(): DashboardConfirmation[] {
-  const now = new Date()
+function hoursAfter(hours: number) {
+  return new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
+}
 
-  return [
+const orders: OrderSummary[] = [
+  {
+    externalOrderId: 'DEMO-1001',
+    customerName: 'Max Müller',
+    deliveryAddress: 'Domstraße 40, 97070 Würzburg',
+    deliveryWindowStart: '08:00:00',
+    deliveryWindowEnd: '09:30:00',
+    communicationChannel: 'EMAIL',
+    confirmationStatus: 'SENT',
+    expiresAt: hoursAfter(5),
+  },
+  {
+    externalOrderId: 'DEMO-1002',
+    customerName: 'Sabine Schneider',
+    deliveryAddress: 'Theaterstraße 11, 97070 Würzburg',
+    deliveryWindowStart: '10:00:00',
+    deliveryWindowEnd: '11:00:00',
+    communicationChannel: 'SMS',
+    confirmationStatus: 'CONFIRMED',
+    expiresAt: hoursAfter(2),
+  },
+  {
+    externalOrderId: 'DEMO-1003',
+    customerName: 'Thomas Weber',
+    deliveryAddress: 'Bismarckstraße 14, 97080 Würzburg',
+    deliveryWindowStart: '12:30:00',
+    deliveryWindowEnd: '14:00:00',
+    communicationChannel: 'EMAIL',
+    confirmationStatus: 'REJECTED',
+    expiresAt: hoursAfter(9),
+  },
+  {
+    externalOrderId: 'DEMO-1004',
+    customerName: 'Petra Hofmann',
+    deliveryAddress: 'Mainaustraße 27, 97082 Würzburg',
+    deliveryWindowStart: '15:00:00',
+    deliveryWindowEnd: '16:30:00',
+    communicationChannel: 'SMS',
+    confirmationStatus: 'NO_RESPONSE',
+    expiresAt: hoursAfter(-3),
+  },
+]
+
+const toursPage: ToursPage = {
+  items: [
     {
-      externalOrderId: 'A-3002',
-      customerName: 'Max Müller',
-      deliveryDate: '2026-07-03',
-      deliveryWindowStart: '10:00:00',
-      deliveryWindowEnd: '11:00:00',
-      confirmationStatus: 'SENT',
-      sentAt: addHours(now, -18),
-      expiresAt: addHours(now, 6),
+      tourNumber: 'T-17',
+      vehicleLicensePlate: 'WÜ-AB 417',
+      deliveryDate: dateAfter(1),
+      statusCounts: {
+        sent: 1,
+        confirmed: 1,
+        rejected: 1,
+        noResponse: 0,
+      },
+      orders: orders.slice(0, 3),
     },
     {
-      externalOrderId: 'A-3003',
-      customerName: 'Sabine Schneider',
-      deliveryDate: '2026-07-03',
-      deliveryWindowStart: '12:00:00',
-      deliveryWindowEnd: '13:30:00',
-      confirmationStatus: 'CONFIRMED',
-      sentAt: addHours(now, -22),
-      expiresAt: addHours(now, 2),
+      tourNumber: 'T-21',
+      vehicleLicensePlate: 'WÜ-CD 221',
+      deliveryDate: dateAfter(2),
+      statusCounts: {
+        sent: 0,
+        confirmed: 0,
+        rejected: 0,
+        noResponse: 1,
+      },
+      orders: orders.slice(3),
     },
-    {
-      externalOrderId: 'A-3004',
-      customerName: 'Thomas Weber',
-      deliveryDate: '2026-07-04',
-      deliveryWindowStart: '08:30:00',
-      deliveryWindowEnd: '10:00:00',
-      confirmationStatus: 'REJECTED',
-      sentAt: addHours(now, -8),
-      expiresAt: addHours(now, 16),
-    },
-    {
-      externalOrderId: 'A-3005',
-      customerName: 'Petra Hofmann',
-      deliveryDate: '2026-07-04',
-      deliveryWindowStart: '14:00:00',
-      deliveryWindowEnd: '15:00:00',
-      confirmationStatus: 'NO_RESPONSE',
-      sentAt: addHours(now, -30),
-      expiresAt: addHours(now, -6),
-    },
-    {
-      externalOrderId: 'A-3006',
-      customerName: 'Andreas Krüger',
-      deliveryDate: '2026-07-05',
-      deliveryWindowStart: '09:00:00',
-      deliveryWindowEnd: '10:30:00',
-      confirmationStatus: 'SENT',
-      sentAt: addHours(now, -3),
-      expiresAt: addHours(now, 21),
-    },
-    {
-      externalOrderId: 'A-3007',
-      customerName: 'Nina Bauer',
-      deliveryDate: '2026-07-05',
-      deliveryWindowStart: '11:00:00',
-      deliveryWindowEnd: '12:30:00',
-      confirmationStatus: 'CONFIRMED',
-      sentAt: addHours(now, -20),
-      expiresAt: addHours(now, 4),
-    },
-  ]
+  ],
+  page: 0,
+  size: 20,
+  totalElements: 2,
+  totalPages: 1,
 }
 
 export const dashboardHandlers = [
-  http.get(`${apiBaseUrl}/api/dashboard/confirmations`, async () => {
+  http.get(`${apiBaseUrl}/api/dispo/dashboard/tours`, async () => {
     await delay(300)
 
-    return HttpResponse.json(getMockDashboardConfirmations())
+    return HttpResponse.json(toursPage)
   }),
 ]

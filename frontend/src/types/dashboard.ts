@@ -1,12 +1,37 @@
 import type { ConfirmationStatus } from './confirmation'
 
-export type DashboardConfirmation = {
+export type CommunicationChannel = 'EMAIL' | 'SMS' | 'WHATSAPP'
+
+export type OrderSummary = {
   externalOrderId: string
   customerName: string
-  deliveryDate: string
+  deliveryAddress: string
   deliveryWindowStart: string
   deliveryWindowEnd: string
+  communicationChannel: CommunicationChannel
   confirmationStatus: ConfirmationStatus
-  sentAt: string | null
   expiresAt: string | null
+}
+
+export type TourStatusCounts = {
+  sent: number
+  confirmed: number
+  rejected: number
+  noResponse: number
+}
+
+export type TourSummary = {
+  tourNumber: string
+  vehicleLicensePlate: string
+  deliveryDate: string
+  statusCounts: TourStatusCounts
+  orders: OrderSummary[]
+}
+
+export type ToursPage = {
+  items: TourSummary[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
 }
