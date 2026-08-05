@@ -5,13 +5,15 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "heizoel.confirmation")
-public class ConfirmationProperties {
+@ConfigurationProperties(prefix = "heizoel.twilio")
+public class TwilioProperties {
 
-    private String frontendUrl = "http://localhost:3000";
-    private String dispoTrackingUrl;
+    private String accountSid;
+    private String authToken;
+    private String smsFrom;
+    private String whatsappFrom;
+    private String contentTemplateSid;
 }
