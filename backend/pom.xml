@@ -113,12 +113,6 @@
             <classifier>jakarta</classifier>
         </dependency>
 
-        <dependency>
-            <groupId>com.twilio.sdk</groupId>
-            <artifactId>twilio</artifactId>
-            <version>12.1.1</version>
-        </dependency>
-
     </dependencies>
 
 

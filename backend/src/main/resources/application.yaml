@@ -1,6 +1,4 @@
 spring:
-  config:
-    import: optional:file:.env[.properties]
   application:
     name: heizoel-backend
 
@@ -31,13 +29,8 @@ heizoel:
   confirmation:
     frontend-url: http://localhost:3000
     dispo-tracking-url: http://localhost:8090/api/dispo/confirmation-status-updates/tracking/orders
-
-  twilio:
-    account-sid:
-    auth-token:
-    sms-from:
-    whatsapp-from:
-    content-template-sid:
+    sms-provider-url: http://localhost:8091/api/sms/messages
+    whatsapp-provider-url: http://localhost:8092/api/whatsapp/messages
 
   location:
     geocoding:
