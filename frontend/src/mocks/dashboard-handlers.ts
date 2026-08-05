@@ -1,5 +1,6 @@
 import { delay, http, HttpResponse } from 'msw'
-import type { OrderSummary, ToursPage } from '../types/dashboard'
+import type { ConfirmationStatus } from '../types/confirmation'
+import type { OrderSummary, TourSummary, ToursPage } from '../types/dashboard'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
@@ -94,10 +95,93 @@ const toursPage: ToursPage = {
   totalPages: 1,
 }
 
+function getStatusCounts(orders: OrderSummary[]) {
+  return {
+    sent: orders.filter((order) => order.confirmationStatus === 'SENT').length,
+    confirmed: orders.filter(
+      (order) => order.confirmationStatus === 'CONFIRMED',
+    ).length,
+    rejected: orders.filter((order) => order.confirmationStatus === 'REJECTED')
+      .length,
+    noResponse: orders.filter(
+      (order) => order.confirmationStatus === 'NO_RESPONSE',
+    ).length,
+  }
+}
+
+function matchesSearch(tour: TourSummary, order: OrderSummary, search: string) {
+  if (search === '') {
+    return true
+  }
+
+  return [
+    tour.tourNumber,
+    tour.vehicleLicensePlate,
+    order.externalOrderId,
+    order.customerName,
+    order.deliveryAddress,
+  ].some((value) => value.toLocaleLowerCase('de-DE').includes(search))
+}
+
+function getFilteredTours(request: Request) {
+  const searchParams = new URL(request.url).searchParams
+  const statuses = new Set(
+    searchParams.getAll('statuses') as ConfirmationStatus[],
+  )
+  const search = (searchParams.get('search') ?? '')
+    .trim()
+    .toLocaleLowerCase('de-DE')
+  const dateFrom = searchParams.get('dateFrom')
+  const dateTo = searchParams.get('dateTo')
+
+  return toursPage.items.flatMap((tour) => {
+    if (dateFrom !== null && tour.deliveryDate < dateFrom) {
+      return []
+    }
+
+    if (dateTo !== null && tour.deliveryDate > dateTo) {
+      return []
+    }
+
+    const filteredOrders = tour.orders.filter(
+      (order) =>
+        (statuses.size === 0 || statuses.has(order.confirmationStatus)) &&
+        matchesSearch(tour, order, search),
+    )
+
+    if (filteredOrders.length === 0) {
+      return []
+    }
+
+    return [
+      {
+        ...tour,
+        orders: filteredOrders,
+        statusCounts: getStatusCounts(filteredOrders),
+      },
+    ]
+  })
+}
+
 export const dashboardHandlers = [
-  http.get(`${apiBaseUrl}/api/dispo/dashboard/tours`, async () => {
+  http.get(`${apiBaseUrl}/api/dispo/dashboard/tours`, async ({ request }) => {
     await delay(300)
 
-    return HttpResponse.json(toursPage)
+    const searchParams = new URL(request.url).searchParams
+    const requestedPage = Number(searchParams.get('page'))
+    const page = Number.isInteger(requestedPage) && requestedPage > 0
+      ? requestedPage
+      : 0
+    const filteredTours = getFilteredTours(request)
+    const startIndex = page * toursPage.size
+    const totalPages = Math.ceil(filteredTours.length / toursPage.size)
+
+    return HttpResponse.json({
+      items: filteredTours.slice(startIndex, startIndex + toursPage.size),
+      page,
+      size: toursPage.size,
+      totalElements: filteredTours.length,
+      totalPages,
+    } satisfies ToursPage)
   }),
 ]

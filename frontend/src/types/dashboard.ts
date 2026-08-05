@@ -2,6 +2,13 @@ import type { ConfirmationStatus } from './confirmation'
 
 export type CommunicationChannel = 'EMAIL' | 'SMS' | 'WHATSAPP'
 
+export type DashboardFilters = {
+  search: string
+  statuses: ConfirmationStatus[]
+  dateFrom: string
+  dateTo: string
+}
+
 export type OrderSummary = {
   externalOrderId: string
   customerName: string

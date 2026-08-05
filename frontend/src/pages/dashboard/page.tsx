@@ -3,14 +3,26 @@ import { RefreshCw } from 'lucide-react'
 import { getTours } from '@/api/dashboard-api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import type { ToursPage } from '@/types/dashboard'
+import type { DashboardFilters, ToursPage } from '@/types/dashboard'
+import { FilterPanel } from './components/filter-panel'
 import { TourItem } from './components/tour-item'
 import { TourPagination } from './components/tour-pagination'
 
 type PageStatus = 'loading' | 'ready' | 'error'
 
+function createEmptyFilters(): DashboardFilters {
+  return {
+    search: '',
+    statuses: [],
+    dateFrom: '',
+    dateTo: '',
+  }
+}
+
 export function DashboardPage() {
   const [page, setPage] = useState(0)
+  const [draftFilters, setDraftFilters] = useState(createEmptyFilters)
+  const [appliedFilters, setAppliedFilters] = useState(createEmptyFilters)
   const [reloadKey, setReloadKey] = useState(0)
   const [status, setStatus] = useState<PageStatus>('loading')
   const [toursPage, setToursPage] = useState<ToursPage | null>(null)
@@ -20,7 +32,10 @@ export function DashboardPage() {
 
     async function loadTours() {
       try {
-        const nextToursPage = await getTours(page, controller.signal)
+        const nextToursPage = await getTours(
+          { ...appliedFilters, page },
+          controller.signal,
+        )
 
         if (!controller.signal.aborted) {
           setToursPage(nextToursPage)
@@ -36,7 +51,7 @@ export function DashboardPage() {
     void loadTours()
 
     return () => controller.abort()
-  }, [page, reloadKey])
+  }, [appliedFilters, page, reloadKey])
 
   function changePage(nextPage: number) {
     setStatus('loading')
@@ -48,23 +63,46 @@ export function DashboardPage() {
     setReloadKey((currentKey) => currentKey + 1)
   }
 
+  function applyFilters(filters: DashboardFilters) {
+    const nextFilters = {
+      ...filters,
+      search: filters.search.trim(),
+    }
+
+    setDraftFilters(nextFilters)
+    setStatus('loading')
+    setAppliedFilters(nextFilters)
+    setPage(0)
+  }
+
   const totalPages = toursPage?.totalPages ?? 0
+  const hasAppliedFilters =
+    appliedFilters.search !== '' ||
+    appliedFilters.statuses.length > 0 ||
+    appliedFilters.dateFrom !== '' ||
+    appliedFilters.dateTo !== ''
 
   return (
     <main className="min-h-screen bg-muted/20 px-4 py-8 text-foreground sm:px-6">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Disposition
-            </p>
-            <h1 className="mt-1 text-3xl font-semibold">
-              Avisierungsdashboard
-            </h1>
-            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-              Touren und Rückmeldungen zu den geplanten Lieferzeitfenstern.
-            </p>
-          </div>
+        <header>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Disposition
+          </p>
+          <h1 className="mt-1 text-3xl font-semibold">
+            Avisierungsdashboard
+          </h1>
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+            Touren und Rückmeldungen zu den geplanten Lieferzeitfenstern.
+          </p>
+        </header>
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <FilterPanel
+            filters={draftFilters}
+            onApply={applyFilters}
+            onChange={setDraftFilters}
+          />
           <Button
             disabled={status === 'loading'}
             onClick={reload}
@@ -73,7 +111,7 @@ export function DashboardPage() {
             <RefreshCw className={status === 'loading' ? 'animate-spin' : ''} />
             Aktualisieren
           </Button>
-        </header>
+        </div>
 
         {status === 'loading' ? (
           <div className="rounded-lg border border-dashed bg-background p-10 text-center text-sm text-muted-foreground">
@@ -94,7 +132,9 @@ export function DashboardPage() {
 
         {status === 'ready' && toursPage?.items.length === 0 ? (
           <div className="rounded-lg border bg-background p-10 text-center text-sm text-muted-foreground">
-            Keine Touren vorhanden.
+            {hasAppliedFilters
+              ? 'Keine Touren entsprechen den ausgewählten Filtern.'
+              : 'Keine Touren vorhanden.'}
           </div>
         ) : null}
 
