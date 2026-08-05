@@ -552,16 +552,98 @@ SELECT
     seed.confirmation_status
 FROM dashboard_seed_order_data seed;
 
-
 -- ------------------------------------------------------------
--- 7. Historical request for latest-request filtering
+-- 7. Historical ConfirmationRequests for detail view
 --
--- DEMO-TODAY-001 receives an old REJECTED request first.
--- A current CONFIRMED request is inserted afterwards.
+-- DEMO-TODAY-001:
+--   current CONFIRMED
+--   previous REJECTED
+--   oldest NO_RESPONSE
 --
--- Dashboard must display only the current request.
+-- DEMO-TOMORROW-001:
+--   current SENT
+--   previous NO_RESPONSE
+--
+-- DEMO-TOMORROW-003:
+--   current REJECTED
+--   previous CONFIRMED
+--
+-- Historical requests are inserted before current requests,
+-- therefore current requests receive higher IDs.
 -- ------------------------------------------------------------
 
+WITH history_seed
+         (
+          token,
+          external_order_id,
+          communication_channel,
+          delivery_day_offset,
+          delivery_window_start,
+          delivery_window_end,
+          sent_day_offset,
+          sent_time,
+          expires_day_offset,
+          expires_time
+             ) AS
+         (
+             VALUES
+
+                 -- DEMO-TODAY-001: oldest request without response
+                 (
+                     'demo-history-no-response-demo-today-001',
+                     'DEMO-TODAY-001',
+                     'EMAIL',
+                     0,
+                     TIME '07:00',
+                     TIME '08:00',
+                     -3,
+                     TIME '09:00',
+                     -2,
+                     TIME '09:00'
+                 ),
+
+                 -- DEMO-TODAY-001: rejected request before current confirmation
+                 (
+                     'demo-history-demo-today-001',
+                     'DEMO-TODAY-001',
+                     'EMAIL',
+                     -1,
+                     TIME '14:00',
+                     TIME '15:00',
+                     -2,
+                     TIME '12:00',
+                     -1,
+                     TIME '14:00'
+                 ),
+
+                 -- DEMO-TOMORROW-001: old request without response
+                 (
+                     'demo-history-no-response-demo-tomorrow-001',
+                     'DEMO-TOMORROW-001',
+                     'EMAIL',
+                     1,
+                     TIME '06:00',
+                     TIME '07:00',
+                     -1,
+                     TIME '09:00',
+                     0,
+                     TIME '09:00'
+                 ),
+
+                 -- DEMO-TOMORROW-003: previously confirmed window
+                 (
+                     'demo-history-confirm-demo-tomorrow-003',
+                     'DEMO-TOMORROW-003',
+                     'WHATSAPP',
+                     1,
+                     TIME '08:30',
+                     TIME '09:30',
+                     -1,
+                     TIME '10:00',
+                     0,
+                     TIME '10:00'
+                 )
+         )
 INSERT INTO confirmation_request
 (
     token,
@@ -576,26 +658,34 @@ INSERT INTO confirmation_request
     response_deadline_hours
 )
 SELECT
-    'demo-history-demo-today-001',
+    history.token,
     order_data.id,
-    'EMAIL',
-    CURRENT_DATE - 1,
-    TIME '14:00',
-    TIME '15:00',
+    history.communication_channel,
+    CURRENT_DATE + history.delivery_day_offset,
+    history.delivery_window_start,
+    history.delivery_window_end,
     FALSE,
     (
-        (CURRENT_DATE - 2 + TIME '12:00')
+        (
+                    CURRENT_DATE
+                + history.sent_day_offset
+                + history.sent_time
+            )
             AT TIME ZONE 'Europe/Berlin'
         ),
     (
-        (CURRENT_DATE - 1 + TIME '14:00')
+        (
+                    CURRENT_DATE
+                + history.expires_day_offset
+                + history.expires_time
+            )
             AT TIME ZONE 'Europe/Berlin'
         ),
     24
-FROM order_snapshot order_data
-WHERE order_data.company_id = 1
-  AND order_data.external_order_id = 'DEMO-TODAY-001';
-
+FROM history_seed history
+         JOIN order_snapshot order_data
+              ON order_data.company_id = 1
+                  AND order_data.external_order_id = history.external_order_id;
 
 -- ------------------------------------------------------------
 -- 8. Insert current ConfirmationRequests
