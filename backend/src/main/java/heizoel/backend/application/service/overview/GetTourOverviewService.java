@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,8 +46,17 @@ public class GetTourOverviewService implements GetTourOverviewUseCase {
 
         String search = normalizeSearch(query.search());
 
+        Set<String> tourNumbers = query.tourNumbers() == null
+                ? Set.of()
+                : query.tourNumbers()
+                .stream()
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
+
         TourOverviewFilter filter = new TourOverviewFilter(
                 query.companyContext().companyId(),
+                tourNumbers,
                 statuses,
                 search,
                 dateFrom,
@@ -78,7 +88,9 @@ public class GetTourOverviewService implements GetTourOverviewUseCase {
         }
     }
 
-    private String normalizeSearch(String search) {
+    private String normalizeSearch(
+            String search
+    ) {
         if (search == null || search.isBlank()) {
             return null;
         }

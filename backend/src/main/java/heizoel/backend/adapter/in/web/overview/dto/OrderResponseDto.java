@@ -5,7 +5,6 @@ import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.application.model.overview.OrderOverviewItem;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record OrderResponseDto(
