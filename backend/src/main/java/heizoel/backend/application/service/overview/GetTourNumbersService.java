@@ -31,7 +31,7 @@ public class GetTourNumbersService implements GetTourNumbersUseCase {
 
         validateDateRange(dateFrom, dateTo);
 
-        String search = query.search().trim();
+        String search = normalizeSearch(query.search());
 
         return tourOverviewQueryPort.findTourNumbers(
                 new TourNumberFilter(
@@ -52,6 +52,16 @@ public class GetTourNumbersService implements GetTourNumbersUseCase {
                     "Date from must not be after date to."
             );
         }
+    }
+
+    private String normalizeSearch(
+            String search
+    ) {
+        if (search == null || search.isBlank()) {
+            return null;
+        }
+
+        return search.trim();
     }
 
 }

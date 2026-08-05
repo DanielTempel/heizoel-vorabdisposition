@@ -1,12 +1,12 @@
 package heizoel.backend.adapter.in.web.overview;
 
+import heizoel.backend.adapter.in.web.overview.dto.detail.DashboardOrderDetailResponseDto;
 import heizoel.backend.adapter.in.web.security.CompanyContextResolver;
 import heizoel.backend.application.context.CompanyContext;
+import heizoel.backend.application.model.overview.ConfirmationDetail;
 import heizoel.backend.application.port.in.overview.*;
 import heizoel.backend.domain.ConfirmationStatus;
-import heizoel.backend.adapter.in.web.overview.dto.DashboardOrderDetailResponseDto;
 import heizoel.backend.adapter.in.web.overview.dto.ToursPageResponseDto;
-import heizoel.backend.application.model.overview.ConfirmationDetail;
 import heizoel.backend.application.model.overview.TourOverviewPage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -83,10 +83,6 @@ public class DashboardController {
         );
     }
 
-
-
-
-
     @GetMapping("/orders/{externalOrderId}")
     public DashboardOrderDetailResponseDto getOrderDetail(
             @PathVariable String externalOrderId
@@ -94,11 +90,11 @@ public class DashboardController {
         CompanyContext companyContext = companyContextResolver.resolve();
 
         ConfirmationDetail detail = getConfirmationDetailUseCase.getOrderDetail(
-                new GetConfirmationDetailQuery(
-                        companyContext,
-                        externalOrderId
-                )
-        );
+                        new GetConfirmationDetailQuery(
+                                companyContext,
+                                externalOrderId
+                        )
+                );
 
         return DashboardOrderDetailResponseDto.from(detail);
     }
