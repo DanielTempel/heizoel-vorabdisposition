@@ -5,6 +5,8 @@ import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.exception.InvalidFilterException;
 import heizoel.backend.application.model.overview.TourOverviewPage;
 import heizoel.backend.application.port.in.overview.GetConfirmationDetailUseCase;
+import heizoel.backend.application.port.in.overview.GetTourNumbersQuery;
+import heizoel.backend.application.port.in.overview.GetTourNumbersUseCase;
 import heizoel.backend.application.port.in.overview.GetTourOverviewQuery;
 import heizoel.backend.application.port.in.overview.GetTourOverviewUseCase;
 import heizoel.backend.domain.ConfirmationStatus;
@@ -45,6 +47,9 @@ class OverviewControllerTest {
     GetTourOverviewUseCase getTourOverviewUseCase;
 
     @MockitoBean
+    GetTourNumbersUseCase getTourNumbersUseCase;
+
+    @MockitoBean
     GetConfirmationDetailUseCase getConfirmationDetailUseCase;
 
     @MockitoBean
@@ -56,6 +61,7 @@ class OverviewControllerTest {
         when(getTourOverviewUseCase.getTours(any())).thenReturn(
                 new TourOverviewPage(List.of(), 0, 20, 0, 0)
         );
+        when(getTourNumbersUseCase.getTourNumbers(any())).thenReturn(List.of());
         when(clock.instant()).thenReturn(Instant.parse("2026-08-04T10:00:00Z"));
     }
 
@@ -71,6 +77,7 @@ class OverviewControllerTest {
 
         GetTourOverviewQuery query = capturedQuery();
         assertThat(query.companyContext()).isEqualTo(COMPANY_CONTEXT);
+        assertThat(query.tourNumbers()).isNull();
         assertThat(query.statuses()).isNull();
         assertThat(query.search()).isNull();
         assertThat(query.dateFrom()).isNull();
@@ -88,6 +95,16 @@ class OverviewControllerTest {
                 ConfirmationStatus.REJECTED,
                 ConfirmationStatus.NO_RESPONSE
         );
+    }
+
+    @Test
+    void bindsSeveralTourNumbers() throws Exception {
+        mockMvc.perform(get("/api/dispo/dashboard/tours")
+                        .param("tourNumbers", "A-17", "NORD-3"))
+                .andExpect(status().isOk());
+
+        assertThat(capturedQuery().tourNumbers())
+                .containsExactlyInAnyOrder("A-17", "NORD-3");
     }
 
     @Test
@@ -148,10 +165,55 @@ class OverviewControllerTest {
                         .value("2026-08-04T10:00:00Z"));
     }
 
+    @Test
+    void bindsTourNumberOptionsParameters() throws Exception {
+        mockMvc.perform(get("/api/dispo/dashboard/tour-numbers")
+                        .param("search", " A-1 ")
+                        .param("dateFrom", "2026-08-01")
+                        .param("dateTo", "2026-08-31"))
+                .andExpect(status().isOk());
+
+        GetTourNumbersQuery query = capturedTourNumbersQuery();
+        assertThat(query.companyContext()).isEqualTo(COMPANY_CONTEXT);
+        assertThat(query.search()).isEqualTo(" A-1 ");
+        assertThat(query.dateFrom()).isEqualTo(LocalDate.of(2026, 8, 1));
+        assertThat(query.dateTo()).isEqualTo(LocalDate.of(2026, 8, 31));
+    }
+
+    @Test
+    void returnsTourNumbersAsJsonArray() throws Exception {
+        when(getTourNumbersUseCase.getTourNumbers(any())).thenReturn(
+                List.of("A-17", "NORD-3")
+        );
+
+        mockMvc.perform(get("/api/dispo/dashboard/tour-numbers"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0]").value("A-17"))
+                .andExpect(jsonPath("$[1]").value("NORD-3"));
+    }
+
+    @Test
+    void rejectsNonIsoDateForTourNumbers() throws Exception {
+        mockMvc.perform(get("/api/dispo/dashboard/tour-numbers")
+                        .param("dateFrom", "05.08.2026"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+
+        verify(getTourNumbersUseCase, never()).getTourNumbers(any());
+    }
+
     private GetTourOverviewQuery capturedQuery() {
         ArgumentCaptor<GetTourOverviewQuery> captor =
                 ArgumentCaptor.forClass(GetTourOverviewQuery.class);
         verify(getTourOverviewUseCase).getTours(captor.capture());
+        return captor.getValue();
+    }
+
+    private GetTourNumbersQuery capturedTourNumbersQuery() {
+        ArgumentCaptor<GetTourNumbersQuery> captor =
+                ArgumentCaptor.forClass(GetTourNumbersQuery.class);
+        verify(getTourNumbersUseCase).getTourNumbers(captor.capture());
         return captor.getValue();
     }
 }

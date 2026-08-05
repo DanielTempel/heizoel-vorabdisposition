@@ -2,6 +2,7 @@ package heizoel.backend.adapter.out.persistence;
 
 import heizoel.backend.application.model.overview.OrderOverviewItem;
 import heizoel.backend.application.model.overview.TourOverviewItem;
+import heizoel.backend.application.port.out.persistence.TourNumberFilter;
 import heizoel.backend.application.port.out.persistence.TourOverviewFilter;
 import heizoel.backend.configuration.QueryDslConfig;
 import heizoel.backend.domain.CommunicationChannel;
@@ -130,6 +131,58 @@ class TourOverviewQueryAdapterIntegrationTest {
                     .containsExactly("ORDER-A", "ORDER-B");
         });
 
+        assertThat(result.getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
+    void filtersBySelectedTourNumbers() {
+        Company company = testData.createCompany("Selected tours");
+        createOrderWithRequest(company, "ORDER-A", "A-17", TODAY, ConfirmationStatus.SENT);
+        createOrderWithRequest(company, "ORDER-N", "NORD-3", TODAY, ConfirmationStatus.CONFIRMED);
+        createOrderWithRequest(company, "ORDER-S", "SOUTH-9", TODAY, ConfirmationStatus.REJECTED);
+
+        Page<TourOverviewItem> result = find(
+                company,
+                Set.of("A-17", "NORD-3"),
+                Set.of(),
+                null,
+                TODAY,
+                null,
+                0,
+                20
+        );
+
+        assertThat(result.getContent())
+                .extracting(TourOverviewItem::tourNumber)
+                .containsExactly("A-17", "NORD-3");
+        assertThat(result.getTotalElements()).isEqualTo(2);
+    }
+
+    @Test
+    void combinesSelectedTourNumbersAndStatusesWithAnd() {
+        Company company = testData.createCompany("Selected tours and statuses");
+        createOrderWithRequest(company, "A-SENT", "A-17", TODAY, ConfirmationStatus.SENT);
+        createOrderWithRequest(company, "A-REJECTED", "A-17", TODAY, ConfirmationStatus.REJECTED);
+        createOrderWithRequest(company, "N-SENT", "NORD-3", TODAY, ConfirmationStatus.SENT);
+        createOrderWithRequest(company, "S-REJECTED", "SOUTH-9", TODAY, ConfirmationStatus.REJECTED);
+
+        Page<TourOverviewItem> result = find(
+                company,
+                Set.of("A-17", "NORD-3"),
+                Set.of(ConfirmationStatus.REJECTED),
+                null,
+                TODAY,
+                null,
+                0,
+                20
+        );
+
+        assertThat(result.getContent())
+                .extracting(TourOverviewItem::tourNumber)
+                .containsExactly("A-17");
+        assertThat(orders(result))
+                .extracting(OrderOverviewItem::externalOrderId)
+                .containsExactly("A-REJECTED");
         assertThat(result.getTotalElements()).isEqualTo(1);
     }
 
@@ -415,8 +468,125 @@ class TourOverviewQueryAdapterIntegrationTest {
         assertThat(result.getTotalPages()).isZero();
     }
 
+    @Test
+    void returnsUniqueTourNumbers() {
+        Company company = testData.createCompany("Unique tour numbers");
+        createOrderWithRequest(company, "ORDER-A1", "A-17", TODAY, ConfirmationStatus.SENT);
+        createOrderWithRequest(company, "ORDER-A2", "A-17", TODAY, ConfirmationStatus.CONFIRMED);
+        createOrderWithRequest(company, "ORDER-N", "NORD-3", TODAY, ConfirmationStatus.SENT);
+
+        List<String> result = findTourNumbers(company, null, TODAY, null);
+
+        assertThat(result).containsExactly("A-17", "NORD-3");
+    }
+
+    @Test
+    void isolatesTourNumbersByCompany() {
+        Company companyA = testData.createCompany("Tour numbers company A");
+        Company companyB = testData.createCompany("Tour numbers company B");
+        createOrderWithRequest(companyA, "ORDER-A", "A-17", TODAY, ConfirmationStatus.SENT);
+        createOrderWithRequest(companyB, "ORDER-B", "NORD-3", TODAY, ConfirmationStatus.SENT);
+
+        List<String> result = findTourNumbers(companyA, null, TODAY, null);
+
+        assertThat(result).containsExactly("A-17");
+    }
+
+    @Test
+    void filtersTourNumbersByInclusiveDateRange() {
+        Company company = testData.createCompany("Tour number dates");
+        createOrderWithRequest(company, "BEFORE", "BEFORE", TODAY.minusDays(1), ConfirmationStatus.SENT);
+        createOrderWithRequest(company, "FROM", "A-FROM", TODAY, ConfirmationStatus.SENT);
+        createOrderWithRequest(company, "TO", "B-TO", TODAY.plusDays(1), ConfirmationStatus.SENT);
+        createOrderWithRequest(company, "AFTER", "AFTER", TODAY.plusDays(2), ConfirmationStatus.SENT);
+
+        List<String> result = findTourNumbers(
+                company,
+                null,
+                TODAY,
+                TODAY.plusDays(1)
+        );
+
+        assertThat(result).containsExactly("A-FROM", "B-TO");
+    }
+
+    @Test
+    void searchesTourNumbersCaseInsensitively() {
+        Company company = testData.createCompany("Tour number search");
+        createOrderWithRequest(company, "ORDER-10", "A-10", TODAY, ConfirmationStatus.SENT);
+        createOrderWithRequest(company, "ORDER-17", "A-17", TODAY, ConfirmationStatus.SENT);
+        createOrderWithRequest(company, "ORDER-N", "NORD-3", TODAY, ConfirmationStatus.SENT);
+
+        List<String> result = findTourNumbers(company, "a-1", TODAY, null);
+
+        assertThat(result).containsExactly("A-10", "A-17");
+    }
+
+    @Test
+    void sortsTourNumbersByDeliveryDateThenTourNumber() {
+        Company company = testData.createCompany("Tour number sorting");
+        createOrderWithRequest(company, "ORDER-N", "NORD-3", TODAY.plusDays(1), ConfirmationStatus.SENT);
+        createOrderWithRequest(company, "ORDER-B", "B-20", TODAY, ConfirmationStatus.SENT);
+        createOrderWithRequest(company, "ORDER-A", "A-17", TODAY, ConfirmationStatus.SENT);
+
+        List<String> result = findTourNumbers(company, null, TODAY, null);
+
+        assertThat(result).containsExactly("A-17", "B-20", "NORD-3");
+    }
+
+    @Test
+    void usesOnlyLatestConfirmationRequestForTourNumbers() {
+        Company company = testData.createCompany("Latest tour number request");
+        Order changedOrder = testData.createOrder(
+                company,
+                "ORDER-A",
+                "A-17",
+                LICENSE_PLATE,
+                ConfirmationStatus.SENT
+        );
+        testData.createRequest(
+                changedOrder,
+                TODAY,
+                LocalTime.of(8, 0),
+                LocalTime.of(9, 0)
+        );
+        testData.createRequest(
+                changedOrder,
+                TODAY.plusDays(1),
+                LocalTime.of(10, 0),
+                LocalTime.of(11, 0)
+        );
+        createOrderWithRequest(company, "ORDER-B", "B-20", TODAY, ConfirmationStatus.SENT);
+
+        List<String> result = findTourNumbers(company, null, TODAY, TODAY);
+
+        assertThat(result).containsExactly("B-20");
+    }
+
     private Page<TourOverviewItem> find(
             Company company,
+            Set<ConfirmationStatus> statuses,
+            String search,
+            LocalDate dateFrom,
+            LocalDate dateTo,
+            int page,
+            int size
+    ) {
+        return find(
+                company,
+                Set.of(),
+                statuses,
+                search,
+                dateFrom,
+                dateTo,
+                page,
+                size
+        );
+    }
+
+    private Page<TourOverviewItem> find(
+            Company company,
+            Set<String> tourNumbers,
             Set<ConfirmationStatus> statuses,
             String search,
             LocalDate dateFrom,
@@ -428,12 +598,30 @@ class TourOverviewQueryAdapterIntegrationTest {
         return adapter.findTours(
                 new TourOverviewFilter(
                         company.getId(),
+                        tourNumbers,
                         statuses,
                         search,
                         dateFrom,
                         dateTo
                 ),
                 PageRequest.of(page, size)
+        );
+    }
+
+    private List<String> findTourNumbers(
+            Company company,
+            String search,
+            LocalDate dateFrom,
+            LocalDate dateTo
+    ) {
+        testData.flushAndClear();
+        return adapter.findTourNumbers(
+                new TourNumberFilter(
+                        company.getId(),
+                        search,
+                        dateFrom,
+                        dateTo
+                )
         );
     }
 
