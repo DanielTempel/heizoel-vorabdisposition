@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import type { ToursPage } from '@/types/dashboard'
 import { TourItem } from './components/tour-item'
+import { TourPagination } from './components/tour-pagination'
 
 type PageStatus = 'loading' | 'ready' | 'error'
 
@@ -109,28 +110,12 @@ export function DashboardPage() {
         ) : null}
 
         {status === 'ready' && toursPage && totalPages > 0 ? (
-          <footer className="flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <span>{toursPage.totalElements} Touren insgesamt</span>
-            <div className="flex items-center gap-2">
-              <Button
-                disabled={page === 0}
-                onClick={() => changePage(page - 1)}
-                variant="outline"
-              >
-                Zurück
-              </Button>
-              <span className="min-w-24 text-center">
-                Seite {page + 1} von {totalPages}
-              </span>
-              <Button
-                disabled={page + 1 >= totalPages}
-                onClick={() => changePage(page + 1)}
-                variant="outline"
-              >
-                Weiter
-              </Button>
-            </div>
-          </footer>
+          <TourPagination
+            onPageChange={changePage}
+            page={page}
+            totalElements={toursPage.totalElements}
+            totalPages={totalPages}
+          />
         ) : null}
       </div>
     </main>
