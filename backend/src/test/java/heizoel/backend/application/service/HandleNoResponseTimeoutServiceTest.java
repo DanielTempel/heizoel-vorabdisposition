@@ -7,6 +7,7 @@ import heizoel.backend.application.exception.ConfirmationRequestNotFoundExceptio
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
+import heizoel.backend.domain.company.Company;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

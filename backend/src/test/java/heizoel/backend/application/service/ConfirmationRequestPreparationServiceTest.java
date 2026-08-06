@@ -6,6 +6,7 @@ import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestCommand;
 import heizoel.backend.application.service.confirmation.ConfirmationRequestPreparationService;
 import heizoel.backend.domain.*;
+import heizoel.backend.domain.company.Company;
 import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;

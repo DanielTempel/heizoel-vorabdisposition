@@ -1,5 +1,6 @@
 package heizoel.backend.domain;
 
+import heizoel.backend.domain.company.Company;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

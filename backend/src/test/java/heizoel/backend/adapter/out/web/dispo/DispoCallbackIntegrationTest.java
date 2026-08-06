@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -55,8 +54,6 @@ class DispoCallbackIntegrationTest {
         registry.add("spring.flyway.locations", () -> "classpath:db/migration");
     }
 
-    @MockitoBean
-    JavaMailSender javaMailSender;
 
     @Autowired
     private MockMvc mockMvc;

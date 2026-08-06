@@ -16,21 +16,6 @@ spring:
       hibernate:
         format_sql: true
 
-  mail:
-    host: localhost
-    port: 1025
-    username:
-    password:
-    properties:
-      mail:
-        smtp:
-          auth: false
-          starttls:
-            enable: false
-          connectiontimeout: 5000
-          timeout: 3000
-          writetimeout: 5000
-
 heizoel:
   confirmation:
     frontend-url: http://localhost:3000

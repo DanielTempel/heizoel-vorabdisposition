@@ -10,7 +10,7 @@ import heizoel.backend.application.port.out.workflow.NoResponseWorkflowService;
 import heizoel.backend.application.service.confirmation.ConfirmationRequestPreparationService;
 import heizoel.backend.application.service.confirmation.CreateConfirmationRequestService;
 import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.Company;
+import heizoel.backend.domain.company.Company;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.Order;

@@ -6,7 +6,7 @@ import heizoel.backend.application.port.out.persistence.TourNumberFilter;
 import heizoel.backend.application.port.out.persistence.TourOverviewFilter;
 import heizoel.backend.configuration.QueryDslConfig;
 import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.Company;
+import heizoel.backend.domain.company.Company;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.Order;
 import org.junit.jupiter.api.BeforeEach;

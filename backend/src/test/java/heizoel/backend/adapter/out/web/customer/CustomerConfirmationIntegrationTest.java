@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -77,9 +76,6 @@ class CustomerConfirmationIntegrationTest {
         registry.add("heizoel.confirmation.frontend-url", () -> "http://localhost:3000");
         registry.add("heizoel.confirmation.dispo-url", () -> "http://localhost:8090/api/dispo/confirmation-status-updates");
     }
-
-    @MockitoBean
-    JavaMailSender javaMailSender;
 
     @MockitoBean
     NotificationService notificationService;

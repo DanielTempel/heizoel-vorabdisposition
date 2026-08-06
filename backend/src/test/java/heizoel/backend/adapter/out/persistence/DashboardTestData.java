@@ -1,7 +1,7 @@
 package heizoel.backend.adapter.out.persistence;
 
 import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.Company;
+import heizoel.backend.domain.company.Company;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.DeliverySlot;

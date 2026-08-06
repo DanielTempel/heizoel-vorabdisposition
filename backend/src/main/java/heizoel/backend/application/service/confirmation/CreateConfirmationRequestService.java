@@ -7,7 +7,7 @@ import heizoel.backend.application.port.in.confirmation.CreateConfirmationReques
 import heizoel.backend.application.port.out.notification.NotificationService;
 import heizoel.backend.application.port.out.workflow.NoResponseWorkflowService;
 import heizoel.backend.application.port.in.confirmation.ConfirmationRequestCreationResult;
-import heizoel.backend.domain.Company;
+import heizoel.backend.domain.company.Company;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.application.exception.CompanyNotFoundException;
 import heizoel.backend.domain.exception.MissingDigitalContactException;

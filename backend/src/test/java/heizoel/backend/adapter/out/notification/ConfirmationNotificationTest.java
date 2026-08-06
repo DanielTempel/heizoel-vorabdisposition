@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -68,7 +67,6 @@ class ConfirmationNotificationTest {
         registry.add("heizoel.confirmation.frontend-url", () -> "http://localhost:3000");
         registry.add("heizoel.confirmation.dispo-url", () -> "http://localhost:8090/api/dispo/confirmation-status-updates");
 
-        registry.add("heizoel.mail.from", () -> "no-reply@heizoel.local");
         registry.add("heizoel.sms.mock-url", () -> "http://localhost:8091/api/sms/messages");
     }
 
@@ -84,8 +82,6 @@ class ConfirmationNotificationTest {
     @MockitoSpyBean
     SmsNotificationSender smsConfirmationSender;
 
-    @MockitoBean
-    JavaMailSender javaMailSender;
 
     @MockitoBean
     NoResponseWorkflowService noResponseWorkflowService;
