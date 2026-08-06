@@ -1,4 +1,4 @@
-package heizoel.backend.domain;
+package heizoel.backend.domain.company;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

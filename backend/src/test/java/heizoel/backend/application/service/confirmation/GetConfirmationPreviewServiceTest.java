@@ -4,7 +4,7 @@ import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.application.port.in.confirmation.GetConfirmationPreviewResult;
 import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.Company;
+import heizoel.backend.domain.company.Company;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.CustomerResponse;

@@ -1,7 +1,7 @@
 package heizoel.backend.adapter.in.web.security;
 
 import heizoel.backend.application.context.CompanyContext;
-import heizoel.backend.domain.Company;
+import heizoel.backend.domain.company.Company;
 import heizoel.backend.adapter.out.persistence.CompanyRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

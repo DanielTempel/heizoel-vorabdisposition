@@ -6,6 +6,7 @@ import heizoel.backend.application.port.out.token.TokenService;
 import heizoel.backend.domain.*;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
+import heizoel.backend.domain.company.Company;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

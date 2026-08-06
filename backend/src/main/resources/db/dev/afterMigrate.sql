@@ -742,3 +742,30 @@ SELECT
     request.sent_at + INTERVAL '2 hours'
 FROM confirmation_request request
 WHERE request.token = 'demo-history-demo-today-001';
+
+INSERT INTO company_email_settings (
+    company_id,
+    smtp_host,
+    smtp_port,
+    security_mode,
+    authentication_enabled,
+    smtp_username,
+    smtp_password_encrypted,
+    from_address,
+    from_name,
+    updated_at
+)
+SELECT
+    c.id,
+    'localhost',
+    1025,
+    'NONE',
+    FALSE,
+    NULL,
+    NULL,
+    'dispo@heizoel.local',
+    'Heizöl Disposition',
+    CURRENT_TIMESTAMP
+FROM company c
+WHERE c.id = 1
+ON CONFLICT (company_id) DO NOTHING;

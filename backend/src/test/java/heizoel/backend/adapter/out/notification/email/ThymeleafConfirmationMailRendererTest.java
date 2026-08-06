@@ -1,6 +1,7 @@
 package heizoel.backend.adapter.out.notification.email;
 
 import heizoel.backend.domain.*;
+import heizoel.backend.domain.company.Company;
 import org.junit.jupiter.api.Test;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;

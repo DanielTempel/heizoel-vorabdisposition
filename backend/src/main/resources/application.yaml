@@ -44,8 +44,9 @@ heizoel:
       result-limit: 1
       cache-ttl-minutes: 60
 
-  mail:
-    from: no-reply@heizoel.local
+  security:
+    secret-encryption:
+      master-key: ${SECRET_ENCRYPTION_MASTER_KEY}
 
 logging:
   level:
