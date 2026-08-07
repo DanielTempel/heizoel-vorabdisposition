@@ -162,6 +162,19 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", e.getMessage(), req.getRequestURI());
     }
 
+    @ExceptionHandler(ConfirmationRequestDeliveryInProgressException.class)
+    ResponseEntity<ErrorResponseDto> confirmationRequestDeliveryInProgress(
+            ConfirmationRequestDeliveryInProgressException e,
+            HttpServletRequest req
+    ) {
+        return respond(
+                HttpStatus.CONFLICT,
+                "CONFIRMATION_REQUEST_DELIVERY_IN_PROGRESS",
+                e.getMessage(),
+                req.getRequestURI()
+        );
+    }
+
     @ExceptionHandler(EmailSettingsNotConfiguredException.class)
     ResponseEntity<ErrorResponseDto> emailSettingsNotConfigured(
             EmailSettingsNotConfiguredException exception,
