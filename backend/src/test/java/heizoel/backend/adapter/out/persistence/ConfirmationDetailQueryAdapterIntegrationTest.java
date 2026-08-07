@@ -344,7 +344,7 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
             CustomerResponseType responseType,
             String comment
     ) {
-        ConfirmationRequest request = ConfirmationRequest.create(
+        ConfirmationRequest request = ConfirmationRequest.createPending(
                 order,
                 UUID.randomUUID().toString(),
                 channel,

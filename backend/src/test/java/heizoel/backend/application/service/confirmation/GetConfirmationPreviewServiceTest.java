@@ -134,7 +134,7 @@ class GetConfirmationPreviewServiceTest {
             Order order,
             boolean active
     ) {
-        ConfirmationRequest request = ConfirmationRequest.create(
+        ConfirmationRequest request = ConfirmationRequest.createPending(
                 order,
                 TOKEN,
                 CommunicationChannel.EMAIL,

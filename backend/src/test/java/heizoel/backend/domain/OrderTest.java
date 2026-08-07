@@ -146,6 +146,20 @@ class OrderTest {
         assertThat(order.getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
     }
 
+    @Test
+    void markOpenSetsConfirmationStatusToOpen() {
+        Order order = createOrder();
+
+        order.markOpen();
+
+        assertThat(order.getConfirmationStatus())
+                .isEqualTo(ConfirmationStatus.OPEN);
+    }
+
+    private Order createOrder() {
+        return order(ORIGINAL_TOUR);
+    }
+
     private Order order(Tour tour) {
         return Order.create(
                 Company.create(

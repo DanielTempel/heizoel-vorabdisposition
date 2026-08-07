@@ -132,7 +132,7 @@ class HandleNoResponseTimeoutServiceTest {
                 "Customer", "customer@example.com", null,
                 "Address", "Heating oil", 1000, "1,000 EUR"
         );
-        ConfirmationRequest confirmationRequest = ConfirmationRequest.create(
+        ConfirmationRequest confirmationRequest = ConfirmationRequest.createPending(
                 order,
                 "token",
                 CommunicationChannel.EMAIL,

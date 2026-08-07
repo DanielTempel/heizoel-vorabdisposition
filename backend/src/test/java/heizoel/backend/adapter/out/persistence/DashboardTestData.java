@@ -95,7 +95,7 @@ final class DashboardTestData {
             LocalTime end,
             CommunicationChannel channel
     ) {
-        ConfirmationRequest request = ConfirmationRequest.create(
+        ConfirmationRequest request = ConfirmationRequest.createPending(
                 order,
                 UUID.randomUUID().toString(),
                 channel,

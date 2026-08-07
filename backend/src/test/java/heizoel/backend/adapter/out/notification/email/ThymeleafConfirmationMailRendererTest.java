@@ -89,7 +89,7 @@ class ThymeleafConfirmationMailRendererTest {
     }
 
     private ConfirmationRequest confirmationRequest() {
-        return ConfirmationRequest.create(
+        return ConfirmationRequest.createPending(
                 order(),
                 "token",
                 CommunicationChannel.EMAIL,

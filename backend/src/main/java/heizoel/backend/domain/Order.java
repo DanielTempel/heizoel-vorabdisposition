@@ -71,6 +71,7 @@ public class Order {
     @Column(name = "confirmation_status", nullable = false)
     private ConfirmationStatus confirmationStatus;
 
+
     public static Order create(
             Company company,
             String externalOrderId,
@@ -94,7 +95,7 @@ public class Order {
         order.product = product;
         order.quantityLiters = quantityLiters;
         order.priceDisplayText = priceDisplayText;
-        order.confirmationStatus = ConfirmationStatus.SENT;
+        order.confirmationStatus = ConfirmationStatus.OPEN;
         return order;
     }
 
@@ -116,7 +117,6 @@ public class Order {
         this.product = product;
         this.quantityLiters = quantityLiters;
         this.priceDisplayText = priceDisplayText;
-        this.confirmationStatus = ConfirmationStatus.SENT;
     }
 
     public boolean hasSameData(
@@ -138,6 +138,8 @@ public class Order {
                 && Objects.equals(this.quantityLiters, quantityLiters)
                 && Objects.equals(this.priceDisplayText, priceDisplayText);
     }
+
+    public void markOpen() {this.confirmationStatus = ConfirmationStatus.OPEN;}
 
     public void markSent() {
         this.confirmationStatus = ConfirmationStatus.SENT;

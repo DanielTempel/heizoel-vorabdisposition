@@ -50,19 +50,65 @@ public class ConfirmationRequest {
     @Column(name = "active", nullable = false)
     private boolean active;
 
-    @Column(name = "sent_at", nullable = false)
+    @Column(name = "sent_at")
     private Instant sentAt;
 
-    @Column(name = "expires_at", nullable = false)
+    @Column(name = "expires_at")
     private Instant expiresAt;
 
     @Column(name = "response_deadline_hours", nullable = false)
     private Integer responseDeadlineHours;
 
-    public static ConfirmationRequest create(
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_status", nullable = false, length = 20)
+    private NotificationDeliveryStatus deliveryStatus;
+
+    public static ConfirmationRequest createPending(
             Order order,
             String token,
             CommunicationChannel communicationChannel,
+            DeliverySlot deliverySlot,
+            Integer responseDeadlineHours
+    ) {
+        ConfirmationRequest request = new ConfirmationRequest();
+        request.order = order;
+        request.token = token;
+        request.communicationChannel = communicationChannel;
+        request.deliverySlot = deliverySlot;
+        request.responseDeadlineHours = responseDeadlineHours;
+
+        request.deliveryStatus = NotificationDeliveryStatus.PENDING;
+        request.active = false;
+        request.sentAt = null;
+        request.expiresAt = null;
+
+        return request;
+    }
+
+    public boolean isSent() {
+        return deliveryStatus == NotificationDeliveryStatus.SENT;
+    }
+
+    public void markSent(Instant sentAt) {
+        if (deliveryStatus != NotificationDeliveryStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only a pending confirmation request can be marked as sent."
+            );
+        }
+
+        Instant calculatedExpiresAt = calculateExpiresAt(
+                deliverySlot,
+                sentAt,
+                responseDeadlineHours
+        );
+
+        this.sentAt = sentAt;
+        this.expiresAt = calculatedExpiresAt;
+        this.deliveryStatus = NotificationDeliveryStatus.SENT;
+        this.active = true;
+    }
+
+    private static Instant calculateExpiresAt(
             DeliverySlot deliverySlot,
             Instant sentAt,
             Integer responseDeadlineHours
@@ -79,20 +125,9 @@ public class ConfirmationRequest {
                 Duration.ofHours(responseDeadlineHours)
         );
 
-        Instant effectiveExpiresAt = requestedExpiresAt.isBefore(deliveryStartsAt)
+        return requestedExpiresAt.isBefore(deliveryStartsAt)
                 ? requestedExpiresAt
                 : deliveryStartsAt;
-
-        ConfirmationRequest confirmationRequest = new ConfirmationRequest();
-        confirmationRequest.order = order;
-        confirmationRequest.token = token;
-        confirmationRequest.communicationChannel = communicationChannel;
-        confirmationRequest.deliverySlot = deliverySlot;
-        confirmationRequest.active = true;
-        confirmationRequest.sentAt = sentAt;
-        confirmationRequest.expiresAt = effectiveExpiresAt;
-        confirmationRequest.responseDeadlineHours = responseDeadlineHours;
-        return confirmationRequest;
     }
 
     public void markInactive() {
@@ -100,7 +135,7 @@ public class ConfirmationRequest {
     }
 
     public boolean isExpiredAt(Instant now) {
-        return !this.expiresAt.isAfter(now);
+        return expiresAt != null && !expiresAt.isAfter(now);
     }
 
     public boolean hasSameData(
@@ -113,5 +148,41 @@ public class ConfirmationRequest {
                 && this.responseDeadlineHours.equals(responseDeadlineHours);
     }
 
+    public boolean isPending() {
+        return deliveryStatus == NotificationDeliveryStatus.PENDING;
+    }
+    public void updatePending(
+            CommunicationChannel communicationChannel,
+            DeliverySlot deliverySlot,
+            Integer responseDeadlineHours
+    ) {
+        if (deliveryStatus != NotificationDeliveryStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only a pending confirmation request can be updated."
+            );
+        }
+
+        this.communicationChannel = communicationChannel;
+        this.deliverySlot = deliverySlot;
+        this.responseDeadlineHours = responseDeadlineHours;
+    }
+
+
+    public boolean isDeliveryFailed() {
+        return deliveryStatus == NotificationDeliveryStatus.FAILED;
+    }
+
+    public void markDeliveryFailed() {
+        if (deliveryStatus != NotificationDeliveryStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only a pending confirmation request can be marked as failed."
+            );
+        }
+
+        this.deliveryStatus = NotificationDeliveryStatus.FAILED;
+        this.active = false;
+        this.sentAt = null;
+        this.expiresAt = null;
+    }
 }
 
