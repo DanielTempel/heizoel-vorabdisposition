@@ -7,6 +7,7 @@ import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestCommand;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestResult;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestUseCase;
+import heizoel.backend.domain.ConfirmationStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,11 @@ public class DispoController {
         CreateConfirmationRequestResult result =
                 createConfirmationRequestUseCase.createConfirmationRequest(command);
 
-        HttpStatus status = result.created() ? HttpStatus.CREATED : HttpStatus.OK;
+        HttpStatus status =
+                result.confirmationStatus() == ConfirmationStatus.OPEN
+                        ? HttpStatus.ACCEPTED
+                        : HttpStatus.OK;
+
         DispoConfirmationResponseDto response = new DispoConfirmationResponseDto(
                 result.externalOrderId(),
                 result.confirmationStatus()

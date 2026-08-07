@@ -655,7 +655,8 @@ INSERT INTO confirmation_request
     active,
     sent_at,
     expires_at,
-    response_deadline_hours
+    response_deadline_hours,
+    delivery_status
 )
 SELECT
     history.token,
@@ -681,7 +682,8 @@ SELECT
             )
             AT TIME ZONE 'Europe/Berlin'
         ),
-    24
+    24,
+    'SENT'
 FROM history_seed history
          JOIN order_snapshot order_data
               ON order_data.company_id = 1
@@ -730,7 +732,8 @@ INSERT INTO confirmation_request
     active,
     sent_at,
     expires_at,
-    response_deadline_hours
+    response_deadline_hours,
+    delivery_status
 )
 SELECT
     'demo-current-' || LOWER(request_times.external_order_id),
@@ -764,7 +767,8 @@ SELECT
             )
         END,
 
-    24
+    24,
+    'SENT'
 FROM request_times;
 
 

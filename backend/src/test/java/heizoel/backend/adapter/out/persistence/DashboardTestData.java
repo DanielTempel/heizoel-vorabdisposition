@@ -79,32 +79,31 @@ final class DashboardTestData {
         return order;
     }
 
-    ConfirmationRequest createRequest(
+    void createRequest(
             Order order,
             LocalDate date,
             LocalTime start,
             LocalTime end
     ) {
-        return createRequest(order, date, start, end, CommunicationChannel.EMAIL);
+        createRequest(order, date, start, end, CommunicationChannel.EMAIL);
     }
 
-    ConfirmationRequest createRequest(
+    void createRequest(
             Order order,
             LocalDate date,
             LocalTime start,
             LocalTime end,
             CommunicationChannel channel
     ) {
-        ConfirmationRequest request = ConfirmationRequest.create(
+        ConfirmationRequest request = ConfirmationRequest.createPending(
                 order,
                 UUID.randomUUID().toString(),
                 channel,
                 DeliverySlot.of(date, start, end),
-                SENT_AT,
                 24
         );
+        request.markSent(SENT_AT);
         entityManager.persist(request);
-        return request;
     }
 
     void flushAndClear() {

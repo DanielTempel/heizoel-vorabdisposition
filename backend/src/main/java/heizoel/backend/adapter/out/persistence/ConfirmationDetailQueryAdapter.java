@@ -8,10 +8,7 @@ import heizoel.backend.application.model.overview.ConfirmationDetail.CustomerRes
 import heizoel.backend.application.model.overview.ConfirmationDetail.OrderDetail;
 import heizoel.backend.application.model.overview.ConfirmationDetail.RequestDetail;
 import heizoel.backend.application.port.out.persistence.ConfirmationDetailQueryPort;
-import heizoel.backend.domain.CustomerResponseType;
-import heizoel.backend.domain.QConfirmationRequest;
-import heizoel.backend.domain.QCustomerResponse;
-import heizoel.backend.domain.QOrder;
+import heizoel.backend.domain.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -120,18 +117,13 @@ public class ConfirmationDetailQueryAdapter implements ConfirmationDetailQueryPo
                 )
                 .from(confirmationRequest)
                 .leftJoin(customerResponse)
-                .on(
-                        customerResponse.confirmationRequest.eq(
-                                confirmationRequest
-                        )
+                .on(customerResponse.confirmationRequest.eq(confirmationRequest)
                 )
                 .where(
-                        confirmationRequest.order.id.eq(orderId)
+                        confirmationRequest.order.id.eq(orderId),
+                        confirmationRequest.deliveryStatus.eq(NotificationDeliveryStatus.SENT)
                 )
-                .orderBy(
-                        confirmationRequest.sentAt.desc(),
-                        confirmationRequest.id.desc()
-                )
+                .orderBy(confirmationRequest.id.desc())
                 .fetch();
 
         return rows.stream()
