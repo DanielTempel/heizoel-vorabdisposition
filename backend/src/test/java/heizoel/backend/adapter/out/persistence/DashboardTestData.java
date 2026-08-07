@@ -100,9 +100,9 @@ final class DashboardTestData {
                 UUID.randomUUID().toString(),
                 channel,
                 DeliverySlot.of(date, start, end),
-                SENT_AT,
                 24
         );
+        request.markSent(SENT_AT);
         entityManager.persist(request);
         return request;
     }

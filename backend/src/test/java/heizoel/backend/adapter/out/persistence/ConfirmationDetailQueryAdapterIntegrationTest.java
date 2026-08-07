@@ -349,9 +349,9 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
                 UUID.randomUUID().toString(),
                 channel,
                 DeliverySlot.of(DELIVERY_DATE, DELIVERY_START, DELIVERY_END),
-                sentAt,
                 24
         );
+        request.markSent(sentAt);
         if (!active) {
             request.markInactive();
         }

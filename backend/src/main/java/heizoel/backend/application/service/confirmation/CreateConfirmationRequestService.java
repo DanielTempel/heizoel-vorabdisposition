@@ -7,7 +7,7 @@ import heizoel.backend.application.port.in.confirmation.CreateConfirmationReques
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestResult;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestUseCase;
 import heizoel.backend.application.port.out.token.TokenService;
-import heizoel.backend.application.port.out.workflow.ConfirmationDeliveryWorkflowService;
+import heizoel.backend.application.port.out.workflow.ConfirmationWorkflowService;
 import heizoel.backend.domain.*;
 import heizoel.backend.domain.company.Company;
 import heizoel.backend.application.exception.CompanyNotFoundException;
@@ -27,7 +27,7 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
     private final OrderRepository orderRepository;
     private final ConfirmationRequestRepository confirmationRequestRepository;
     private final TokenService tokenService;
-    private final ConfirmationDeliveryWorkflowService confirmationDeliveryWorkflowService;
+    private final ConfirmationWorkflowService confirmationWorkflowService;
 
     @Override
     @Transactional
@@ -178,6 +178,7 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
          */
         if (request.isActive()) {
             request.markInactive();
+            confirmationWorkflowService.notifyConfirmationRequestSuperseded(request.getId());
         }
 
         /*
@@ -205,7 +206,7 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
 
         ConfirmationRequest savedRequest = confirmationRequestRepository.save(request);
 
-        confirmationDeliveryWorkflowService.startDeliveryProcess(savedRequest.getId());
+        confirmationWorkflowService.startDeliveryProcess(savedRequest.getId());
 
         return new CreateConfirmationRequestResult(
                 order.getExternalOrderId(),

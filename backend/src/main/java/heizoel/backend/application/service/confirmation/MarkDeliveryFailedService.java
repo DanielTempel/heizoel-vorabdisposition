@@ -1,29 +1,26 @@
-package heizoel.backend.application.service.workflow;
+package heizoel.backend.application.service.confirmation;
 
-import heizoel.backend.application.port.in.workflow.HandleNoResponseTimeoutUseCase;
-import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.Order;
-import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
+
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
+import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
+import heizoel.backend.application.port.in.workflow.MarkDeliveryFailedUseCase;
+import heizoel.backend.domain.ConfirmationRequest;
+import heizoel.backend.domain.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Clock;
-import java.time.Instant;
-
 @Service
 @RequiredArgsConstructor
-public class HandleNoResponseTimeoutService implements HandleNoResponseTimeoutUseCase {
+public class MarkDeliveryFailedService implements MarkDeliveryFailedUseCase {
 
-    private final ConfirmationRequestRepository confirmationRequestRepository;
     private final OrderRepository orderRepository;
-    private final Clock clock;
+    private final ConfirmationRequestRepository confirmationRequestRepository;
 
     @Override
     @Transactional
-    public Long handleTimeout(Long confirmationRequestId) {
+    public void markDeliveryFailed(Long confirmationRequestId) {
 
         Order order = orderRepository
                 .findByConfirmationRequestIdForUpdate(
@@ -44,25 +41,22 @@ public class HandleNoResponseTimeoutService implements HandleNoResponseTimeoutUs
                                 )
                         );
 
-        if (!request.isActive()) {
+        /*
+         * Idempotency protection in case the Camunda job
+         * is executed again after FAILED was already persisted.
+         */
+        if (request.isDeliveryFailed()) {
+            return;
+        }
+
+        if (!request.isPending()) {
             throw new IllegalStateException(
-                    "Only an active confirmation request can time out."
+                    "Only a pending confirmation request can be marked as failed."
             );
         }
 
-        Instant now = Instant.now(clock);
-
-        if (!request.isExpiredAt(now)) {
-            throw new IllegalStateException(
-                    "Confirmation request has not expired yet."
-            );
-        }
-
-        request.markInactive();
-        order.markNoResponse();
-
-        return order.getId();
+        request.markDeliveryFailed();
+        order.markOpen();
     }
 
 }
-

@@ -1,34 +1,37 @@
 package heizoel.backend.application.service;
 
-import heizoel.backend.application.port.out.workflow.DispoCallbackWorkflowService;
-import heizoel.backend.application.service.workflow.HandleNoResponseTimeoutService;
-import heizoel.backend.domain.*;
-import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
-import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
+import heizoel.backend.application.service.workflow.HandleNoResponseTimeoutService;
+import heizoel.backend.domain.CommunicationChannel;
+import heizoel.backend.domain.ConfirmationRequest;
+import heizoel.backend.domain.ConfirmationStatus;
+import heizoel.backend.domain.DeliverySlot;
+import heizoel.backend.domain.Order;
+import heizoel.backend.domain.Tour;
 import heizoel.backend.domain.company.Company;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class HandleNoResponseTimeoutServiceTest {
 
-    @Spy
-    Clock clock = Clock.system(ZoneOffset.UTC);
+    private static final Instant NOW = Instant.parse("2026-08-07T08:00:00Z");
 
     @Mock
     ConfirmationRequestRepository confirmationRequestRepository;
@@ -36,119 +39,96 @@ class HandleNoResponseTimeoutServiceTest {
     @Mock
     OrderRepository orderRepository;
 
-    @Mock
-    CustomerResponseRepository customerResponseRepository;
-
-    @Mock
-    DispoCallbackWorkflowService dispoCallbackWorkflowService;
-
-    @InjectMocks
     HandleNoResponseTimeoutService service;
 
-    @Test
-    void handleTimeout_doesNothingWhenRequestIsInactive() {
-        ConfirmationRequest confirmationRequest = confirmationRequest(false, Instant.now(clock).minusSeconds(1));
-
-        when(confirmationRequestRepository.findById(1L))
-                .thenReturn(Optional.of(confirmationRequest));
-
-        service.handleTimeout(1L);
-
-        verifyNoInteractions(customerResponseRepository, orderRepository, dispoCallbackWorkflowService);
-        verify(confirmationRequestRepository, never()).save(any());
-    }
-
-    @Test
-    void handleTimeout_doesNothingWhenCustomerResponseAlreadyExists() {
-        ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now(clock).minusSeconds(1));
-
-        when(confirmationRequestRepository.findById(1L))
-                .thenReturn(Optional.of(confirmationRequest));
-        when(customerResponseRepository.existsByConfirmationRequest(confirmationRequest))
-                .thenReturn(true);
-
-        service.handleTimeout(1L);
-
-        verify(customerResponseRepository).existsByConfirmationRequest(confirmationRequest);
-        verifyNoInteractions(orderRepository, dispoCallbackWorkflowService);
-        verify(confirmationRequestRepository, never()).save(any());
-    }
-
-    @Test
-    void handleTimeout_doesNothingWhenDeadlineIsStillInTheFuture() {
-        ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now(clock).plusSeconds(60));
-
-        when(confirmationRequestRepository.findById(1L))
-                .thenReturn(Optional.of(confirmationRequest));
-        when(customerResponseRepository.existsByConfirmationRequest(confirmationRequest))
-                .thenReturn(false);
-
-        service.handleTimeout(1L);
-
-        verify(customerResponseRepository).existsByConfirmationRequest(confirmationRequest);
-        verifyNoInteractions(orderRepository, dispoCallbackWorkflowService);
-        verify(confirmationRequestRepository, never()).save(any());
-    }
-
-    @Test
-    void handleTimeout_marksNoResponseWhenRequestIsActiveUnansweredAndExpired() {
-        ConfirmationRequest confirmationRequest = confirmationRequest(true, Instant.now(clock).minusSeconds(1));
-        Order order = confirmationRequest.getOrder();
-
-        when(confirmationRequestRepository.findById(1L))
-                .thenReturn(Optional.of(confirmationRequest));
-        when(customerResponseRepository.existsByConfirmationRequest(confirmationRequest))
-                .thenReturn(false);
-
-        service.handleTimeout(1L);
-
-        verify(confirmationRequestRepository).save(confirmationRequest);
-        verify(orderRepository).save(order);
-        verify(dispoCallbackWorkflowService).startDispoCallbackProcess(
-                order.getId(),
-                ConfirmationStatus.NO_RESPONSE,
-                null
+    @BeforeEach
+    void setUp() {
+        service = new HandleNoResponseTimeoutService(
+                confirmationRequestRepository,
+                orderRepository,
+                Clock.fixed(NOW, ZoneOffset.UTC)
         );
     }
 
     @Test
-    void handleTimeout_throwsNotFoundWhenRequestDoesNotExist() {
-        when(confirmationRequestRepository.findById(1L))
-                .thenReturn(Optional.empty());
+    void activeExpiredRequestBecomesNoResponse() {
+        Order order = spy(order());
+        when(order.getId()).thenReturn(22L);
+        RequestFixture fixture = sentRequest(order, NOW.minusSeconds(25 * 60 * 60));
+        mockRequest(fixture);
 
-        assertThatThrownBy(() -> service.handleTimeout(1L))
-                .isInstanceOf(ConfirmationRequestNotFoundException.class)
-                .hasMessage("Confirmation request was not found.");
+        Long orderId = service.handleTimeout(11L);
 
-        verifyNoInteractions(customerResponseRepository, orderRepository, dispoCallbackWorkflowService);
+        assertThat(orderId).isEqualTo(22L);
+        assertThat(fixture.request().isActive()).isFalse();
+        assertThat(fixture.order().getConfirmationStatus()).isEqualTo(ConfirmationStatus.NO_RESPONSE);
     }
 
-    private ConfirmationRequest confirmationRequest(boolean active, Instant expiresAt) {
-        Order order = Order.create(
-                Company.create(
-                        "Company", "api-key-hash", "http://localhost/callback"
-                ),
-                "A-TIMEOUT-1", Tour.of("17", "WÜ-AB 123"),
-                "Customer", "customer@example.com", null,
-                "Address", "Heating oil", 1000, "1,000 EUR"
-        );
-        ConfirmationRequest confirmationRequest = ConfirmationRequest.createPending(
+    @Test
+    void inactiveRequestIsRejected() {
+        RequestFixture fixture = sentRequest(order(), NOW.minusSeconds(25 * 60 * 60));
+        fixture.request().markInactive();
+        mockRequest(fixture);
+
+        assertThatThrownBy(() -> service.handleTimeout(11L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Only an active confirmation request can time out.");
+
+        assertThat(fixture.order().getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
+    }
+
+    @Test
+    void requestBeforeDeadlineIsRejected() {
+        RequestFixture fixture = sentRequest(order(), NOW.minusSeconds(60 * 60));
+        mockRequest(fixture);
+
+        assertThatThrownBy(() -> service.handleTimeout(11L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Confirmation request has not expired yet.");
+
+        assertThat(fixture.request().isActive()).isTrue();
+        assertThat(fixture.order().getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
+    }
+
+    private void mockRequest(RequestFixture fixture) {
+        when(orderRepository.findByConfirmationRequestIdForUpdate(11L))
+                .thenReturn(Optional.of(fixture.order()));
+        when(confirmationRequestRepository.findById(11L))
+                .thenReturn(Optional.of(fixture.request()));
+    }
+
+    private RequestFixture sentRequest(Order order, Instant sentAt) {
+        ConfirmationRequest request = ConfirmationRequest.createPending(
                 order,
                 "token",
                 CommunicationChannel.EMAIL,
                 DeliverySlot.of(
-                        java.time.LocalDate.now(clock).plusDays(1),
-                        java.time.LocalTime.of(10, 0),
-                        java.time.LocalTime.of(11, 0)
+                        LocalDate.of(2026, 8, 10),
+                        LocalTime.of(10, 0),
+                        LocalTime.of(12, 0)
                 ),
-                expiresAt.minus(Duration.ofHours(24)),
                 24
         );
-        if (!active) {
-            confirmationRequest.markInactive();
-        }
+        request.markSent(sentAt);
+        order.markSent();
+        return new RequestFixture(order, request);
+    }
 
-        return confirmationRequest;
+    private Order order() {
+        return Order.create(
+                Company.create("Company", "api-key-hash", "http://localhost/callback"),
+                "ORDER-1",
+                Tour.of("17", "WUE-AB 123"),
+                "Customer",
+                "customer@example.com",
+                "+491701234567",
+                "Address",
+                "Heating oil",
+                1_000,
+                "1,000 EUR"
+        );
+    }
+
+    private record RequestFixture(Order order, ConfirmationRequest request) {
     }
 }
-

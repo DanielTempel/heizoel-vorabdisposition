@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_ConfirmationRequest" targetNamespace="http://heizoel.backend/processes">
   <bpmn:message id="Message_CustomerResponseReceived" name="CustomerResponseReceived" />
+  <bpmn:message id="Message_ConfirmationRequestSuperseded" name="ConfirmationRequestSuperseded" />
   <bpmn:error id="Error_NotificationDeliveryFailed" name="Notification delivery failed" errorCode="NOTIFICATION_DELIVERY_FAILED" />
   <bpmn:process id="confirmation-request-process" name="Confirmation Request Process" isExecutable="true" camunda:historyTimeToLive="30">
     <bpmn:startEvent id="StartEvent_ConfirmationRequestCreated" name="Confirmation request created">
@@ -44,12 +45,21 @@
       <bpmn:incoming>Flow_Send_To_WaitForResult</bpmn:incoming>
       <bpmn:outgoing>Flow_WaitForResult_To_ResponseMessage</bpmn:outgoing>
       <bpmn:outgoing>Flow_WaitForResult_To_ResponseDeadline</bpmn:outgoing>
+      <bpmn:outgoing>Flow_WaitForResult_To_SupersededMessage</bpmn:outgoing>
     </bpmn:eventBasedGateway>
     <bpmn:intermediateCatchEvent id="MessageCatchEvent_CustomerResponseReceived" name="Customer response received">
       <bpmn:incoming>Flow_WaitForResult_To_ResponseMessage</bpmn:incoming>
       <bpmn:outgoing>Flow_ResponseMessage_To_FinalStatusGateway</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_CustomerResponseReceived" messageRef="Message_CustomerResponseReceived" />
     </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="MessageCatchEvent_ConfirmationRequestSuperseded" name="Confirmation request superseded">
+      <bpmn:incoming>Flow_WaitForResult_To_SupersededMessage</bpmn:incoming>
+      <bpmn:outgoing>Flow_SupersededMessage_To_SupersededEnd</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_ConfirmationRequestSuperseded" messageRef="Message_ConfirmationRequestSuperseded" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="EndEvent_ConfirmationRequestSuperseded" name="Confirmation request superseded">
+      <bpmn:incoming>Flow_SupersededMessage_To_SupersededEnd</bpmn:incoming>
+    </bpmn:endEvent>
     <bpmn:intermediateCatchEvent id="Timer_ResponseDeadlineReached" name="Response deadline reached">
       <bpmn:extensionElements>
         <camunda:failedJobRetryTimeCycle>R3/PT5M</camunda:failedJobRetryTimeCycle>
@@ -69,11 +79,17 @@
       <bpmn:incoming>Flow_HandleNoResponse_To_FinalStatusGateway</bpmn:incoming>
       <bpmn:outgoing>Flow_FinalStatusGateway_To_Callback</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:callActivity id="CallActivity_SendDispoCallback" name="Send status callback to DISPO" camunda:asyncBefore="true" calledElement="dispo-callback-process">
+    <bpmn:callActivity         id="CallActivity_SendDispoCallback"
+                               name="Send status callback to DISPO"
+                               camunda:asyncBefore="true"
+                               calledElement="dispo-callback-process">
       <bpmn:extensionElements>
         <camunda:failedJobRetryTimeCycle>R3/PT5M</camunda:failedJobRetryTimeCycle>
-        <camunda:in businessKey="${orderId}" />
-        <camunda:in source="orderId" target="orderSnapshotId" />
+        <camunda:in businessKey="${orderId.toString()}" />
+
+        <camunda:in
+                source="orderId"
+                target="orderId" />
         <camunda:in source="confirmationStatus" target="confirmationStatus" />
         <camunda:in source="customerComment" target="customerComment" />
       </bpmn:extensionElements>
@@ -93,6 +109,8 @@
     <bpmn:sequenceFlow id="Flow_RetryTimer_To_Send" sourceRef="Timer_WaitBeforeDeliveryRetry" targetRef="ServiceTask_SendConfirmationRequest" />
     <bpmn:sequenceFlow id="Flow_MarkFailed_To_FailedEnd" sourceRef="ServiceTask_MarkDeliveryFailed" targetRef="EndEvent_DeliveryFailed" />
     <bpmn:sequenceFlow id="Flow_WaitForResult_To_ResponseMessage" sourceRef="EventBasedGateway_WaitForCustomerResult" targetRef="MessageCatchEvent_CustomerResponseReceived" />
+    <bpmn:sequenceFlow id="Flow_WaitForResult_To_SupersededMessage" sourceRef="EventBasedGateway_WaitForCustomerResult" targetRef="MessageCatchEvent_ConfirmationRequestSuperseded" />
+    <bpmn:sequenceFlow id="Flow_SupersededMessage_To_SupersededEnd" sourceRef="MessageCatchEvent_ConfirmationRequestSuperseded" targetRef="EndEvent_ConfirmationRequestSuperseded" />
     <bpmn:sequenceFlow id="Flow_WaitForResult_To_ResponseDeadline" sourceRef="EventBasedGateway_WaitForCustomerResult" targetRef="Timer_ResponseDeadlineReached" />
     <bpmn:sequenceFlow id="Flow_ResponseMessage_To_FinalStatusGateway" sourceRef="MessageCatchEvent_CustomerResponseReceived" targetRef="Gateway_FinalStatusDetermined" />
     <bpmn:sequenceFlow id="Flow_ResponseDeadline_To_HandleNoResponse" sourceRef="Timer_ResponseDeadlineReached" targetRef="ServiceTask_HandleNoResponse" />
@@ -102,6 +120,18 @@
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_ConfirmationRequest">
     <bpmndi:BPMNPlane id="BPMNPlane_ConfirmationRequest" bpmnElement="confirmation-request-process">
+      <bpmndi:BPMNShape id="Gateway_DeliveryAttemptsRemaining_di" bpmnElement="Gateway_DeliveryAttemptsRemaining" isMarkerVisible="true">
+        <dc:Bounds x="395" y="455" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="455" y="466.5" width="86" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Timer_WaitBeforeDeliveryRetry_di" bpmnElement="Timer_WaitBeforeDeliveryRetry">
+        <dc:Bounds x="402" y="352" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="379" y="328" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_MarkDeliveryFailed_di" bpmnElement="ServiceTask_MarkDeliveryFailed">
         <dc:Bounds x="650" y="500" width="150" height="80" />
       </bpmndi:BPMNShape>
@@ -109,12 +139,6 @@
         <dc:Bounds x="860" y="522" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="833" y="565" width="90" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EventBasedGateway_WaitForCustomerResult_di" bpmnElement="EventBasedGateway_WaitForCustomerResult" isMarkerVisible="true">
-        <dc:Bounds x="430" y="215" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="489.5" y="226" width="87" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="MessageCatchEvent_CustomerResponseReceived_di" bpmnElement="MessageCatchEvent_CustomerResponseReceived">
@@ -129,13 +153,10 @@
           <dc:Bounds x="540" y="368" width="96" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ServiceTask_HandleNoResponse_di" bpmnElement="ServiceTask_HandleNoResponse">
-        <dc:Bounds x="680" y="303" width="140" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_FinalStatusDetermined_di" bpmnElement="Gateway_FinalStatusDetermined" isMarkerVisible="true">
         <dc:Bounds x="870" y="215" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="845" y="271" width="100" height="28" />
+          <dc:Bounds x="802.5" y="226" width="57" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_SendDispoCallback_di" bpmnElement="CallActivity_SendDispoCallback">
@@ -147,44 +168,53 @@
           <dc:Bounds x="1170" y="265" width="96" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="StartEvent_ConfirmationRequestCreated_di" bpmnElement="StartEvent_ConfirmationRequestCreated">
-        <dc:Bounds x="42" y="222" width="36" height="36" />
+      <bpmndi:BPMNShape id="ServiceTask_HandleNoResponse_di" bpmnElement="ServiceTask_HandleNoResponse">
+        <dc:Bounds x="683" y="303" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EventBasedGateway_WaitForCustomerResult_di" bpmnElement="EventBasedGateway_WaitForCustomerResult" isMarkerVisible="true">
+        <dc:Bounds x="430" y="195" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="22" y="265" width="77" height="27" />
+          <dc:Bounds x="490" y="206" width="86" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_SendConfirmationRequest_di" bpmnElement="ServiceTask_SendConfirmationRequest">
-        <dc:Bounds x="145" y="200" width="150" height="80" />
+        <dc:Bounds x="155" y="180" width="150" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_DeliveryAttemptsRemaining_di" bpmnElement="Gateway_DeliveryAttemptsRemaining" isMarkerVisible="true">
-        <dc:Bounds x="395" y="455" width="50" height="50" />
+      <bpmndi:BPMNShape id="MessageCatchEvent_ConfirmationRequestSuperseded_di" bpmnElement="MessageCatchEvent_ConfirmationRequestSuperseded">
+        <dc:Bounds x="602" y="202" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="455" y="466.5" width="86" height="27" />
+          <dc:Bounds x="589" y="245" width="63" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Timer_WaitBeforeDeliveryRetry_di" bpmnElement="Timer_WaitBeforeDeliveryRetry">
-        <dc:Bounds x="402" y="352" width="36" height="36" />
+      <bpmndi:BPMNShape id="EndEvent_ConfirmationRequestSuperseded_di" bpmnElement="EndEvent_ConfirmationRequestSuperseded">
+        <dc:Bounds x="735" y="202" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="379" y="328" width="81" height="14" />
+          <dc:Bounds x="723" y="245" width="63" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_ConfirmationRequestCreated_di" bpmnElement="StartEvent_ConfirmationRequestCreated">
+        <dc:Bounds x="42" y="202" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="22" y="245" width="77" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BoundaryEvent_NotificationDeliveryFailed_di" bpmnElement="BoundaryEvent_NotificationDeliveryFailed">
-        <dc:Bounds x="202" y="262" width="36" height="36" />
+        <dc:Bounds x="212" y="242" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="187" y="304" width="68" height="27" />
+          <dc:Bounds x="197" y="284" width="68" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_Start_To_Send_di" bpmnElement="Flow_Start_To_Send">
-        <di:waypoint x="78" y="240" />
-        <di:waypoint x="145" y="240" />
+        <di:waypoint x="78" y="220" />
+        <di:waypoint x="155" y="220" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_Send_To_WaitForResult_di" bpmnElement="Flow_Send_To_WaitForResult">
-        <di:waypoint x="295" y="240" />
-        <di:waypoint x="430" y="240" />
+        <di:waypoint x="305" y="220" />
+        <di:waypoint x="430" y="220" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_DeliveryError_To_AttemptsGateway_di" bpmnElement="Flow_DeliveryError_To_AttemptsGateway">
-        <di:waypoint x="220" y="298" />
-        <di:waypoint x="220" y="480" />
+        <di:waypoint x="230" y="278" />
+        <di:waypoint x="230" y="480" />
         <di:waypoint x="395" y="480" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_AttemptsRemaining_To_RetryTimer_di" bpmnElement="Flow_AttemptsRemaining_To_RetryTimer">
@@ -204,20 +234,28 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_RetryTimer_To_Send_di" bpmnElement="Flow_RetryTimer_To_Send">
         <di:waypoint x="402" y="370" />
-        <di:waypoint x="275" y="370" />
-        <di:waypoint x="275" y="280" />
+        <di:waypoint x="285" y="370" />
+        <di:waypoint x="285" y="260" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_MarkFailed_To_FailedEnd_di" bpmnElement="Flow_MarkFailed_To_FailedEnd">
         <di:waypoint x="800" y="540" />
         <di:waypoint x="860" y="540" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_WaitForResult_To_ResponseMessage_di" bpmnElement="Flow_WaitForResult_To_ResponseMessage">
-        <di:waypoint x="455" y="215" />
+        <di:waypoint x="455" y="195" />
         <di:waypoint x="455" y="138" />
         <di:waypoint x="570" y="138" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WaitForResult_To_SupersededMessage_di" bpmnElement="Flow_WaitForResult_To_SupersededMessage">
+        <di:waypoint x="480" y="220" />
+        <di:waypoint x="602" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SupersededMessage_To_SupersededEnd_di" bpmnElement="Flow_SupersededMessage_To_SupersededEnd">
+        <di:waypoint x="638" y="220" />
+        <di:waypoint x="735" y="220" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_WaitForResult_To_ResponseDeadline_di" bpmnElement="Flow_WaitForResult_To_ResponseDeadline">
-        <di:waypoint x="455" y="265" />
+        <di:waypoint x="455" y="245" />
         <di:waypoint x="455" y="343" />
         <di:waypoint x="570" y="343" />
       </bpmndi:BPMNEdge>
@@ -228,10 +266,10 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_ResponseDeadline_To_HandleNoResponse_di" bpmnElement="Flow_ResponseDeadline_To_HandleNoResponse">
         <di:waypoint x="606" y="343" />
-        <di:waypoint x="680" y="343" />
+        <di:waypoint x="683" y="343" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_HandleNoResponse_To_FinalStatusGateway_di" bpmnElement="Flow_HandleNoResponse_To_FinalStatusGateway">
-        <di:waypoint x="820" y="343" />
+        <di:waypoint x="823" y="343" />
         <di:waypoint x="895" y="343" />
         <di:waypoint x="895" y="265" />
       </bpmndi:BPMNEdge>

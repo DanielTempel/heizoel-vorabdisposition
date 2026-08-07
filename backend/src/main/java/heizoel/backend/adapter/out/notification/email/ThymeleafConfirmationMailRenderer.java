@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
@@ -17,22 +15,12 @@ import java.util.Locale;
 public class ThymeleafConfirmationMailRenderer {
 
     private static final Locale MAIL_LOCALE = Locale.GERMANY;
-    private static final ZoneId DELIVERY_ZONE = ZoneId.of("Europe/Berlin");
-    private static final DateTimeFormatter DELIVERY_DATE_FORMATTER =
-            DateTimeFormatter.ofPattern("dd.MM.yyyy", MAIL_LOCALE);
-    private static final DateTimeFormatter DELIVERY_TIME_FORMATTER =
-            DateTimeFormatter.ofPattern("HH:mm", MAIL_LOCALE);
-    private static final DateTimeFormatter DEADLINE_FORMATTER =
-            DateTimeFormatter.ofPattern("dd.MM.yyyy, H 'Uhr'", MAIL_LOCALE);
+    private static final DateTimeFormatter DELIVERY_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy", MAIL_LOCALE);
+    private static final DateTimeFormatter DELIVERY_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm", MAIL_LOCALE);
 
-    private static final String TEMPLATE_CONFIRMATION_REQUEST =
-            "mail/confirmation-request";
-
-    private static final String TEMPLATE_CUSTOMER_CONFIRMED =
-            "mail/customer-response-confirmed";
-
-    private static final String TEMPLATE_CUSTOMER_REJECTED =
-            "mail/customer-response-rejected";
+    private static final String TEMPLATE_CONFIRMATION_REQUEST = "mail/confirmation-request";
+    private static final String TEMPLATE_CUSTOMER_CONFIRMED = "mail/customer-response-confirmed";
+    private static final String TEMPLATE_CUSTOMER_REJECTED = "mail/customer-response-rejected";
 
     private final TemplateEngine templateEngine;
 
@@ -45,11 +33,6 @@ public class ThymeleafConfirmationMailRenderer {
                 order,
                 confirmationRequest,
                 confirmationUrl
-        );
-
-        context.setVariable(
-                "responseDeadline",
-                formatDeadline(confirmationRequest)
         );
 
         return templateEngine.process(TEMPLATE_CONFIRMATION_REQUEST, context);
@@ -115,12 +98,6 @@ public class ThymeleafConfirmationMailRenderer {
         return context;
     }
 
-
-    private String formatDeadline(ConfirmationRequest confirmationRequest) {
-        return confirmationRequest.getExpiresAt()
-                .atZone(DELIVERY_ZONE)
-                .format(DEADLINE_FORMATTER);
-    }
 
 }
 

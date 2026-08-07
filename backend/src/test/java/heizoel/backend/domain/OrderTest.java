@@ -119,7 +119,7 @@ class OrderTest {
     }
 
     @Test
-    void updateStoresNewTourAndResetsStatusToSent() {
+    void updateStoresNewDataWithoutChangingStatus() {
         Order order = order(ORIGINAL_TOUR);
         order.markRejected();
         Tour changedTour = Tour.of("18", "WÜ-CD 456");
@@ -143,7 +143,7 @@ class OrderTest {
         assertThat(order.getProduct()).isEqualTo("Premium Heizöl");
         assertThat(order.getQuantityLiters()).isEqualTo(4000);
         assertThat(order.getPriceDisplayText()).isEqualTo("99,00 € / 100 L");
-        assertThat(order.getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
+        assertThat(order.getConfirmationStatus()).isEqualTo(ConfirmationStatus.REJECTED);
     }
 
     @Test

@@ -96,38 +96,31 @@ public class ConfirmationRequest {
             );
         }
 
-        Instant calculatedExpiresAt = calculateExpiresAt(
-                deliverySlot,
-                sentAt,
-                responseDeadlineHours
-        );
-
         this.sentAt = sentAt;
-        this.expiresAt = calculatedExpiresAt;
+        this.expiresAt = calculateResponseDeadline(sentAt);
         this.deliveryStatus = NotificationDeliveryStatus.SENT;
         this.active = true;
     }
 
-    private static Instant calculateExpiresAt(
-            DeliverySlot deliverySlot,
-            Instant sentAt,
-            Integer responseDeadlineHours
-    ) {
+    public Instant calculateResponseDeadline(Instant sentAt) {
+        validateCanBeSentAt(sentAt);
+
+        Instant requestedDeadline =
+                sentAt.plus(Duration.ofHours(responseDeadlineHours));
+
         Instant deliveryStartsAt = deliverySlot.startsAt();
 
-        if (!deliveryStartsAt.isAfter(sentAt)) {
+        return requestedDeadline.isBefore(deliveryStartsAt)
+                ? requestedDeadline
+                : deliveryStartsAt;
+    }
+
+    public void validateCanBeSentAt(Instant now) {
+        if (!deliverySlot.startsAt().isAfter(now)) {
             throw new InvalidDeliveryWindowException(
                     "Delivery window must start in the future."
             );
         }
-
-        Instant requestedExpiresAt = sentAt.plus(
-                Duration.ofHours(responseDeadlineHours)
-        );
-
-        return requestedExpiresAt.isBefore(deliveryStartsAt)
-                ? requestedExpiresAt
-                : deliveryStartsAt;
     }
 
     public void markInactive() {
@@ -137,6 +130,7 @@ public class ConfirmationRequest {
     public boolean isExpiredAt(Instant now) {
         return expiresAt != null && !expiresAt.isAfter(now);
     }
+
 
     public boolean hasSameData(
             DeliverySlot deliverySlot,

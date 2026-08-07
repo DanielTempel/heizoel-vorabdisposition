@@ -143,9 +143,9 @@ class GetConfirmationPreviewServiceTest {
                         LocalTime.of(8, 0),
                         LocalTime.of(10, 0)
                 ),
-                SENT_AT,
                 24
         );
+        request.markSent(SENT_AT);
         if (!active) {
             request.markInactive();
         }
