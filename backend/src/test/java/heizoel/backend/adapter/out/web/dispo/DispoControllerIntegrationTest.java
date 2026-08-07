@@ -1,14 +1,20 @@
 package heizoel.backend.adapter.out.web.dispo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import heizoel.backend.adapter.in.web.overview.dto.ResendConfirmationRequestRequestDto;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
 import heizoel.backend.application.port.out.notification.NotificationService;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.ConfirmationStatus;
+import heizoel.backend.domain.DeliverySlot;
 import heizoel.backend.domain.NotificationDeliveryStatus;
 import heizoel.backend.domain.Order;
+import org.camunda.bpm.engine.ManagementService;
+import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.runtime.Job;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +44,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class DispoControllerIntegrationTest {
 
+    private static final String CONFIRMATION_PROCESS_KEY = "confirmation-request-process";
+    private static final String SEND_ACTIVITY = "ServiceTask_SendConfirmationRequest";
+
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16")
             .withDatabaseName("heizoel_backend_test")
@@ -65,6 +74,12 @@ class DispoControllerIntegrationTest {
 
     @Autowired
     ConfirmationRequestRepository confirmationRequestRepository;
+
+    @Autowired
+    RuntimeService runtimeService;
+
+    @Autowired
+    ManagementService managementService;
 
     @MockitoBean
     NotificationService notificationService;
@@ -199,6 +214,85 @@ class DispoControllerIntegrationTest {
         assertThat(requests).hasSize(1);
         assertThat(requests.get(0).getResponseDeadlineHours()).isEqualTo(168);
         assertThat(requests.get(0).getExpiresAt()).isNull();
+    }
+
+    @Test
+    void resendEndpointReturnsAcceptedAndStartsPendingWorkflow() throws Exception {
+        performCreate(
+                request("ORDER-RESEND", CommunicationChannel.EMAIL)
+                        .withContacts(
+                                "customer@example.com",
+                                "+491701234567"
+                        )
+        ).andExpect(status().isAccepted());
+
+        Order order = orderRepository.findAll().get(0);
+        ConfirmationRequest oldRequest =
+                confirmationRequestRepository.findTopByOrderOrderByIdDesc(order)
+                        .orElseThrow();
+        Long oldRequestId = oldRequest.getId();
+        DeliverySlot oldDeliverySlot = oldRequest.getDeliverySlot();
+
+        ProcessInstance oldProcess = runtimeService
+                .createProcessInstanceQuery()
+                .processDefinitionKey(CONFIRMATION_PROCESS_KEY)
+                .processInstanceBusinessKey(oldRequestId.toString())
+                .singleResult();
+        assertThat(oldProcess).isNotNull();
+
+        Job oldSendJob = managementService
+                .createJobQuery()
+                .processInstanceId(oldProcess.getId())
+                .activityId(SEND_ACTIVITY)
+                .singleResult();
+        assertThat(oldSendJob).isNotNull();
+        managementService.executeJob(oldSendJob.getId());
+        assertThat(
+                confirmationRequestRepository.findById(oldRequestId)
+                        .orElseThrow()
+                        .isActive()
+        ).isTrue();
+
+        mockMvc.perform(post(
+                        "/api/dispo/dashboard/orders/{externalOrderId}/resend",
+                        "ORDER-RESEND"
+                )
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new ResendConfirmationRequestRequestDto(
+                                        CommunicationChannel.SMS,
+                                        24
+                                )
+                        )))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.externalOrderId").value("ORDER-RESEND"))
+                .andExpect(jsonPath("$.confirmationStatus").value("OPEN"));
+
+        Order updatedOrder = orderRepository.findById(order.getId()).orElseThrow();
+        ConfirmationRequest updatedOldRequest =
+                confirmationRequestRepository.findById(oldRequestId).orElseThrow();
+        ConfirmationRequest newRequest =
+                confirmationRequestRepository
+                        .findTopByOrderOrderByIdDesc(updatedOrder)
+                        .orElseThrow();
+
+        assertThat(updatedOldRequest.isActive()).isFalse();
+        assertThat(newRequest.getId()).isNotEqualTo(oldRequestId);
+        assertThat(newRequest.getCommunicationChannel())
+                .isEqualTo(CommunicationChannel.SMS);
+        assertThat(newRequest.getResponseDeadlineHours()).isEqualTo(24);
+        assertThat(newRequest.getDeliveryStatus())
+                .isEqualTo(NotificationDeliveryStatus.PENDING);
+        assertThat(newRequest.getDeliverySlot()).isEqualTo(oldDeliverySlot);
+        assertThat(updatedOrder.getConfirmationStatus())
+                .isEqualTo(ConfirmationStatus.OPEN);
+
+        ProcessInstance newProcess = runtimeService
+                .createProcessInstanceQuery()
+                .processDefinitionKey(CONFIRMATION_PROCESS_KEY)
+                .processInstanceBusinessKey(newRequest.getId().toString())
+                .singleResult();
+        assertThat(newProcess).isNotNull();
     }
 
     private org.springframework.test.web.servlet.ResultActions performCreate(

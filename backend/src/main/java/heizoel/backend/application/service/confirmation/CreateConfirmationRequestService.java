@@ -6,7 +6,6 @@ import heizoel.backend.adapter.out.persistence.OrderRepository;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestCommand;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestResult;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestUseCase;
-import heizoel.backend.application.port.out.token.TokenService;
 import heizoel.backend.application.port.out.workflow.ConfirmationWorkflowService;
 import heizoel.backend.domain.*;
 import heizoel.backend.domain.company.Company;
@@ -26,8 +25,8 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
     private final CompanyRepository companyRepository;
     private final OrderRepository orderRepository;
     private final ConfirmationRequestRepository confirmationRequestRepository;
-    private final TokenService tokenService;
     private final ConfirmationWorkflowService confirmationWorkflowService;
+    private final ConfirmationRequestStarter confirmationRequestStarter;
 
     @Override
     @Transactional
@@ -70,10 +69,18 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
             );
             Order savedOrder = orderRepository.save(order);
 
-            return createNewPendingRequest(
+            confirmationRequestStarter.createAndStart(
                     savedOrder,
-                    requestData
+                    requestData.communicationChannel(),
+                    requestData.deliverySlot(),
+                    requestData.responseDeadlineHours()
             );
+
+            return new CreateConfirmationRequestResult(
+                    savedOrder.getExternalOrderId(),
+                    savedOrder.getConfirmationStatus()
+            );
+
         }
 
         Order order = existingOrder.get();
@@ -90,9 +97,16 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
             updateOrder(order, orderData);
             order.markOpen();
 
-            return createNewPendingRequest(
+            confirmationRequestStarter.createAndStart(
                     order,
-                    requestData
+                    requestData.communicationChannel(),
+                    requestData.deliverySlot(),
+                    requestData.responseDeadlineHours()
+            );
+
+            return new CreateConfirmationRequestResult(
+                    order.getExternalOrderId(),
+                    order.getConfirmationStatus()
             );
         }
 
@@ -185,35 +199,18 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
          * FAILED, NO_RESPONSE, or modified SENT request:
          * create a new PENDING request and a new Camunda process.
          */
-        return createNewPendingRequest(
+        confirmationRequestStarter.createAndStart(
                 order,
-                requestData
+                requestData.communicationChannel(),
+                requestData.deliverySlot(),
+                requestData.responseDeadlineHours()
         );
-    }
-
-    private CreateConfirmationRequestResult createNewPendingRequest(
-            Order order,
-            RequestData requestData
-    ) {
-        ConfirmationRequest request =
-                ConfirmationRequest.createPending(
-                        order,
-                        tokenService.generateToken(),
-                        requestData.communicationChannel(),
-                        requestData.deliverySlot(),
-                        requestData.responseDeadlineHours()
-                );
-
-        ConfirmationRequest savedRequest = confirmationRequestRepository.save(request);
-
-        confirmationWorkflowService.startDeliveryProcess(savedRequest.getId());
 
         return new CreateConfirmationRequestResult(
                 order.getExternalOrderId(),
                 order.getConfirmationStatus()
         );
     }
-
 
     private void validateCommunicationChannel(CreateConfirmationRequestCommand command) {
         if (command.communicationChannel() == CommunicationChannel.EMAIL

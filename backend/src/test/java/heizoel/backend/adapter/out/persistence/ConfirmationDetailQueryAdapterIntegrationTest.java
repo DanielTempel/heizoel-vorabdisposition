@@ -10,6 +10,7 @@ import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.CustomerResponse;
 import heizoel.backend.domain.CustomerResponseType;
 import heizoel.backend.domain.DeliverySlot;
+import heizoel.backend.domain.NotificationDeliveryStatus;
 import heizoel.backend.domain.Order;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -119,7 +120,7 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
             assertThat(current.expiresAt()).isEqualTo(SENT_AT.plusSeconds(24 * 60 * 60));
             assertThat(current.responseDeadlineHours()).isEqualTo(24);
             assertThat(current.active()).isTrue();
-            assertThat(current.status()).isEqualTo(ConfirmationStatus.SENT);
+            assertThat(current.status()).isEqualTo("SENT");
             assertThat(current.customerResponse()).isNull();
         });
         assertThat(result.previousRequests()).isEmpty();
@@ -163,13 +164,13 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
         ConfirmationDetail result = find(company.getId(), "ORDER-HISTORY").orElseThrow();
 
         assertThat(result.currentRequest().requestId()).isEqualTo(third.getId());
-        assertThat(result.currentRequest().status()).isEqualTo(ConfirmationStatus.SENT);
+        assertThat(result.currentRequest().status()).isEqualTo("SENT");
         assertThat(result.previousRequests())
                 .extracting(RequestDetail::requestId)
                 .containsExactly(second.getId(), first.getId());
         assertThat(result.previousRequests())
                 .extracting(RequestDetail::status)
-                .containsExactly(ConfirmationStatus.REJECTED, ConfirmationStatus.NO_RESPONSE);
+                .containsExactly("REJECTED", "NO_RESPONSE");
     }
 
     @Test
@@ -193,7 +194,7 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
 
         ConfirmationDetail result = find(company.getId(), "ORDER-RESPONSE").orElseThrow();
 
-        assertThat(result.currentRequest().status()).isEqualTo(ConfirmationStatus.CONFIRMED);
+        assertThat(result.currentRequest().status()).isEqualTo("CONFIRMED");
         assertThat(result.currentRequest().customerResponse()).satisfies(response -> {
             assertThat(response.responseType()).isEqualTo(CustomerResponseType.CONFIRM);
             assertThat(response.comment()).isEqualTo("Delivery is fine");
@@ -222,7 +223,7 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
 
         ConfirmationDetail result = find(company.getId(), "ORDER-NO-RESPONSE").orElseThrow();
 
-        assertThat(result.currentRequest().status()).isEqualTo(ConfirmationStatus.NO_RESPONSE);
+        assertThat(result.currentRequest().status()).isEqualTo("NO_RESPONSE");
         assertThat(result.currentRequest().customerResponse()).isNull();
     }
 
@@ -274,19 +275,19 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
     }
 
     @Test
-    void ignoresPendingRequestAndUsesNewestSentRequestAsCurrent() {
-        Company company = testData.createCompany("Pending request filtering");
+    void returnsLatestPendingAsCurrentAndPreviousSentInHistory() {
+        Company company = testData.createCompany("Pending request current");
         Order order = testData.createOrder(
                 company,
-                "ORDER-PENDING-FILTER",
+                "ORDER-PENDING-CURRENT",
                 "A-17",
                 "WUE-DEMO 100",
-                ConfirmationStatus.SENT
+                ConfirmationStatus.OPEN
         );
         ConfirmationRequest sent = createRequest(
                 order,
                 SENT_AT,
-                true,
+                false,
                 CommunicationChannel.EMAIL,
                 null,
                 null
@@ -297,25 +298,30 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
 
         ConfirmationDetail result = find(
                 company.getId(),
-                "ORDER-PENDING-FILTER"
+                "ORDER-PENDING-CURRENT"
         ).orElseThrow();
 
         assertThat(pending.getId()).isGreaterThan(sent.getId());
-        assertThat(result.currentRequest().requestId()).isEqualTo(sent.getId());
-        assertThat(result.previousRequests()).isEmpty();
+        assertThat(result.currentRequest().requestId()).isEqualTo(pending.getId());
+        assertThat(result.currentRequest().deliveryStatus())
+                .isEqualTo(NotificationDeliveryStatus.PENDING);
+        assertThat(result.currentRequest().status()).isEqualTo("PENDING");
+        assertThat(result.previousRequests())
+                .extracting(RequestDetail::requestId)
+                .containsExactly(sent.getId());
     }
 
     @Test
-    void ignoresFailedRequestsAndKeepsOnlySentRequestHistory() {
-        Company company = testData.createCompany("Failed request filtering");
+    void returnsLatestFailedAsCurrent() {
+        Company company = testData.createCompany("Failed request current");
         Order order = testData.createOrder(
                 company,
-                "ORDER-FAILED-FILTER",
+                "ORDER-FAILED-CURRENT",
                 "A-17",
                 "WUE-DEMO 100",
-                ConfirmationStatus.SENT
+                ConfirmationStatus.OPEN
         );
-        ConfirmationRequest firstSent = createRequest(
+        ConfirmationRequest sent = createRequest(
                 order,
                 SENT_AT,
                 false,
@@ -326,25 +332,20 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
         ConfirmationRequest failed = createFailedRequest(
                 order
         );
-        ConfirmationRequest newestSent = createRequest(
-                order,
-                SENT_AT.plusSeconds(3_600),
-                true,
-                CommunicationChannel.EMAIL,
-                null,
-                null
-        );
 
         ConfirmationDetail result = find(
                 company.getId(),
-                "ORDER-FAILED-FILTER"
+                "ORDER-FAILED-CURRENT"
         ).orElseThrow();
 
-        assertThat(failed.getId()).isBetween(firstSent.getId(), newestSent.getId());
-        assertThat(result.currentRequest().requestId()).isEqualTo(newestSent.getId());
+        assertThat(failed.getId()).isGreaterThan(sent.getId());
+        assertThat(result.currentRequest().requestId()).isEqualTo(failed.getId());
+        assertThat(result.currentRequest().deliveryStatus())
+                .isEqualTo(NotificationDeliveryStatus.FAILED);
+        assertThat(result.currentRequest().status()).isEqualTo("FAILED");
         assertThat(result.previousRequests())
                 .extracting(RequestDetail::requestId)
-                .containsExactly(firstSent.getId());
+                .containsExactly(sent.getId());
     }
 
     @Test

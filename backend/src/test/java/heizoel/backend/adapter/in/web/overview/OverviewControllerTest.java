@@ -4,6 +4,7 @@ import heizoel.backend.adapter.in.web.security.CompanyContextResolver;
 import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.exception.InvalidFilterException;
 import heizoel.backend.application.model.overview.TourOverviewPage;
+import heizoel.backend.application.port.in.confirmation.ResendConfirmationRequestUseCase;
 import heizoel.backend.application.port.in.overview.GetConfirmationDetailUseCase;
 import heizoel.backend.application.port.in.overview.GetTourNumbersQuery;
 import heizoel.backend.application.port.in.overview.GetTourNumbersUseCase;
@@ -51,6 +52,9 @@ class OverviewControllerTest {
 
     @MockitoBean
     GetConfirmationDetailUseCase getConfirmationDetailUseCase;
+
+    @MockitoBean
+    ResendConfirmationRequestUseCase resendConfirmationRequestUseCase;
 
     @MockitoBean
     Clock clock;

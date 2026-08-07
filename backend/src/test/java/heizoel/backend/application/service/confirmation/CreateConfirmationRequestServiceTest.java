@@ -1,4 +1,4 @@
-package heizoel.backend.application.service;
+package heizoel.backend.application.service.confirmation;
 
 import heizoel.backend.adapter.out.persistence.CompanyRepository;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
@@ -6,9 +6,7 @@ import heizoel.backend.adapter.out.persistence.OrderRepository;
 import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestCommand;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestResult;
-import heizoel.backend.application.port.out.token.TokenService;
 import heizoel.backend.application.port.out.workflow.ConfirmationWorkflowService;
-import heizoel.backend.application.service.confirmation.CreateConfirmationRequestService;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.ConfirmationStatus;
@@ -30,6 +28,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -53,16 +52,13 @@ class CreateConfirmationRequestServiceTest {
     ConfirmationRequestRepository confirmationRequestRepository;
 
     @Mock
-    TokenService tokenService;
+    ConfirmationRequestStarter confirmationRequestStarter;
 
     @Mock
     ConfirmationWorkflowService confirmationWorkflowService;
 
     @Mock
     Company company;
-
-    @Mock
-    ConfirmationRequest savedRequest;
 
     CreateConfirmationRequestService service;
 
@@ -72,29 +68,35 @@ class CreateConfirmationRequestServiceTest {
                 companyRepository,
                 orderRepository,
                 confirmationRequestRepository,
-                tokenService,
-                confirmationWorkflowService
+                confirmationWorkflowService,
+                confirmationRequestStarter
         );
         when(companyRepository.findById(1L)).thenReturn(Optional.of(company));
         when(company.getId()).thenReturn(1L);
     }
 
     @Test
-    void newOrderCreatesPendingRequestAndStartsProcess() {
+    void newOrderDelegatesPendingRequestCreationToStarter() {
+        CreateConfirmationRequestCommand command = command();
         when(orderRepository.findByCompanyIdAndExternalOrderId(1L, "ORDER-1"))
                 .thenReturn(Optional.empty());
         when(orderRepository.save(any(Order.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        stubNewRequest();
 
-        CreateConfirmationRequestResult result = service.createConfirmationRequest(command());
+        CreateConfirmationRequestResult result = service.createConfirmationRequest(command);
 
-        ConfirmationRequest request = captureSavedRequest();
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         assertThat(result.confirmationStatus()).isEqualTo(ConfirmationStatus.OPEN);
-        assertThat(request.isPending()).isTrue();
-        assertThat(request.isActive()).isFalse();
-        assertThat(request.getToken()).isEqualTo("new-token");
-        verify(confirmationWorkflowService).startDeliveryProcess(42L);
+        verify(confirmationRequestStarter).createAndStart(
+                orderCaptor.capture(),
+                eq(CommunicationChannel.EMAIL),
+                eq(deliverySlot(command)),
+                eq(24)
+        );
+        assertThat(orderCaptor.getValue().getExternalOrderId()).isEqualTo("ORDER-1");
+        assertThat(orderCaptor.getValue().getConfirmationStatus())
+                .isEqualTo(ConfirmationStatus.OPEN);
+        verifyNoInteractions(confirmationWorkflowService);
     }
 
     @Test
@@ -142,7 +144,6 @@ class CreateConfirmationRequestServiceTest {
         ConfirmationRequest oldRequest = spy(sentRequest(order, original));
         when(oldRequest.getId()).thenReturn(7L);
         mockExisting(order, oldRequest);
-        stubNewRequest();
         CreateConfirmationRequestCommand changed = command(
                 "Customer",
                 CommunicationChannel.SMS,
@@ -152,14 +153,15 @@ class CreateConfirmationRequestServiceTest {
 
         CreateConfirmationRequestResult result = service.createConfirmationRequest(changed);
 
-        ConfirmationRequest newRequest = captureSavedRequest();
         assertThat(result.confirmationStatus()).isEqualTo(ConfirmationStatus.OPEN);
         assertThat(oldRequest.isActive()).isFalse();
-        assertThat(newRequest).isNotSameAs(oldRequest);
-        assertThat(newRequest.isPending()).isTrue();
-        assertThat(newRequest.getCommunicationChannel()).isEqualTo(CommunicationChannel.SMS);
         verify(confirmationWorkflowService).notifyConfirmationRequestSuperseded(7L);
-        verify(confirmationWorkflowService).startDeliveryProcess(42L);
+        verify(confirmationRequestStarter).createAndStart(
+                order,
+                CommunicationChannel.SMS,
+                deliverySlot(changed),
+                24
+        );
     }
 
     @Test
@@ -169,16 +171,18 @@ class CreateConfirmationRequestServiceTest {
         ConfirmationRequest failedRequest = pendingRequest(order, command);
         failedRequest.markDeliveryFailed();
         mockExisting(order, failedRequest);
-        stubNewRequest();
 
         CreateConfirmationRequestResult result = service.createConfirmationRequest(command);
 
-        ConfirmationRequest newRequest = captureSavedRequest();
         assertThat(result.confirmationStatus()).isEqualTo(ConfirmationStatus.OPEN);
         assertThat(failedRequest.isDeliveryFailed()).isTrue();
-        assertThat(newRequest).isNotSameAs(failedRequest);
-        assertThat(newRequest.isPending()).isTrue();
-        verify(confirmationWorkflowService).startDeliveryProcess(42L);
+        verify(confirmationRequestStarter).createAndStart(
+                order,
+                CommunicationChannel.EMAIL,
+                deliverySlot(command),
+                24
+        );
+        verifyNoInteractions(confirmationWorkflowService);
     }
 
 
@@ -209,16 +213,17 @@ class CreateConfirmationRequestServiceTest {
         oldRequest.markInactive();
         order.markNoResponse();
         mockExisting(order, oldRequest);
-        stubNewRequest();
 
         CreateConfirmationRequestResult result = service.createConfirmationRequest(command);
 
-        ConfirmationRequest newRequest = captureSavedRequest();
         assertThat(result.confirmationStatus()).isEqualTo(ConfirmationStatus.OPEN);
         assertThat(oldRequest.isActive()).isFalse();
-        assertThat(newRequest).isNotSameAs(oldRequest);
-        assertThat(newRequest.isPending()).isTrue();
-        verify(confirmationWorkflowService).startDeliveryProcess(42L);
+        verify(confirmationRequestStarter).createAndStart(
+                order,
+                CommunicationChannel.EMAIL,
+                deliverySlot(command),
+                24
+        );
         verify(confirmationWorkflowService, never()).notifyConfirmationRequestSuperseded(any());
     }
 
@@ -251,23 +256,11 @@ class CreateConfirmationRequestServiceTest {
         assertNoNewRequestOrProcess();
     }
 
-    private void stubNewRequest() {
-        when(tokenService.generateToken()).thenReturn("new-token");
-        when(confirmationRequestRepository.save(any(ConfirmationRequest.class)))
-                .thenReturn(savedRequest);
-        when(savedRequest.getId()).thenReturn(42L);
-    }
-
-    private ConfirmationRequest captureSavedRequest() {
-        ArgumentCaptor<ConfirmationRequest> captor =
-                ArgumentCaptor.forClass(ConfirmationRequest.class);
-        verify(confirmationRequestRepository).save(captor.capture());
-        return captor.getValue();
-    }
-
     private void assertNoNewRequestOrProcess() {
-        verify(confirmationRequestRepository, never()).save(any());
-        verifyNoInteractions(tokenService, confirmationWorkflowService);
+        verifyNoInteractions(
+                confirmationRequestStarter,
+                confirmationWorkflowService
+        );
     }
 
     private void mockExisting(Order order, ConfirmationRequest request) {
