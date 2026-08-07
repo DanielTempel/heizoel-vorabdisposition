@@ -79,16 +79,16 @@ final class DashboardTestData {
         return order;
     }
 
-    ConfirmationRequest createRequest(
+    void createRequest(
             Order order,
             LocalDate date,
             LocalTime start,
             LocalTime end
     ) {
-        return createRequest(order, date, start, end, CommunicationChannel.EMAIL);
+        createRequest(order, date, start, end, CommunicationChannel.EMAIL);
     }
 
-    ConfirmationRequest createRequest(
+    void createRequest(
             Order order,
             LocalDate date,
             LocalTime start,
@@ -104,7 +104,6 @@ final class DashboardTestData {
         );
         request.markSent(SENT_AT);
         entityManager.persist(request);
-        return request;
     }
 
     void flushAndClear() {

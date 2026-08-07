@@ -51,7 +51,7 @@ class GetConfirmationPreviewServiceTest {
 
     @Test
     void returnsRejectedForInactiveHistoricalRequestWithRejectResponse() {
-        Order order = order(ConfirmationStatus.CONFIRMED);
+        Order order = order();
         ConfirmationRequest request = request(order, false);
         CustomerResponse response = CustomerResponse.create(
                 request,
@@ -71,7 +71,7 @@ class GetConfirmationPreviewServiceTest {
     @Test
     void returnsNoResponseForInactiveRequestWithoutCustomerResponse() {
         ConfirmationRequest request = request(
-                order(ConfirmationStatus.CONFIRMED),
+                order(),
                 false
         );
         mockRepositories(request, Optional.empty());
@@ -85,7 +85,7 @@ class GetConfirmationPreviewServiceTest {
     @Test
     void returnsSentForActiveRequestWithoutCustomerResponse() {
         ConfirmationRequest request = request(
-                order(ConfirmationStatus.CONFIRMED),
+                order(),
                 true
         );
         mockRepositories(request, Optional.empty());
@@ -106,7 +106,7 @@ class GetConfirmationPreviewServiceTest {
                 .thenReturn(response);
     }
 
-    private Order order(ConfirmationStatus status) {
+    private Order order() {
         Order order = Order.create(
                 Company.create(
                         "Company",
@@ -124,7 +124,7 @@ class GetConfirmationPreviewServiceTest {
                 "2,500 EUR"
         );
 
-        if (status == ConfirmationStatus.CONFIRMED) {
+        if (ConfirmationStatus.CONFIRMED == ConfirmationStatus.CONFIRMED) {
             order.markConfirmed();
         }
         return order;

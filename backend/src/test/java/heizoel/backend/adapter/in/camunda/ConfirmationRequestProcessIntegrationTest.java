@@ -58,11 +58,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -515,10 +511,10 @@ class ConfirmationRequestProcessIntegrationTest {
             Throwable confirmFailure = confirm.get(10, TimeUnit.SECONDS);
             Throwable rejectFailure = reject.get(10, TimeUnit.SECONDS);
             assertThat(Arrays.asList(confirmFailure, rejectFailure))
-                    .filteredOn(failure -> failure == null)
+                    .filteredOn(Objects::isNull)
                     .hasSize(1);
             assertThat(Arrays.asList(confirmFailure, rejectFailure))
-                    .filteredOn(failure -> failure != null)
+                    .filteredOn(Objects::nonNull)
                     .allSatisfy(failure -> assertThat(failure)
                             .isInstanceOfAny(
                                     ConfirmationRequestInactiveException.class,

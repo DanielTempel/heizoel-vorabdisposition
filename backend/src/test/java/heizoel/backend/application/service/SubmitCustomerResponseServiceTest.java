@@ -31,6 +31,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
@@ -68,7 +69,7 @@ class SubmitCustomerResponseServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = serviceAt(NOW);
+        service = serviceAt();
     }
 
     @Test
@@ -205,14 +206,14 @@ class SubmitCustomerResponseServiceTest {
         );
     }
 
-    private SubmitCustomerResponseService serviceAt(Instant instant) {
+    private SubmitCustomerResponseService serviceAt() {
         return new SubmitCustomerResponseService(
                 confirmationRequestRepository,
                 orderRepository,
                 customerResponseRepository,
                 confirmationWorkflowService,
                 notificationService,
-                Clock.fixed(instant, ZoneOffset.UTC)
+                Clock.fixed(SubmitCustomerResponseServiceTest.NOW, ZoneOffset.UTC)
         );
     }
 
@@ -255,7 +256,7 @@ class SubmitCustomerResponseServiceTest {
                 TOKEN,
                 CommunicationChannel.EMAIL,
                 DeliverySlot.of(
-                        LocalDate.of(2026, 8, 10),
+                        LocalDate.of(2026, Month.AUGUST, 10),
                         LocalTime.of(10, 0),
                         LocalTime.of(12, 0)
                 ),

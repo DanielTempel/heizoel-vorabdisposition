@@ -11,7 +11,7 @@ class OrderTest {
 
     @Test
     void shouldHaveSameDataWhenTourValuesAreEqual() {
-        Order order = order(ORIGINAL_TOUR);
+        Order order = order();
 
         boolean sameData = hasSameData(order, Tour.of("17", "WÜ-AB 123"));
 
@@ -20,7 +20,7 @@ class OrderTest {
 
     @Test
     void shouldDetectChangedTourNumber() {
-        Order order = order(ORIGINAL_TOUR);
+        Order order = order();
 
         boolean sameData = hasSameData(order, Tour.of("18", "WÜ-AB 123"));
 
@@ -29,7 +29,7 @@ class OrderTest {
 
     @Test
     void shouldDetectChangedVehicleLicensePlate() {
-        Order order = order(ORIGINAL_TOUR);
+        Order order = order();
 
         boolean sameData = hasSameData(order, Tour.of("17", "WÜ-CD 456"));
 
@@ -38,7 +38,7 @@ class OrderTest {
 
     @Test
     void shouldDetectEveryChangedOrderField() {
-        Order order = order(ORIGINAL_TOUR);
+        Order order = order();
 
         assertThat(order.hasSameData(
                 ORIGINAL_TOUR,
@@ -120,7 +120,7 @@ class OrderTest {
 
     @Test
     void updateStoresNewDataWithoutChangingStatus() {
-        Order order = order(ORIGINAL_TOUR);
+        Order order = order();
         order.markRejected();
         Tour changedTour = Tour.of("18", "WÜ-CD 456");
 
@@ -157,10 +157,10 @@ class OrderTest {
     }
 
     private Order createOrder() {
-        return order(ORIGINAL_TOUR);
+        return order();
     }
 
-    private Order order(Tour tour) {
+    private Order order() {
         return Order.create(
                 Company.create(
                         "Test Company",
@@ -168,7 +168,7 @@ class OrderTest {
                         "http://localhost/callback"
                 ),
                 "A-1024",
-                tour,
+                OrderTest.ORIGINAL_TOUR,
                 "Max Mustermann",
                 "max@example.com",
                 "+491701234567",

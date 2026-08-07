@@ -64,7 +64,7 @@ class SendConfirmationRequestServiceTest {
     void successMarksRequestAndOrderAsSent() {
         Order order = order();
         ConfirmationRequest request = pendingRequest(order, futureDeliverySlot());
-        mockRequest(1L, order, request);
+        mockRequest(order, request);
 
         SendConfirmationRequestResult result = service.send(1L);
 
@@ -83,7 +83,7 @@ class SendConfirmationRequestServiceTest {
         ConfirmationRequest request = pendingRequest(order, futureDeliverySlot());
         request.markSent(NOW.minusSeconds(60));
         order.markSent();
-        mockRequest(1L, order, request);
+        mockRequest(order, request);
 
         SendConfirmationRequestResult result = service.send(1L);
 
@@ -96,7 +96,7 @@ class SendConfirmationRequestServiceTest {
     void notificationDeliveryExceptionIsRetryableAndKeepsRequestPending() {
         Order order = order();
         ConfirmationRequest request = pendingRequest(order, futureDeliverySlot());
-        mockRequest(1L, order, request);
+        mockRequest(order, request);
         doThrow(new NotificationDeliveryException(
                 CommunicationChannel.EMAIL,
                 "SMTP temporarily unavailable",
@@ -115,7 +115,7 @@ class SendConfirmationRequestServiceTest {
     void missingEmailSettingsIsPermanentAndKeepsRequestPending() {
         Order order = order();
         ConfirmationRequest request = pendingRequest(order, futureDeliverySlot());
-        mockRequest(1L, order, request);
+        mockRequest(order, request);
         doThrow(new EmailSettingsNotConfiguredException("Mail sender is not configured"))
                 .when(notificationService).sendConfirmationRequest(order, request);
 
@@ -135,7 +135,7 @@ class SendConfirmationRequestServiceTest {
                 LocalTime.of(9, 30)
         );
         ConfirmationRequest request = pendingRequest(order, pastSlot);
-        mockRequest(1L, order, request);
+        mockRequest(order, request);
 
         SendConfirmationRequestResult result = service.send(1L);
 
@@ -144,10 +144,10 @@ class SendConfirmationRequestServiceTest {
         verify(notificationService, never()).sendConfirmationRequest(order, request);
     }
 
-    private void mockRequest(Long id, Order order, ConfirmationRequest request) {
-        when(orderRepository.findByConfirmationRequestIdForUpdate(id))
+    private void mockRequest(Order order, ConfirmationRequest request) {
+        when(orderRepository.findByConfirmationRequestIdForUpdate(1L))
                 .thenReturn(Optional.of(order));
-        when(confirmationRequestRepository.findById(id))
+        when(confirmationRequestRepository.findById(1L))
                 .thenReturn(Optional.of(request));
     }
 

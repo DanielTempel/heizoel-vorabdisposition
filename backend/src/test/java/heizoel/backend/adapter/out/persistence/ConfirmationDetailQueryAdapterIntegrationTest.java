@@ -27,6 +27,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import({ConfirmationDetailQueryAdapter.class, QueryDslConfig.class})
 class ConfirmationDetailQueryAdapterIntegrationTest {
 
-    private static final LocalDate DELIVERY_DATE = LocalDate.of(2026, 8, 10);
+    private static final LocalDate DELIVERY_DATE = LocalDate.of(2026, Month.AUGUST, 10);
     private static final LocalTime DELIVERY_START = LocalTime.of(8, 0);
     private static final LocalTime DELIVERY_END = LocalTime.of(10, 0);
     private static final Instant SENT_AT = Instant.parse("2026-08-01T10:00:00Z");
@@ -291,8 +292,7 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
                 null
         );
         ConfirmationRequest pending = createPendingRequest(
-                order,
-                CommunicationChannel.SMS
+                order
         );
 
         ConfirmationDetail result = find(
@@ -324,8 +324,7 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
                 null
         );
         ConfirmationRequest failed = createFailedRequest(
-                order,
-                CommunicationChannel.SMS
+                order
         );
         ConfirmationRequest newestSent = createRequest(
                 order,
@@ -403,19 +402,17 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
     }
 
     private ConfirmationRequest createPendingRequest(
-            Order order,
-            CommunicationChannel channel
+            Order order
     ) {
-        ConfirmationRequest request = newPendingRequest(order, channel);
+        ConfirmationRequest request = newPendingRequest(order, CommunicationChannel.SMS);
         entityManager.persist(request);
         return request;
     }
 
     private ConfirmationRequest createFailedRequest(
-            Order order,
-            CommunicationChannel channel
+            Order order
     ) {
-        ConfirmationRequest request = newPendingRequest(order, channel);
+        ConfirmationRequest request = newPendingRequest(order, CommunicationChannel.SMS);
         request.markDeliveryFailed();
         entityManager.persist(request);
         return request;
