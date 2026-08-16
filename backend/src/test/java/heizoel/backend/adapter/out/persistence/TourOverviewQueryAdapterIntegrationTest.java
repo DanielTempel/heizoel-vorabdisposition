@@ -135,6 +135,48 @@ class TourOverviewQueryAdapterIntegrationTest {
     }
 
     @Test
+    void includesOpenOrdersInTourOverview() {
+        Company company = testData.createCompany("Open orders");
+        Order pendingOrder = testData.createOrder(
+                company,
+                "ORDER-PENDING",
+                "TOUR-OPEN",
+                LICENSE_PLATE,
+                ConfirmationStatus.OPEN
+        );
+        testData.createPendingRequest(
+                pendingOrder,
+                TODAY,
+                LocalTime.of(8, 0),
+                LocalTime.of(9, 0)
+        );
+        Order failedOrder = testData.createOrder(
+                company,
+                "ORDER-FAILED",
+                "TOUR-OPEN",
+                LICENSE_PLATE,
+                ConfirmationStatus.OPEN
+        );
+        testData.createFailedRequest(
+                failedOrder,
+                TODAY,
+                LocalTime.of(9, 0),
+                LocalTime.of(10, 0)
+        );
+
+        Page<TourOverviewItem> result = find(
+                company, Set.of(), null, TODAY, null, 0, 20
+        );
+
+        assertThat(orders(result))
+                .extracting(OrderOverviewItem::externalOrderId)
+                .containsExactly("ORDER-PENDING", "ORDER-FAILED");
+        assertThat(orders(result))
+                .extracting(OrderOverviewItem::confirmationStatus)
+                .containsOnly(ConfirmationStatus.OPEN);
+    }
+
+    @Test
     void filtersBySelectedTourNumbers() {
         Company company = testData.createCompany("Selected tours");
         createOrderWithRequest(company, "ORDER-A", "A-17", TODAY, ConfirmationStatus.SENT);
@@ -210,6 +252,45 @@ class TourOverviewQueryAdapterIntegrationTest {
                     .extracting(OrderOverviewItem::externalOrderId)
                     .containsExactly("A-REJECTED");
         });
+    }
+
+    @Test
+    void filtersToursAndOrdersByOpenStatus() {
+        Company company = testData.createCompany("Open status filter");
+        Order openOrder = testData.createOrder(
+                company,
+                "ORDER-OPEN",
+                "TOUR-OPEN",
+                LICENSE_PLATE,
+                ConfirmationStatus.OPEN
+        );
+        testData.createPendingRequest(
+                openOrder,
+                TODAY,
+                LocalTime.of(8, 0),
+                LocalTime.of(9, 0)
+        );
+        createOrderWithRequest(
+                company,
+                "ORDER-SENT",
+                "TOUR-SENT",
+                TODAY,
+                ConfirmationStatus.SENT
+        );
+
+        Page<TourOverviewItem> result = find(
+                company,
+                Set.of(ConfirmationStatus.OPEN),
+                null,
+                TODAY,
+                null,
+                0,
+                20
+        );
+
+        assertThat(orders(result))
+                .extracting(OrderOverviewItem::externalOrderId)
+                .containsExactly("ORDER-OPEN");
     }
 
     @Test
@@ -478,6 +559,28 @@ class TourOverviewQueryAdapterIntegrationTest {
         List<String> result = findTourNumbers(company, null, TODAY, null);
 
         assertThat(result).containsExactly("A-17", "NORD-3");
+    }
+
+    @Test
+    void returnsTourNumbersContainingOpenOrders() {
+        Company company = testData.createCompany("Open tour number");
+        Order openOrder = testData.createOrder(
+                company,
+                "ORDER-OPEN",
+                "TOUR-OPEN",
+                LICENSE_PLATE,
+                ConfirmationStatus.OPEN
+        );
+        testData.createPendingRequest(
+                openOrder,
+                TODAY,
+                LocalTime.of(8, 0),
+                LocalTime.of(9, 0)
+        );
+
+        List<String> result = findTourNumbers(company, null, TODAY, null);
+
+        assertThat(result).containsExactly("TOUR-OPEN");
     }
 
     @Test

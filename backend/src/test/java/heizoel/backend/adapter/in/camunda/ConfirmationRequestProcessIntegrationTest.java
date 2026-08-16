@@ -88,13 +88,11 @@ class ConfirmationRequestProcessIntegrationTest {
 
     private static final Instant INITIAL_TIME = Instant.parse("2026-08-07T08:00:00Z");
     private static final String PARENT_PROCESS_KEY = "confirmation-request-process";
-    private static final String CALLBACK_PROCESS_KEY = "dispo-callback-process";
 
     private static final String SEND_ACTIVITY = "ServiceTask_SendConfirmationRequest";
     private static final String RETRY_TIMER_ACTIVITY = "Timer_WaitBeforeDeliveryRetry";
     private static final String DEADLINE_TIMER_ACTIVITY = "Timer_ResponseDeadlineReached";
     private static final String MARK_FAILED_ACTIVITY = "ServiceTask_MarkDeliveryFailed";
-    private static final String CALLBACK_CALL_ACTIVITY = "CallActivity_SendDispoCallback";
     private static final String CALLBACK_ACTIVITY = "ServiceTask_SendDispoCallback";
 
     @Container
@@ -216,7 +214,7 @@ class ConfirmationRequestProcessIntegrationTest {
     }
 
     @Test
-    void customerResponseCreatesCallbackChildWithCorrectVariables() {
+    void customerResponseCreatesCallbackJobWithCorrectVariables() {
         ProcessFixture fixture = createPendingFixture();
         ProcessInstance parent = startAndSendSuccessfully(fixture);
 
@@ -226,17 +224,32 @@ class ConfirmationRequestProcessIntegrationTest {
                 ConfirmationStatus.CONFIRMED,
                 "Please call first"
         );
-        execute(job(parent.getId(), CALLBACK_CALL_ACTIVITY));
 
-        ProcessInstance child = callbackChild(parent.getId());
-        assertThat(child.getBusinessKey()).isEqualTo(fixture.order().getId().toString());
-        assertThat(runtimeService.getVariable(child.getId(), "orderId"))
+        assertThat(runtimeService.getVariable(parent.getId(), "orderId"))
                 .isEqualTo(fixture.order().getId());
-        assertThat(runtimeService.getVariable(child.getId(), "confirmationStatus"))
+        assertThat(runtimeService.getVariable(parent.getId(), "confirmationStatus"))
                 .isEqualTo(ConfirmationStatus.CONFIRMED.name());
-        assertThat(runtimeService.getVariable(child.getId(), "customerComment"))
+        assertThat(runtimeService.getVariable(parent.getId(), "customerComment"))
                 .isEqualTo("Please call first");
-        assertThat(job(child.getId(), CALLBACK_ACTIVITY)).isNotNull();
+        assertThat(job(parent.getId(), CALLBACK_ACTIVITY)).isNotNull();
+    }
+
+    @Test
+    void successfulCallbackEndsConfirmationProcess() {
+        ProcessFixture fixture = createPendingFixture();
+        ProcessInstance parent = startAndSendSuccessfully(fixture);
+        confirmationWorkflowService.notifyCustomerResponseReceived(
+                fixture.request().getId(),
+                fixture.order().getId(),
+                ConfirmationStatus.CONFIRMED,
+                "Please call first"
+        );
+
+        execute(job(parent.getId(), CALLBACK_ACTIVITY));
+
+        assertThat(runtimeService.createProcessInstanceQuery()
+                .processInstanceId(parent.getId())
+                .singleResult()).isNull();
     }
 
     @Test
@@ -249,14 +262,15 @@ class ConfirmationRequestProcessIntegrationTest {
         assertThat(runtimeService.createProcessInstanceQuery()
                 .processInstanceId(parent.getId())
                 .singleResult()).isNull();
-        assertThat(runtimeService.createProcessInstanceQuery()
-                .processDefinitionKey(CALLBACK_PROCESS_KEY)
-                .superProcessInstanceId(parent.getId())
+        assertThat(managementService.createJobQuery()
+                .processInstanceId(parent.getId())
+                .activityId(CALLBACK_ACTIVITY)
                 .count()).isZero();
+        verifyNoInteractions(dispoStatusCallbackService);
     }
 
     @Test
-    void responseDeadlineMarksNoResponseAndCreatesCallbackChild() {
+    void responseDeadlineMarksNoResponseAndCreatesCallbackJob() {
         ProcessFixture fixture = createPendingFixture();
         ProcessInstance parent = startAndSendSuccessfully(fixture);
         ConfirmationRequest sent = confirmationRequestRepository
@@ -266,7 +280,6 @@ class ConfirmationRequestProcessIntegrationTest {
 
         setBothClocks(sent.getExpiresAt().plusMillis(1));
         execute(deadline);
-        execute(job(parent.getId(), CALLBACK_CALL_ACTIVITY));
 
         ConfirmationRequest timedOut = confirmationRequestRepository
                 .findById(fixture.request().getId())
@@ -274,10 +287,15 @@ class ConfirmationRequestProcessIntegrationTest {
         Order order = orderRepository.findById(fixture.order().getId()).orElseThrow();
         assertThat(timedOut.isActive()).isFalse();
         assertThat(order.getConfirmationStatus()).isEqualTo(ConfirmationStatus.NO_RESPONSE);
-        ProcessInstance child = callbackChild(parent.getId());
-        assertThat(runtimeService.getVariable(child.getId(), "confirmationStatus"))
+        assertThat(runtimeService.getVariable(parent.getId(), "confirmationStatus"))
                 .isEqualTo(ConfirmationStatus.NO_RESPONSE.name());
-        assertThat(runtimeService.getVariable(child.getId(), "customerComment")).isNull();
+        assertThat(runtimeService.getVariable(parent.getId(), "customerComment")).isNull();
+
+        execute(job(parent.getId(), CALLBACK_ACTIVITY));
+
+        assertThat(runtimeService.createProcessInstanceQuery()
+                .processInstanceId(parent.getId())
+                .singleResult()).isNull();
     }
 
     @Test
@@ -320,6 +338,7 @@ class ConfirmationRequestProcessIntegrationTest {
         assertThat(runtimeService.createProcessInstanceQuery()
                 .processInstanceId(parent.getId())
                 .count()).isZero();
+        verifyNoInteractions(dispoStatusCallbackService);
     }
 
     @Test
@@ -348,16 +367,18 @@ class ConfirmationRequestProcessIntegrationTest {
                 .when(dispoStatusCallbackService)
                 .sendStatusUpdate(any());
         ProcessFixture fixture = createPendingFixture();
-        ProcessInstance child = runtimeService.startProcessInstanceByKey(
-                CALLBACK_PROCESS_KEY,
-                fixture.order().getId().toString(),
-                Map.of(
-                        "orderId", fixture.order().getId(),
-                        "confirmationStatus", ConfirmationStatus.CONFIRMED.name(),
-                        "customerComment", "Please call first"
-                )
+        ProcessInstance parent = startAndSendSuccessfully(fixture);
+        confirmationWorkflowService.notifyCustomerResponseReceived(
+                fixture.request().getId(),
+                fixture.order().getId(),
+                ConfirmationStatus.CONFIRMED,
+                "Please call first"
         );
-        Job callbackJob = job(child.getId(), CALLBACK_ACTIVITY);
+        Object deliveryAttemptBeforeCallback = runtimeService.getVariable(
+                parent.getId(),
+                "deliveryAttempt"
+        );
+        Job callbackJob = job(parent.getId(), CALLBACK_ACTIVITY);
         int initialRetries = callbackJob.getRetries();
 
         while (callbackJob.getRetries() > 0) {
@@ -370,10 +391,15 @@ class ConfirmationRequestProcessIntegrationTest {
         assertThat(initialRetries).isEqualTo(5);
         assertThat(callbackJob.getRetries()).isZero();
         List<Incident> incidents = runtimeService.createIncidentQuery()
-                .processInstanceId(child.getId())
+                .processInstanceId(parent.getId())
                 .list();
         assertThat(incidents).hasSize(1);
         assertThat(incidents.get(0).getIncidentType()).isEqualTo("failedJob");
+        assertThat(runtimeService.createProcessInstanceQuery()
+                .processInstanceId(parent.getId())
+                .singleResult()).isNotNull();
+        assertThat(runtimeService.getVariable(parent.getId(), "deliveryAttempt"))
+                .isEqualTo(deliveryAttemptBeforeCallback);
     }
 
     @Test
@@ -609,13 +635,6 @@ class ConfirmationRequestProcessIntegrationTest {
         return runtimeService.createProcessInstanceQuery()
                 .processDefinitionKey(PARENT_PROCESS_KEY)
                 .processInstanceBusinessKey(request.getId().toString())
-                .singleResult();
-    }
-
-    private ProcessInstance callbackChild(String parentProcessInstanceId) {
-        return runtimeService.createProcessInstanceQuery()
-                .processDefinitionKey(CALLBACK_PROCESS_KEY)
-                .superProcessInstanceId(parentProcessInstanceId)
                 .singleResult();
     }
 

@@ -3,6 +3,8 @@ package heizoel.backend.adapter.in.web.overview;
 import heizoel.backend.adapter.in.web.security.CompanyContextResolver;
 import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.exception.InvalidFilterException;
+import heizoel.backend.application.model.overview.OrderOverviewItem;
+import heizoel.backend.application.model.overview.TourOverviewItem;
 import heizoel.backend.application.model.overview.TourOverviewPage;
 import heizoel.backend.application.port.in.confirmation.ResendConfirmationRequestUseCase;
 import heizoel.backend.application.port.in.overview.GetConfirmationDetailUseCase;
@@ -10,6 +12,7 @@ import heizoel.backend.application.port.in.overview.GetTourNumbersQuery;
 import heizoel.backend.application.port.in.overview.GetTourNumbersUseCase;
 import heizoel.backend.application.port.in.overview.GetTourOverviewQuery;
 import heizoel.backend.application.port.in.overview.GetTourOverviewUseCase;
+import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,6 +91,38 @@ class OverviewControllerTest {
         assertThat(query.dateFrom()).isNull();
         assertThat(query.dateTo()).isNull();
         assertThat(query.page()).isZero();
+    }
+
+    @Test
+    void returnsOpenOrderWithoutIncreasingBusinessStatusCounts() throws Exception {
+        OrderOverviewItem openOrder = new OrderOverviewItem(
+                "ORDER-OPEN",
+                "Customer",
+                "Delivery address",
+                LocalTime.of(8, 0),
+                LocalTime.of(9, 0),
+                CommunicationChannel.EMAIL,
+                ConfirmationStatus.OPEN,
+                null
+        );
+        TourOverviewItem tour = new TourOverviewItem(
+                "TOUR-OPEN",
+                "WÜ-DEMO 100",
+                LocalDate.of(2026, 8, 5),
+                List.of(openOrder)
+        );
+        when(getTourOverviewUseCase.getTours(any())).thenReturn(
+                new TourOverviewPage(List.of(tour), 0, 20, 1, 1)
+        );
+
+        mockMvc.perform(get("/api/dispo/dashboard/tours"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].orders[0].confirmationStatus")
+                        .value("OPEN"))
+                .andExpect(jsonPath("$.items[0].statusCounts.sent").value(0))
+                .andExpect(jsonPath("$.items[0].statusCounts.confirmed").value(0))
+                .andExpect(jsonPath("$.items[0].statusCounts.rejected").value(0))
+                .andExpect(jsonPath("$.items[0].statusCounts.noResponse").value(0));
     }
 
     @Test
