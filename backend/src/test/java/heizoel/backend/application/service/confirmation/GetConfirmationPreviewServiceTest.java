@@ -2,6 +2,7 @@ package heizoel.backend.application.service.confirmation;
 
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
+import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.application.port.in.confirmation.GetConfirmationPreviewResult;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.company.Company;
@@ -24,6 +25,7 @@ import java.time.LocalTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -96,11 +98,21 @@ class GetConfirmationPreviewServiceTest {
         verify(customerResponseRepository).findByConfirmationRequest(request);
     }
 
+    @Test
+    void rejectsOlderRequestTokenWhenNewerRequestExists() {
+        when(confirmationRequestRepository.findLatestByToken(TOKEN))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getConfirmationPreview(TOKEN))
+                .isInstanceOf(ConfirmationRequestNotFoundException.class)
+                .hasMessage("Confirmation request was not found.");
+    }
+
     private void mockRepositories(
             ConfirmationRequest request,
             Optional<CustomerResponse> response
     ) {
-        when(confirmationRequestRepository.findByToken(TOKEN))
+        when(confirmationRequestRepository.findLatestByToken(TOKEN))
                 .thenReturn(Optional.of(request));
         when(customerResponseRepository.findByConfirmationRequest(request))
                 .thenReturn(response);

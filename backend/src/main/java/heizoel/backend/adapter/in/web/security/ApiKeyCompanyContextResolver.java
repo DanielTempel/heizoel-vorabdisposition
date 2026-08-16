@@ -5,11 +5,9 @@ import heizoel.backend.domain.company.Company;
 import heizoel.backend.adapter.out.persistence.CompanyRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("prod")
 @RequiredArgsConstructor
 public class ApiKeyCompanyContextResolver implements CompanyContextResolver {
 

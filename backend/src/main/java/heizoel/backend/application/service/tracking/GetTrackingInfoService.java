@@ -25,7 +25,7 @@ public class GetTrackingInfoService implements GetTrackingInfoUseCase {
     @Override
     @Transactional(readOnly = true)
     public TrackingInfoResult getTrackingInfo(String token) {
-        ConfirmationRequest confirmationRequest = confirmationRequestRepository.findByToken(token)
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository.findLatestByToken(token)
                 .orElseThrow(() -> new ConfirmationRequestNotFoundException(
                         "Confirmation request was not found."
                 ));

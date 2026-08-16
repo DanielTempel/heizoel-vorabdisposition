@@ -81,7 +81,7 @@ Notification adapters create a frontend link with the form:
 {frontend-url}/confirmation/{token}
 ```
 
-The frontend uses the opaque token to load the preview and submit `CONFIRM` or `REJECT`. A response is accepted only when the request is active, has not expired, and has no existing customer response.
+The frontend uses the opaque token to load the preview and submit `CONFIRM` or `REJECT`. The token is valid only for the latest confirmation request of its order; older requests remain in history, but their links return `404 Not Found`. The latest request can still be previewed after it becomes inactive, including `NO_RESPONSE`. A response is accepted only when that latest request is active, has not expired, and has no existing customer response.
 
 When a response is accepted, the application:
 

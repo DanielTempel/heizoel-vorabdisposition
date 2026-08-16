@@ -24,6 +24,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -34,7 +35,9 @@ import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,8 +49,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
+@Sql(
+        scripts = "/db/test/configure-test-company.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS
+)
 @Transactional
 class CustomerConfirmationIntegrationTest {
+
+    private static final String TEST_API_KEY = "test-minova-api-key";
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -153,6 +162,23 @@ class CustomerConfirmationIntegrationTest {
     }
 
     @Test
+    void getConfirmationPreview_rejectsOlderTokenAfterNewerRequestExists() throws Exception {
+        String externalOrderId = "A-3001-LATEST-TOKEN";
+        createDispoConfirmationRequest(externalOrderId);
+        String olderToken = findActiveTokenByExternalOrderId(externalOrderId);
+        String latestToken = createLaterRequest(externalOrderId);
+
+        mockMvc.perform(get("/api/customer/confirmations/{token}", olderToken))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("CONFIRMATION_REQUEST_NOT_FOUND"))
+                .andExpect(jsonPath("$.status").value(404));
+
+        mockMvc.perform(get("/api/customer/confirmations/{token}", latestToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.externalOrderId").value(externalOrderId));
+    }
+
+    @Test
     void getTrackingInfo_returnsTrackingDataForDeliveryDate() throws Exception {
         String externalOrderId = "A-3001-TRACKING";
 
@@ -210,7 +236,7 @@ class CustomerConfirmationIntegrationTest {
                 .isEqualTo(ConfirmationStatus.CONFIRMED);
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         assertThat(confirmationRequest.isActive()).isFalse();
@@ -262,7 +288,7 @@ class CustomerConfirmationIntegrationTest {
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         assertThat(order.getConfirmationStatus())
@@ -299,7 +325,7 @@ class CustomerConfirmationIntegrationTest {
                 .isEqualTo(ConfirmationStatus.REJECTED);
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         assertThat(confirmationRequest.isActive()).isFalse();
@@ -363,7 +389,7 @@ class CustomerConfirmationIntegrationTest {
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         assertThat(order.getConfirmationStatus())
@@ -450,7 +476,7 @@ class CustomerConfirmationIntegrationTest {
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         assertThat(order.getConfirmationStatus())
@@ -489,6 +515,7 @@ class CustomerConfirmationIntegrationTest {
                 """.formatted(externalOrderId, deliveryDate);
 
         mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .header("X-API-Key", TEST_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
                 .andExpect(status().isAccepted())
@@ -518,6 +545,27 @@ class CustomerConfirmationIntegrationTest {
                 .getToken();
     }
 
+    private String createLaterRequest(String externalOrderId) {
+        Order order = orderRepository
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
+                .orElseThrow();
+        ConfirmationRequest request = ConfirmationRequest.createPending(
+                order,
+                UUID.randomUUID().toString(),
+                CommunicationChannel.EMAIL,
+                DeliverySlot.of(
+                        LocalDate.of(2099, 6, 12),
+                        LocalTime.of(10, 0),
+                        LocalTime.of(11, 0)
+                ),
+                24
+        );
+        request.markSent(Instant.now(clock));
+        confirmationRequestRepository.saveAndFlush(request);
+        entityManager.clear();
+        return request.getToken();
+    }
+
     private void setLatestDeliveryDate(String externalOrderId, LocalDate deliveryDate) {
         Order order = orderRepository
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
@@ -537,7 +585,7 @@ class CustomerConfirmationIntegrationTest {
 
     private void expireRequest(String token) {
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         jdbcTemplate.update(
@@ -550,7 +598,7 @@ class CustomerConfirmationIntegrationTest {
 
     private void markRequestInactive(String token) {
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         confirmationRequest.markInactive();

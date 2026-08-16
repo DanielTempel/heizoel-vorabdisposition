@@ -24,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -42,10 +43,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @SpringBootTest(properties = "camunda.bpm.job-execution.enabled=false")
 @AutoConfigureMockMvc
+@Sql(
+        scripts = "/db/test/configure-test-company.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS
+)
 class DispoControllerIntegrationTest {
 
     private static final String CONFIRMATION_PROCESS_KEY = "confirmation-request-process";
     private static final String SEND_ACTIVITY = "ServiceTask_SendConfirmationRequest";
+    private static final String TEST_API_KEY = "test-minova-api-key";
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16")
@@ -257,6 +263,7 @@ class DispoControllerIntegrationTest {
                         "/api/dispo/dashboard/orders/{externalOrderId}/resend",
                         "ORDER-RESEND"
                 )
+                        .header("X-API-Key", TEST_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 new ResendConfirmationRequestRequestDto(
@@ -299,6 +306,7 @@ class DispoControllerIntegrationTest {
             TestDispoRequest request
     ) throws Exception {
         return mockMvc.perform(post("/api/dispo/confirmation-requests")
+                .header("X-API-Key", TEST_API_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
     }

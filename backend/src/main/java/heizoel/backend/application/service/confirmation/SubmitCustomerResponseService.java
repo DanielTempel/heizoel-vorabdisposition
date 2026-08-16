@@ -48,7 +48,7 @@ public class SubmitCustomerResponseService implements SubmitCustomerResponseUseC
 
         ConfirmationRequest request =
                 confirmationRequestRepository
-                        .findByToken(command.token())
+                        .findLatestByToken(command.token())
                         .orElseThrow(() ->
                                 new ConfirmationRequestNotFoundException(
                                         "Confirmation request was not found."

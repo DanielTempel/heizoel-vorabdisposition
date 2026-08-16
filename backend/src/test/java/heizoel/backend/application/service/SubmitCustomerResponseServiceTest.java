@@ -3,6 +3,7 @@ package heizoel.backend.application.service;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
+import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.application.port.in.confirmation.SubmitCustomerResponseCommand;
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
 import heizoel.backend.application.port.out.notification.NotificationService;
@@ -159,6 +160,21 @@ class SubmitCustomerResponseServiceTest {
     }
 
     @Test
+    void olderTokenIsRejectedAsNotFoundWhenNewerRequestExists() {
+        RequestFixture fixture = activeRequestSentAt(NOW.minusSeconds(60 * 60));
+        when(orderRepository.findByConfirmationRequestTokenForUpdate(TOKEN))
+                .thenReturn(Optional.of(fixture.order()));
+        when(confirmationRequestRepository.findLatestByToken(TOKEN))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.submitCustomerResponse(command()))
+                .isInstanceOf(ConfirmationRequestNotFoundException.class)
+                .hasMessage("Confirmation request was not found.");
+
+        verifyNoInteractions(customerResponseRepository, confirmationWorkflowService, notificationService);
+    }
+
+    @Test
     void duplicateResponseIsRejectedWithoutChangingState() {
         RequestFixture fixture = activeRequestSentAt(NOW.minusSeconds(60 * 60));
         mockRequest(fixture);
@@ -220,7 +236,7 @@ class SubmitCustomerResponseServiceTest {
     private void mockRequest(RequestFixture fixture) {
         when(orderRepository.findByConfirmationRequestTokenForUpdate(TOKEN))
                 .thenReturn(Optional.of(fixture.order()));
-        when(confirmationRequestRepository.findByToken(TOKEN))
+        when(confirmationRequestRepository.findLatestByToken(TOKEN))
                 .thenReturn(Optional.of(fixture.request()));
     }
 

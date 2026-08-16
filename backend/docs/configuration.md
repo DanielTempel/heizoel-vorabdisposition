@@ -106,7 +106,7 @@ Encrypted SMTP values are additionally bound to a company-specific encryption co
 
 ### Company Resolution
 
-Outside `prod`, `FixedCompanyContextResolver` selects company `1`. In `prod`, `ApiKeyCompanyContextResolver` reads `X-API-Key`, hashes it with SHA-256, and finds the corresponding company record.
+`ApiKeyCompanyContextResolver` resolves the current company in every profile. Company-scoped requests must provide `X-API-Key`; the resolver hashes the supplied value with SHA-256 and looks up the matching `Company` by `api_key_hash`. Missing or blank keys return `401 Unauthorized` with `MISSING_API_KEY`, while unknown keys return `401 Unauthorized` with `INVALID_API_KEY`. Raw API keys are not stored.
 
 Each `Company` owns:
 
