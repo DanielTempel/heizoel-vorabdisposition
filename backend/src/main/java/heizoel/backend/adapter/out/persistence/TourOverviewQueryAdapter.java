@@ -12,7 +12,6 @@ import heizoel.backend.application.model.overview.TourOverviewItem;
 import heizoel.backend.application.port.out.persistence.TourNumberFilter;
 import heizoel.backend.application.port.out.persistence.TourOverviewFilter;
 import heizoel.backend.application.port.out.persistence.TourOverviewQueryPort;
-import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.QConfirmationRequest;
 import heizoel.backend.domain.QOrder;
 import lombok.RequiredArgsConstructor;
@@ -124,7 +123,6 @@ public class TourOverviewQueryAdapter implements TourOverviewQueryPort {
         BooleanBuilder where = new BooleanBuilder();
 
         where.and(order.company.id.eq(filter.companyId()));
-        where.and(order.confirmationStatus.ne(ConfirmationStatus.OPEN));
         where.and(latestConfirmationRequestOnly(
                         order,
                         confirmationRequest
@@ -266,8 +264,6 @@ public class TourOverviewQueryAdapter implements TourOverviewQueryPort {
         BooleanBuilder where = new BooleanBuilder();
 
         where.and(order.company.id.eq(filter.companyId()));
-
-        where.and(order.confirmationStatus.ne(ConfirmationStatus.OPEN));
 
         where.and(latestConfirmationRequestOnly(
                         order,

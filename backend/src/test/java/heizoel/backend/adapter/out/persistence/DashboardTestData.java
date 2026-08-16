@@ -106,6 +106,41 @@ final class DashboardTestData {
         entityManager.persist(request);
     }
 
+    void createPendingRequest(
+            Order order,
+            LocalDate date,
+            LocalTime start,
+            LocalTime end
+    ) {
+        ConfirmationRequest request = ConfirmationRequest.createPending(
+                order,
+                UUID.randomUUID().toString(),
+                CommunicationChannel.EMAIL,
+                DeliverySlot.of(date, start, end),
+                24
+        );
+
+        entityManager.persist(request);
+    }
+
+    void createFailedRequest(
+            Order order,
+            LocalDate date,
+            LocalTime start,
+            LocalTime end
+    ) {
+        ConfirmationRequest request = ConfirmationRequest.createPending(
+                order,
+                UUID.randomUUID().toString(),
+                CommunicationChannel.EMAIL,
+                DeliverySlot.of(date, start, end),
+                24
+        );
+
+        request.markDeliveryFailed();
+        entityManager.persist(request);
+    }
+
     void flushAndClear() {
         entityManager.flush();
         entityManager.clear();
