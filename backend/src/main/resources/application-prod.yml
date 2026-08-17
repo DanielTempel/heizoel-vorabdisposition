@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/heizoel_backend}
     username: ${DB_USERNAME:heizoel}
@@ -11,21 +13,6 @@ spring:
       hibernate:
         format_sql: false
 
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-          connectiontimeout: 5000
-          timeout: 3000
-          writetimeout: 5000
-
 heizoel:
   confirmation:
     frontend-url: ${FRONTEND_URL:http://localhost:3000}
@@ -36,9 +23,6 @@ heizoel:
     sms-from: ${TWILIO_SMS_FROM:}
     whatsapp-from: ${TWILIO_WHATSAPP_FROM:}
     content-template-sid: ${TWILIO_CONTENT_TEMPLATE_SID:}
-
-  mail:
-    from: ${MAIL_FROM:${MAIL_USERNAME}}
 
 logging:
   level:

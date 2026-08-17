@@ -4,12 +4,13 @@ import heizoel.backend.application.model.overview.ConfirmationDetail;
 import heizoel.backend.application.model.overview.ConfirmationDetail.RequestDetail;
 import heizoel.backend.configuration.QueryDslConfig;
 import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.Company;
+import heizoel.backend.domain.company.Company;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.CustomerResponse;
 import heizoel.backend.domain.CustomerResponseType;
 import heizoel.backend.domain.DeliverySlot;
+import heizoel.backend.domain.NotificationDeliveryStatus;
 import heizoel.backend.domain.Order;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import({ConfirmationDetailQueryAdapter.class, QueryDslConfig.class})
 class ConfirmationDetailQueryAdapterIntegrationTest {
 
-    private static final LocalDate DELIVERY_DATE = LocalDate.of(2026, 8, 10);
+    private static final LocalDate DELIVERY_DATE = LocalDate.of(2026, Month.AUGUST, 10);
     private static final LocalTime DELIVERY_START = LocalTime.of(8, 0);
     private static final LocalTime DELIVERY_END = LocalTime.of(10, 0);
     private static final Instant SENT_AT = Instant.parse("2026-08-01T10:00:00Z");
@@ -118,7 +120,7 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
             assertThat(current.expiresAt()).isEqualTo(SENT_AT.plusSeconds(24 * 60 * 60));
             assertThat(current.responseDeadlineHours()).isEqualTo(24);
             assertThat(current.active()).isTrue();
-            assertThat(current.status()).isEqualTo(ConfirmationStatus.SENT);
+            assertThat(current.status()).isEqualTo("SENT");
             assertThat(current.customerResponse()).isNull();
         });
         assertThat(result.previousRequests()).isEmpty();
@@ -162,13 +164,13 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
         ConfirmationDetail result = find(company.getId(), "ORDER-HISTORY").orElseThrow();
 
         assertThat(result.currentRequest().requestId()).isEqualTo(third.getId());
-        assertThat(result.currentRequest().status()).isEqualTo(ConfirmationStatus.SENT);
+        assertThat(result.currentRequest().status()).isEqualTo("SENT");
         assertThat(result.previousRequests())
                 .extracting(RequestDetail::requestId)
                 .containsExactly(second.getId(), first.getId());
         assertThat(result.previousRequests())
                 .extracting(RequestDetail::status)
-                .containsExactly(ConfirmationStatus.REJECTED, ConfirmationStatus.NO_RESPONSE);
+                .containsExactly("REJECTED", "NO_RESPONSE");
     }
 
     @Test
@@ -192,7 +194,7 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
 
         ConfirmationDetail result = find(company.getId(), "ORDER-RESPONSE").orElseThrow();
 
-        assertThat(result.currentRequest().status()).isEqualTo(ConfirmationStatus.CONFIRMED);
+        assertThat(result.currentRequest().status()).isEqualTo("CONFIRMED");
         assertThat(result.currentRequest().customerResponse()).satisfies(response -> {
             assertThat(response.responseType()).isEqualTo(CustomerResponseType.CONFIRM);
             assertThat(response.comment()).isEqualTo("Delivery is fine");
@@ -221,7 +223,7 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
 
         ConfirmationDetail result = find(company.getId(), "ORDER-NO-RESPONSE").orElseThrow();
 
-        assertThat(result.currentRequest().status()).isEqualTo(ConfirmationStatus.NO_RESPONSE);
+        assertThat(result.currentRequest().status()).isEqualTo("NO_RESPONSE");
         assertThat(result.currentRequest().customerResponse()).isNull();
     }
 
@@ -273,16 +275,16 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
     }
 
     @Test
-    void usesRequestIdAsTieBreakerWhenSentAtIsEqual() {
-        Company company = testData.createCompany("Stable sorting");
+    void returnsLatestPendingAsCurrentAndPreviousSentInHistory() {
+        Company company = testData.createCompany("Pending request current");
         Order order = testData.createOrder(
                 company,
-                "ORDER-SORTING",
+                "ORDER-PENDING-CURRENT",
                 "A-17",
                 "WUE-DEMO 100",
-                ConfirmationStatus.SENT
+                ConfirmationStatus.OPEN
         );
-        ConfirmationRequest lowerId = createRequest(
+        ConfirmationRequest sent = createRequest(
                 order,
                 SENT_AT,
                 false,
@@ -290,22 +292,60 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
                 null,
                 null
         );
-        ConfirmationRequest higherId = createRequest(
+        ConfirmationRequest pending = createPendingRequest(
+                order
+        );
+
+        ConfirmationDetail result = find(
+                company.getId(),
+                "ORDER-PENDING-CURRENT"
+        ).orElseThrow();
+
+        assertThat(pending.getId()).isGreaterThan(sent.getId());
+        assertThat(result.currentRequest().requestId()).isEqualTo(pending.getId());
+        assertThat(result.currentRequest().deliveryStatus())
+                .isEqualTo(NotificationDeliveryStatus.PENDING);
+        assertThat(result.currentRequest().status()).isEqualTo("PENDING");
+        assertThat(result.previousRequests())
+                .extracting(RequestDetail::requestId)
+                .containsExactly(sent.getId());
+    }
+
+    @Test
+    void returnsLatestFailedAsCurrent() {
+        Company company = testData.createCompany("Failed request current");
+        Order order = testData.createOrder(
+                company,
+                "ORDER-FAILED-CURRENT",
+                "A-17",
+                "WUE-DEMO 100",
+                ConfirmationStatus.OPEN
+        );
+        ConfirmationRequest sent = createRequest(
                 order,
                 SENT_AT,
-                true,
-                CommunicationChannel.SMS,
+                false,
+                CommunicationChannel.EMAIL,
                 null,
                 null
         );
+        ConfirmationRequest failed = createFailedRequest(
+                order
+        );
 
-        ConfirmationDetail result = find(company.getId(), "ORDER-SORTING").orElseThrow();
+        ConfirmationDetail result = find(
+                company.getId(),
+                "ORDER-FAILED-CURRENT"
+        ).orElseThrow();
 
-        assertThat(higherId.getId()).isGreaterThan(lowerId.getId());
-        assertThat(result.currentRequest().requestId()).isEqualTo(higherId.getId());
+        assertThat(failed.getId()).isGreaterThan(sent.getId());
+        assertThat(result.currentRequest().requestId()).isEqualTo(failed.getId());
+        assertThat(result.currentRequest().deliveryStatus())
+                .isEqualTo(NotificationDeliveryStatus.FAILED);
+        assertThat(result.currentRequest().status()).isEqualTo("FAILED");
         assertThat(result.previousRequests())
                 .extracting(RequestDetail::requestId)
-                .containsExactly(lowerId.getId());
+                .containsExactly(sent.getId());
     }
 
     @Test
@@ -344,14 +384,8 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
             CustomerResponseType responseType,
             String comment
     ) {
-        ConfirmationRequest request = ConfirmationRequest.create(
-                order,
-                UUID.randomUUID().toString(),
-                channel,
-                DeliverySlot.of(DELIVERY_DATE, DELIVERY_START, DELIVERY_END),
-                sentAt,
-                24
-        );
+        ConfirmationRequest request = newPendingRequest(order, channel);
+        request.markSent(sentAt);
         if (!active) {
             request.markInactive();
         }
@@ -366,5 +400,35 @@ class ConfirmationDetailQueryAdapterIntegrationTest {
             ));
         }
         return request;
+    }
+
+    private ConfirmationRequest createPendingRequest(
+            Order order
+    ) {
+        ConfirmationRequest request = newPendingRequest(order, CommunicationChannel.SMS);
+        entityManager.persist(request);
+        return request;
+    }
+
+    private ConfirmationRequest createFailedRequest(
+            Order order
+    ) {
+        ConfirmationRequest request = newPendingRequest(order, CommunicationChannel.SMS);
+        request.markDeliveryFailed();
+        entityManager.persist(request);
+        return request;
+    }
+
+    private ConfirmationRequest newPendingRequest(
+            Order order,
+            CommunicationChannel channel
+    ) {
+        return ConfirmationRequest.createPending(
+                order,
+                UUID.randomUUID().toString(),
+                channel,
+                DeliverySlot.of(DELIVERY_DATE, DELIVERY_START, DELIVERY_END),
+                24
+        );
     }
 }

@@ -1,6 +1,7 @@
 package heizoel.backend.domain;
 
 public enum ConfirmationStatus {
+    OPEN,
     SENT,
     CONFIRMED,
     REJECTED,

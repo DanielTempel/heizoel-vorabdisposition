@@ -1,6 +1,5 @@
 package heizoel.backend.adapter.out.persistence;
 
-
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import heizoel.backend.application.model.overview.ConfirmationDetail;
@@ -20,10 +19,10 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class ConfirmationDetailQueryAdapter implements ConfirmationDetailQueryPort {
+public class ConfirmationDetailQueryAdapter
+        implements ConfirmationDetailQueryPort {
 
     private final JPAQueryFactory queryFactory;
-
 
     @Override
     public Optional<ConfirmationDetail> findDetail(
@@ -60,7 +59,7 @@ public class ConfirmationDetailQueryAdapter implements ConfirmationDetailQueryPo
 
         Long orderId = orderRow.get(order.id);
 
-        OrderDetail orderDetail = new ConfirmationDetail.OrderDetail(
+        OrderDetail orderDetail = new OrderDetail(
                 orderRow.get(order.externalOrderId),
                 orderRow.get(order.customerName),
                 orderRow.get(order.customerEmail),
@@ -74,18 +73,23 @@ public class ConfirmationDetailQueryAdapter implements ConfirmationDetailQueryPo
                 orderRow.get(order.confirmationStatus)
         );
 
-        List<RequestDetail> requests = findRequests(orderId);
+        List<RequestDetail> requests =
+                findRequests(orderId);
 
+        RequestDetail currentRequest =
+                requests.isEmpty()
+                        ? null
+                        : requests.get(0);
 
-        RequestDetail currentRequest = requests.isEmpty()
-                ? null
-                : requests.get(0);
-
-        List<RequestDetail> previousRequests = requests.size() <= 1
-                ? List.of()
-                : List.copyOf(
-                requests.subList(1, requests.size())
-        );
+        List<RequestDetail> previousRequests =
+                requests.size() <= 1
+                        ? List.of()
+                        : List.copyOf(
+                        requests.subList(
+                                1,
+                                requests.size()
+                        )
+                );
 
         return Optional.of(
                 new ConfirmationDetail(
@@ -114,6 +118,7 @@ public class ConfirmationDetailQueryAdapter implements ConfirmationDetailQueryPo
                         confirmationRequest.expiresAt,
                         confirmationRequest.responseDeadlineHours,
                         confirmationRequest.active,
+                        confirmationRequest.deliveryStatus,
                         customerResponse.responseType,
                         customerResponse.comment,
                         customerResponse.receivedAt
@@ -129,7 +134,6 @@ public class ConfirmationDetailQueryAdapter implements ConfirmationDetailQueryPo
                         confirmationRequest.order.id.eq(orderId)
                 )
                 .orderBy(
-                        confirmationRequest.sentAt.desc(),
                         confirmationRequest.id.desc()
                 )
                 .fetch();
@@ -148,6 +152,18 @@ public class ConfirmationDetailQueryAdapter implements ConfirmationDetailQueryPo
             QConfirmationRequest confirmationRequest,
             QCustomerResponse customerResponse
     ) {
+        CustomerResponseType responseType =
+                row.get(customerResponse.responseType);
+
+        CustomerResponseDetail customerResponseDetail =
+                responseType == null
+                        ? null
+                        : new CustomerResponseDetail(
+                        responseType,
+                        row.get(customerResponse.comment),
+                        row.get(customerResponse.receivedAt)
+                );
+
         return new RequestDetail(
                 row.get(confirmationRequest.id),
                 row.get(confirmationRequest.communicationChannel),
@@ -160,28 +176,8 @@ public class ConfirmationDetailQueryAdapter implements ConfirmationDetailQueryPo
                 Boolean.TRUE.equals(
                         row.get(confirmationRequest.active)
                 ),
-                toCustomerResponseDetail(
-                        row,
-                        customerResponse
-                )
-        );
-    }
-
-    private CustomerResponseDetail toCustomerResponseDetail(
-            Tuple row,
-            QCustomerResponse customerResponse
-    ) {
-        CustomerResponseType responseType =
-                row.get(customerResponse.responseType);
-
-        if (responseType == null) {
-            return null;
-        }
-
-        return new CustomerResponseDetail(
-                responseType,
-                row.get(customerResponse.comment),
-                row.get(customerResponse.receivedAt)
+                row.get(confirmationRequest.deliveryStatus),
+                customerResponseDetail
         );
     }
 }

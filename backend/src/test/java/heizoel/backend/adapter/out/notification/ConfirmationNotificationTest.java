@@ -1,7 +1,7 @@
 package heizoel.backend.adapter.out.notification;
 
-import heizoel.backend.application.port.out.workflow.NoResponseWorkflowService;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackService;
+import heizoel.backend.application.port.in.workflow.SendConfirmationRequestUseCase;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.Order;
 import heizoel.backend.application.port.out.location.GeocodingClient;
@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -28,10 +27,10 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -60,16 +59,12 @@ class ConfirmationNotificationTest {
         registry.add("camunda.bpm.auto-deployment-enabled", () -> "true");
         registry.add("camunda.bpm.deployment-resource-pattern[0]", () -> "classpath*:processes/*.bpmn");
 
-        /*
-         * We mock NoResponseWorkflowService in this test.
-         * Therefore, the Camunda job executor is not needed here.
-         */
+        // Delivery is invoked explicitly through the application use case.
         registry.add("camunda.bpm.job-execution.enabled", () -> "false");
 
         registry.add("heizoel.confirmation.frontend-url", () -> "http://localhost:3000");
         registry.add("heizoel.confirmation.dispo-url", () -> "http://localhost:8090/api/dispo/confirmation-status-updates");
 
-        registry.add("heizoel.mail.from", () -> "no-reply@heizoel.local");
         registry.add("heizoel.sms.mock-url", () -> "http://localhost:8091/api/sms/messages");
     }
 
@@ -79,20 +74,18 @@ class ConfirmationNotificationTest {
     @Autowired
     JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    SendConfirmationRequestUseCase sendConfirmationRequestUseCase;
+
     @MockitoSpyBean
     EmailNotificationSender emailSender;
 
     @MockitoSpyBean
     SmsNotificationSender smsConfirmationSender;
 
+
     @MockitoSpyBean
     WhatsAppNotificationSender whatsappNotificationSender;
-
-    @MockitoBean
-    JavaMailSender javaMailSender;
-
-    @MockitoBean
-    NoResponseWorkflowService noResponseWorkflowService;
 
     @MockitoBean
     DispoStatusCallbackService dispoStatusCallbackService;
@@ -106,7 +99,6 @@ class ConfirmationNotificationTest {
                 emailSender,
                 smsConfirmationSender,
                 whatsappNotificationSender,
-                noResponseWorkflowService,
                 dispoStatusCallbackService,
                 geocodingClient
         );
@@ -129,7 +121,8 @@ class ConfirmationNotificationTest {
                 "EMAIL",
                 "daniel@example.com",
                 null
-        ).andExpect(status().isCreated());
+        ).andExpect(status().isAccepted());
+        sendConfirmationRequestUseCase.send(getLatestConfirmationRequestId(externalOrderId));
 
         assertThat(getConfirmationStatus(externalOrderId))
                 .isEqualTo("SENT");
@@ -169,8 +162,6 @@ class ConfirmationNotificationTest {
         assertThat(capturedRequest.getToken())
                 .isNotBlank();
 
-        verify(noResponseWorkflowService, times(1))
-                .startTimeoutProcess(anyLong(), any(Instant.class));
     }
 
     @Test
@@ -182,7 +173,8 @@ class ConfirmationNotificationTest {
                 "SMS",
                 null,
                 "+491701234567"
-        ).andExpect(status().isCreated());
+        ).andExpect(status().isAccepted());
+        sendConfirmationRequestUseCase.send(getLatestConfirmationRequestId(externalOrderId));
 
         assertThat(getConfirmationStatus(externalOrderId))
                 .isEqualTo("SENT");
@@ -223,8 +215,6 @@ class ConfirmationNotificationTest {
         assertThat(capturedRequest.getToken())
                 .isNotBlank();
 
-        verify(noResponseWorkflowService, times(1))
-                .startTimeoutProcess(anyLong(), any(Instant.class));
     }
 
     @Test
@@ -236,7 +226,11 @@ class ConfirmationNotificationTest {
                 "WHATSAPP",
                 null,
                 "+491701234567"
-        ).andExpect(status().isCreated());
+        ).andExpect(status().isAccepted());
+
+        sendConfirmationRequestUseCase.send(
+                getLatestConfirmationRequestId(externalOrderId)
+        );
 
         assertThat(getConfirmationStatus(externalOrderId))
                 .isEqualTo("SENT");
@@ -276,9 +270,6 @@ class ConfirmationNotificationTest {
 
         assertThat(capturedRequest.getToken())
                 .isNotBlank();
-
-        verify(noResponseWorkflowService, times(1))
-                .startTimeoutProcess(anyLong(), any(Instant.class));
     }
 
     private org.springframework.test.web.servlet.ResultActions createDispoConfirmationRequest(
@@ -365,4 +356,15 @@ class ConfirmationNotificationTest {
                 LIMIT 1
                 """, String.class, externalOrderId);
     }
+        private Long getLatestConfirmationRequestId(String externalOrderId) {
+        return jdbcTemplate.queryForObject("""
+                SELECT cr.id
+                FROM confirmation_request cr
+                JOIN order_snapshot os ON os.id = cr.order_snapshot_id
+                WHERE os.external_order_id = ?
+                ORDER BY cr.id DESC
+                LIMIT 1
+                """, Long.class, externalOrderId);
+    }
 }
+

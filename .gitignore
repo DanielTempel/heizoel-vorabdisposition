@@ -30,3 +30,4 @@ build/
 .vscode/
 .idea/
 *.ps1
+backend/src/main/java/heizoel/backend/code.ps1

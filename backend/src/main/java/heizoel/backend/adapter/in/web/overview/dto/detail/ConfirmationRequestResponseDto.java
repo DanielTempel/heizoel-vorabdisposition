@@ -18,7 +18,7 @@ public record ConfirmationRequestResponseDto(
         Instant expiresAt,
         Integer responseDeadlineHours,
         boolean active,
-        ConfirmationStatus status,
+        String status,
         CustomerResponseResponseDto customerResponse
 ) {
 

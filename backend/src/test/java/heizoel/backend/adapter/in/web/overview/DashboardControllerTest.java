@@ -7,6 +7,7 @@ import heizoel.backend.application.model.overview.ConfirmationDetail;
 import heizoel.backend.application.model.overview.ConfirmationDetail.CustomerResponseDetail;
 import heizoel.backend.application.model.overview.ConfirmationDetail.OrderDetail;
 import heizoel.backend.application.model.overview.ConfirmationDetail.RequestDetail;
+import heizoel.backend.application.port.in.confirmation.ResendConfirmationRequestUseCase;
 import heizoel.backend.application.port.in.overview.GetConfirmationDetailQuery;
 import heizoel.backend.application.port.in.overview.GetConfirmationDetailUseCase;
 import heizoel.backend.application.port.in.overview.GetTourNumbersUseCase;
@@ -14,6 +15,7 @@ import heizoel.backend.application.port.in.overview.GetTourOverviewUseCase;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.CustomerResponseType;
+import heizoel.backend.domain.NotificationDeliveryStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -55,6 +57,9 @@ class DashboardControllerTest {
 
     @MockitoBean
     GetConfirmationDetailUseCase getConfirmationDetailUseCase;
+
+    @MockitoBean
+    ResendConfirmationRequestUseCase resendConfirmationRequestUseCase;
 
     @MockitoBean
     Clock clock;
@@ -159,6 +164,7 @@ class DashboardControllerTest {
                         Instant.parse("2026-08-04T10:00:00Z"),
                         24,
                         false,
+                        NotificationDeliveryStatus.SENT,
                         new CustomerResponseDetail(
                                 CustomerResponseType.CONFIRM,
                                 "Delivery is fine",
@@ -175,6 +181,7 @@ class DashboardControllerTest {
                         Instant.parse("2026-08-02T10:00:00Z"),
                         24,
                         false,
+                        NotificationDeliveryStatus.SENT,
                         new CustomerResponseDetail(
                                 CustomerResponseType.REJECT,
                                 "Please deliver another day",

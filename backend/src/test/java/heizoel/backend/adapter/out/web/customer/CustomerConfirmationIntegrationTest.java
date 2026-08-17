@@ -8,9 +8,11 @@ import heizoel.backend.application.port.out.location.LocationTrackingService;
 import heizoel.backend.application.model.GeoCoordinate;
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
 import heizoel.backend.application.port.out.notification.NotificationService;
+import heizoel.backend.application.port.out.workflow.ConfirmationWorkflowService;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,12 +20,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -36,7 +38,6 @@ import java.time.ZoneId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -45,6 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class CustomerConfirmationIntegrationTest {
 
     @Autowired
@@ -79,10 +81,10 @@ class CustomerConfirmationIntegrationTest {
     }
 
     @MockitoBean
-    JavaMailSender javaMailSender;
+    NotificationService notificationService;
 
     @MockitoBean
-    NotificationService notificationService;
+    ConfirmationWorkflowService confirmationWorkflowService;
 
     @MockitoBean
     LocationTrackingService locationTrackingService;
@@ -105,13 +107,21 @@ class CustomerConfirmationIntegrationTest {
     @Autowired
     CustomerResponseRepository customerResponseRepository;
 
+    @Autowired
+    EntityManager entityManager;
+
     @BeforeEach
     void cleanDatabase() {
         customerResponseRepository.deleteAll();
         confirmationRequestRepository.deleteAll();
         orderRepository.deleteAll();
 
-        Mockito.reset(notificationService, locationTrackingService, geocodingClient);
+        Mockito.reset(
+                notificationService,
+                confirmationWorkflowService,
+                locationTrackingService,
+                geocodingClient
+        );
         when(locationTrackingService.getDriverLocation(any()))
                 .thenAnswer(invocation -> {
                     return java.util.Optional.of(new GeoCoordinate(9.8820D, 49.8166D));
@@ -449,19 +459,6 @@ class CustomerConfirmationIntegrationTest {
         assertThat(customerResponseRepository.findAll()).isEmpty();
     }
 
-    @Test
-    void createDispoConfirmationRequest_usesNotificationService() throws Exception {
-        String externalOrderId = "A-3005";
-
-        createDispoConfirmationRequest(externalOrderId);
-
-        Mockito.verify(notificationService, times(1))
-                .sendConfirmationRequest(
-                        any(Order.class),
-                        any(ConfirmationRequest.class)
-                );
-    }
-
     private void createDispoConfirmationRequest(String externalOrderId) throws Exception {
         createDispoConfirmationRequest(externalOrderId, "2099-06-12");
     }
@@ -494,9 +491,20 @@ class CustomerConfirmationIntegrationTest {
         mockMvc.perform(post("/api/dispo/confirmation-requests")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
-                .andExpect(status().isCreated())
+                .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.externalOrderId").value(externalOrderId))
-                .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
+                .andExpect(jsonPath("$.confirmationStatus").value("OPEN"));
+
+        Order order = orderRepository
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
+                .orElseThrow();
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository
+                .findTopByOrderOrderByIdDesc(order)
+                .orElseThrow();
+        confirmationRequest.markSent(Instant.now(clock));
+        order.markSent();
+        confirmationRequestRepository.save(confirmationRequest);
+        orderRepository.save(order);
     }
 
     private String findActiveTokenByExternalOrderId(String externalOrderId) {
@@ -524,6 +532,7 @@ class CustomerConfirmationIntegrationTest {
                 deliveryDate,
                 confirmationRequest.getId()
         );
+        entityManager.clear();
     }
 
     private void expireRequest(String token) {
@@ -536,6 +545,7 @@ class CustomerConfirmationIntegrationTest {
                 Timestamp.from(Instant.now(clock).minusSeconds(1)),
                 confirmationRequest.getId()
         );
+        entityManager.clear();
     }
 
     private void markRequestInactive(String token) {

@@ -1,15 +1,22 @@
 package heizoel.backend.adapter.in.web.overview;
 
+import heizoel.backend.adapter.in.web.overview.dto.ResendConfirmationRequestRequestDto;
 import heizoel.backend.adapter.in.web.overview.dto.detail.DashboardOrderDetailResponseDto;
+import heizoel.backend.adapter.in.web.overview.dto.detail.ResendConfirmationRequestResponseDto;
 import heizoel.backend.adapter.in.web.security.CompanyContextResolver;
 import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.model.overview.ConfirmationDetail;
+import heizoel.backend.application.port.in.confirmation.ResendConfirmationRequestCommand;
+import heizoel.backend.application.port.in.confirmation.ResendConfirmationRequestResult;
+import heizoel.backend.application.port.in.confirmation.ResendConfirmationRequestUseCase;
 import heizoel.backend.application.port.in.overview.*;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.adapter.in.web.overview.dto.ToursPageResponseDto;
 import heizoel.backend.application.model.overview.TourOverviewPage;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -25,6 +32,7 @@ public class DashboardController {
     private final GetTourOverviewUseCase getTourOverviewUseCase;
     private final GetTourNumbersUseCase getTourNumbersUseCase;
     private final GetConfirmationDetailUseCase getConfirmationDetailUseCase;
+    private final ResendConfirmationRequestUseCase resendConfirmationRequestUseCase;
 
     @GetMapping("/tours")
     public ToursPageResponseDto getTours(
@@ -97,6 +105,31 @@ public class DashboardController {
                 );
 
         return DashboardOrderDetailResponseDto.from(detail);
+    }
+
+    @PostMapping("/orders/{externalOrderId}/resend")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ResendConfirmationRequestResponseDto resendConfirmationRequest(
+            @PathVariable String externalOrderId,
+            @Valid @RequestBody ResendConfirmationRequestRequestDto request
+    ) {
+        CompanyContext companyContext =
+                companyContextResolver.resolve();
+
+        ResendConfirmationRequestResult result =
+                resendConfirmationRequestUseCase.resend(
+                        new ResendConfirmationRequestCommand(
+                                companyContext,
+                                externalOrderId,
+                                request.communicationChannel(),
+                                request.responseDeadlineHours()
+                        )
+                );
+
+        return new ResendConfirmationRequestResponseDto(
+                result.externalOrderId(),
+                result.confirmationStatus()
+        );
     }
 
 }

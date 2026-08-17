@@ -3,6 +3,7 @@ package heizoel.backend.application.model.overview;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.CustomerResponseType;
+import heizoel.backend.domain.NotificationDeliveryStatus;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -44,19 +45,27 @@ public record ConfirmationDetail(
             Instant expiresAt,
             Integer responseDeadlineHours,
             boolean active,
+            NotificationDeliveryStatus deliveryStatus,
             CustomerResponseDetail customerResponse
     ) {
 
-        public ConfirmationStatus status() {
-            CustomerResponseType responseType =
-                    customerResponse != null
-                            ? customerResponse.responseType()
-                            : null;
+        public String status() {
+            return switch (deliveryStatus) {
+                case PENDING -> NotificationDeliveryStatus.PENDING.name();
+                case FAILED -> NotificationDeliveryStatus.FAILED.name();
 
-            return ConfirmationStatus.fromRequest(
-                    active,
-                    responseType
-            );
+                case SENT -> {
+                    CustomerResponseType responseType =
+                            customerResponse != null
+                                    ? customerResponse.responseType()
+                                    : null;
+
+                    yield ConfirmationStatus.fromRequest(
+                            active,
+                            responseType
+                    ).name();
+                }
+            };
         }
     }
 

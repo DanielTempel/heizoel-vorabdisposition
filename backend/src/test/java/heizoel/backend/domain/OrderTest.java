@@ -1,5 +1,6 @@
 package heizoel.backend.domain;
 
+import heizoel.backend.domain.company.Company;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -10,7 +11,7 @@ class OrderTest {
 
     @Test
     void shouldHaveSameDataWhenTourValuesAreEqual() {
-        Order order = order(ORIGINAL_TOUR);
+        Order order = order();
 
         boolean sameData = hasSameData(order, Tour.of("17", "WÜ-AB 123"));
 
@@ -19,7 +20,7 @@ class OrderTest {
 
     @Test
     void shouldDetectChangedTourNumber() {
-        Order order = order(ORIGINAL_TOUR);
+        Order order = order();
 
         boolean sameData = hasSameData(order, Tour.of("18", "WÜ-AB 123"));
 
@@ -28,7 +29,7 @@ class OrderTest {
 
     @Test
     void shouldDetectChangedVehicleLicensePlate() {
-        Order order = order(ORIGINAL_TOUR);
+        Order order = order();
 
         boolean sameData = hasSameData(order, Tour.of("17", "WÜ-CD 456"));
 
@@ -37,7 +38,7 @@ class OrderTest {
 
     @Test
     void shouldDetectEveryChangedOrderField() {
-        Order order = order(ORIGINAL_TOUR);
+        Order order = order();
 
         assertThat(order.hasSameData(
                 ORIGINAL_TOUR,
@@ -118,8 +119,8 @@ class OrderTest {
     }
 
     @Test
-    void updateStoresNewTourAndResetsStatusToSent() {
-        Order order = order(ORIGINAL_TOUR);
+    void updateStoresNewDataWithoutChangingStatus() {
+        Order order = order();
         order.markRejected();
         Tour changedTour = Tour.of("18", "WÜ-CD 456");
 
@@ -142,10 +143,24 @@ class OrderTest {
         assertThat(order.getProduct()).isEqualTo("Premium Heizöl");
         assertThat(order.getQuantityLiters()).isEqualTo(4000);
         assertThat(order.getPriceDisplayText()).isEqualTo("99,00 € / 100 L");
-        assertThat(order.getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
+        assertThat(order.getConfirmationStatus()).isEqualTo(ConfirmationStatus.REJECTED);
     }
 
-    private Order order(Tour tour) {
+    @Test
+    void markOpenSetsConfirmationStatusToOpen() {
+        Order order = createOrder();
+
+        order.markOpen();
+
+        assertThat(order.getConfirmationStatus())
+                .isEqualTo(ConfirmationStatus.OPEN);
+    }
+
+    private Order createOrder() {
+        return order();
+    }
+
+    private Order order() {
         return Order.create(
                 Company.create(
                         "Test Company",
@@ -153,7 +168,7 @@ class OrderTest {
                         "http://localhost/callback"
                 ),
                 "A-1024",
-                tour,
+                OrderTest.ORIGINAL_TOUR,
                 "Max Mustermann",
                 "max@example.com",
                 "+491701234567",

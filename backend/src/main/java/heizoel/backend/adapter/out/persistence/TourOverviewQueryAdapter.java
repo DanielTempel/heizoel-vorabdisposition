@@ -123,7 +123,6 @@ public class TourOverviewQueryAdapter implements TourOverviewQueryPort {
         BooleanBuilder where = new BooleanBuilder();
 
         where.and(order.company.id.eq(filter.companyId()));
-
         where.and(latestConfirmationRequestOnly(
                         order,
                         confirmationRequest

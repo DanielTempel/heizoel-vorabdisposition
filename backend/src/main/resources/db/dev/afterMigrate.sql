@@ -655,7 +655,8 @@ INSERT INTO confirmation_request
     active,
     sent_at,
     expires_at,
-    response_deadline_hours
+    response_deadline_hours,
+    delivery_status
 )
 SELECT
     history.token,
@@ -681,7 +682,8 @@ SELECT
             )
             AT TIME ZONE 'Europe/Berlin'
         ),
-    24
+    24,
+    'SENT'
 FROM history_seed history
          JOIN order_snapshot order_data
               ON order_data.company_id = 1
@@ -730,7 +732,8 @@ INSERT INTO confirmation_request
     active,
     sent_at,
     expires_at,
-    response_deadline_hours
+    response_deadline_hours,
+    delivery_status
 )
 SELECT
     'demo-current-' || LOWER(request_times.external_order_id),
@@ -764,7 +767,8 @@ SELECT
             )
         END,
 
-    24
+    24,
+    'SENT'
 FROM request_times;
 
 
@@ -832,3 +836,30 @@ SELECT
     request.sent_at + INTERVAL '2 hours'
 FROM confirmation_request request
 WHERE request.token = 'demo-history-demo-today-001';
+
+INSERT INTO company_email_settings (
+    company_id,
+    smtp_host,
+    smtp_port,
+    security_mode,
+    authentication_enabled,
+    smtp_username,
+    smtp_password_encrypted,
+    from_address,
+    from_name,
+    updated_at
+)
+SELECT
+    c.id,
+    'localhost',
+    1025,
+    'NONE',
+    FALSE,
+    NULL,
+    NULL,
+    'dispo@heizoel.local',
+    'Heizöl Disposition',
+    CURRENT_TIMESTAMP
+FROM company c
+WHERE c.id = 1
+ON CONFLICT (company_id) DO NOTHING;

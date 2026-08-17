@@ -2,17 +2,14 @@ package heizoel.backend.adapter.in.web.error;
 
 import heizoel.backend.adapter.in.web.security.InvalidApiKeyException;
 import heizoel.backend.adapter.in.web.security.MissingApiKeyException;
-import heizoel.backend.application.exception.CompanyNotFoundException;
-import heizoel.backend.application.exception.InvalidFilterException;
+import heizoel.backend.application.exception.*;
 import heizoel.backend.application.port.out.dispo.DispoCallbackException;
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
 import heizoel.backend.domain.exception.ConfirmationRequestExpiredException;
 import heizoel.backend.domain.exception.ConfirmationRequestInactiveException;
-import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.domain.exception.CustomerResponseAlreadyExistsException;
 import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.domain.exception.MissingDigitalContactException;
-import heizoel.backend.application.exception.OrderNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -158,6 +155,64 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidApiKeyException.class)
     ResponseEntity<ErrorResponseDto> invalidApiKey(InvalidApiKeyException e, HttpServletRequest req) {
         return respond(HttpStatus.UNAUTHORIZED, "INVALID_API_KEY", e.getMessage(), req.getRequestURI());
+    }
+
+    @ExceptionHandler(InvalidEmailSettingsException.class)
+    ResponseEntity<ErrorResponseDto> invalidEmailSettings(InvalidEmailSettingsException e, HttpServletRequest req) {
+        return respond(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", e.getMessage(), req.getRequestURI());
+    }
+
+    @ExceptionHandler(ConfirmationRequestDeliveryInProgressException.class)
+    ResponseEntity<ErrorResponseDto> confirmationRequestDeliveryInProgress(
+            ConfirmationRequestDeliveryInProgressException e,
+            HttpServletRequest req
+    ) {
+        return respond(
+                HttpStatus.CONFLICT,
+                "CONFIRMATION_REQUEST_DELIVERY_IN_PROGRESS",
+                e.getMessage(),
+                req.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler(EmailSettingsNotConfiguredException.class)
+    ResponseEntity<ErrorResponseDto> emailSettingsNotConfigured(
+            EmailSettingsNotConfiguredException exception,
+            HttpServletRequest request
+    ) {
+        return respond(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "EMAIL_SETTINGS_NOT_CONFIGURED",
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler(TestEmailDeliveryException.class)
+    ResponseEntity<ErrorResponseDto> testEmailDeliveryFailed(
+            TestEmailDeliveryException exception,
+            HttpServletRequest request
+    ) {
+        return respond(
+                HttpStatus.BAD_GATEWAY,
+                "SMTP_TEST_MESSAGE_FAILED",
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+
+    @ExceptionHandler(EmailConnectionTestException.class)
+    ResponseEntity<ErrorResponseDto> emailConnectionTestFailed(
+            EmailConnectionTestException exception,
+            HttpServletRequest request
+    ) {
+        return respond(
+                HttpStatus.BAD_GATEWAY,
+                "SMTP_CONNECTION_FAILED",
+                exception.getMessage(),
+                request.getRequestURI()
+        );
     }
 
     private ResponseEntity<ErrorResponseDto> respond(

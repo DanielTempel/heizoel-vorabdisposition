@@ -4,7 +4,6 @@ import heizoel.backend.domain.ConfirmationStatus;
 
 public record CreateConfirmationRequestResult(
         String externalOrderId,
-        ConfirmationStatus confirmationStatus,
-        boolean created
+        ConfirmationStatus confirmationStatus
 ) {
 }

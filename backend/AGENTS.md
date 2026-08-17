@@ -1,196 +1,435 @@
 # AGENTS.md
 
+## Purpose
+
+This file defines repository-specific engineering rules for agents working on the Heizöl Vorabdisposition backend.
+
+It is intentionally kept small and stable.
+
+Do not use this file as a copy of the current business specification, API documentation, domain model, or Camunda workflow.
+
+When implementation details are needed, inspect the corresponding source of truth in the repository.
+
+---
+
 ## Project Context
 
-Backend prototype for Heizöl delivery confirmation.
-The backend receives confirmation requests from DISPO, sends a customer confirmation message, stores the customer response, handles timeout via Camunda, and sends the final status back to DISPO.
+The backend implements the digital confirmation process for planned Heizöl deliveries.
 
-## Tech Stack
+It integrates with an external DISPO system, communicates with customers, persists confirmation-related state, runs durable asynchronous workflows, and exposes dispatcher-facing backend functionality.
 
-* Java 25
-* Spring Boot 3.5
-* PostgreSQL 16
-* Flyway
-* Camunda Platform 7
-* Spring Data JPA
-* Spring Mail / Mailpit
-* REST clients with Spring `RestClient`
-* JUnit 5, Testcontainers, Mockito, Awaitility
+The backend follows a ports-and-adapters / hexagonal architecture.
+
+---
+
+## General Working Rules
+
+Before changing behavior:
+
+1. inspect the relevant production code;
+2. inspect the relevant tests;
+3. inspect related BPMN processes, migrations, configuration, or API contracts when applicable;
+4. understand the existing invariant before modifying it.
+
+Do not implement behavior based only on documentation if the current implementation says otherwise.
+
+If documentation and implementation conflict, investigate the discrepancy before deciding which one is intended.
+
+Prefer focused changes over unrelated refactoring.
+
+Preserve existing behavior unless the task explicitly requires changing it.
+
+---
+
+## Sources of Truth
+
+Do not duplicate frequently changing implementation details in this file.
+
+Use the following repository artifacts as the primary sources of truth.
+
+### Build and dependency versions
+
+Use:
+
+```text
+pom.xml
+````
+
+Do not hardcode dependency or Java versions in this file.
+
+### Domain states and business behavior
+
+Use:
+
+```text
+src/main/java/.../domain/
+src/test/java/.../domain/
+```
+
+Current enums, entities, value objects, domain methods, and their tests define the current domain model.
+
+Do not maintain duplicate lists of statuses or state transitions here.
+
+### Application behavior
+
+Use:
+
+```text
+src/main/java/.../application/
+src/test/java/.../application/
+```
+
+Application use cases and tests define orchestration and business workflows outside the domain model.
+
+### REST API contracts
+
+Use:
+
+```text
+controllers
+request/response DTOs
+OpenAPI / Swagger
+controller and integration tests
+```
+
+Do not maintain endpoint inventories or DTO field lists in this file.
+
+### Camunda workflow behavior
+
+Use:
+
+```text
+src/main/resources/processes/
+Camunda adapters
+workflow integration tests
+```
+
+The BPMN model and its integration tests are authoritative for the current workflow structure.
+
+Do not duplicate timers, retry counts, message names, or individual process transitions here.
+
+### Database schema
+
+Use:
+
+```text
+src/main/resources/db/migration/
+```
+
+Flyway migrations define the persisted schema.
+
+### Configuration
+
+Use:
+
+```text
+application*.yml
+configuration classes
+configuration properties
+```
+
+Do not assume configuration values without checking the current implementation.
+
+### Detailed technical documentation
+
+Technical developer documentation belongs under:
+
+```text
+backend/docs/
+```
+
+The repository-level `/docs` directory contains project and university documentation and is not automatically part of normal backend maintenance.
+
+---
 
 ## Architecture Rules
 
-* Keep controllers thin.
-* Put business logic into application/domain services.
-* Keep external systems behind interfaces.
-* Do not expose JPA entities through REST APIs.
-* Use DTO records for API contracts.
-* Use Flyway for every database schema change.
-* Keep `spring.jpa.hibernate.ddl-auto=validate`.
-* `GET` endpoints must not change state.
-* Customer confirm/reject actions must use `POST`.
+Keep the existing ports-and-adapters boundaries.
 
-## Main Flow
+### Domain
 
-```text
-DISPO -> Backend -> Notification channel -> Customer
-Customer -> Backend -> Camunda callback workflow -> DISPO
-```
+Domain code contains business concepts, invariants, and state transitions.
 
-The DISPO system is external. During local development it is represented by `dispo-mock`.
+Domain code must not depend on:
 
-## Important Business Rules
+* REST controllers;
+* API DTOs;
+* Camunda APIs;
+* SMTP implementations;
+* HTTP clients;
+* concrete infrastructure adapters.
 
-Confirmation statuses:
+Prefer explicit domain methods for business state transitions instead of arbitrary field mutation from outside the domain object.
 
-```text
-SENT
-CONFIRMED
-REJECTED
-NO_RESPONSE
-```
+### Application
 
-A request is a duplicate only if there is an active request for the same order and the relevant data is unchanged.
+Application code contains use cases and orchestration.
 
-Relevant duplicate-check data includes:
+Application services may coordinate:
 
-* order snapshot data
-* delivery date
-* delivery time window
-* communication channel
+* domain objects;
+* repositories through ports;
+* workflows;
+* notifications;
+* external integrations through ports.
 
-Inactive old requests must not block a new request.
+Application code must not depend on inbound web DTOs.
 
-Important case:
+### Inbound adapters
 
-```text
-SENT -> NO_RESPONSE -> dispatcher sends again
-```
+Controllers and Camunda delegates are adapters.
 
-Expected behavior:
+Keep controllers thin.
 
-```text
-new confirmation_request is created
-old request stays inactive
-order_snapshot.confirmation_status becomes SENT again
-```
+Controllers should normally:
 
-If the communication channel changes, for example from `EMAIL` to `SMS`, a new request must be created.
+1. receive and validate input;
+2. resolve required context;
+3. map input to a command or query;
+4. invoke an application use case;
+5. map the result to an external response.
 
-## Communication Channels
+Do not place business decisions in controllers.
 
-Currently supported:
+### Outbound adapters
 
-```text
-EMAIL
-SMS
-WHATSAPP
-```
+Infrastructure-specific implementations belong in outbound adapters.
 
-Channel-specific validation is required:
+External systems should remain behind application ports where appropriate.
 
-* `EMAIL` requires customer e-mail.
-* `SMS` requires customer phone number.
-* `WHATSAPP` requires customer phone number.
+Do not leak infrastructure-specific APIs into the domain layer.
 
-## Camunda Rules
+---
 
-Camunda is used for asynchronous process behavior:
+## Multi-Tenancy
 
-* timeout handling
-* DISPO callback retry behavior
+Tenant isolation is a hard backend invariant.
 
-Timeout process:
+Company-owned data must always be scoped to the current company where applicable.
 
-* waits for `heizoel.confirmation.response-deadline`
-* checks whether the request is still active
-* checks whether a customer response already exists
-* sets status to `NO_RESPONSE` only if still unanswered
+Do not rely on frontend filtering for tenant isolation.
 
-Timeout must not overwrite `CONFIRMED` or `REJECTED`.
+When adding or changing queries involving tenant-owned data, explicitly verify that another company's data cannot be read or modified.
 
-If DISPO callback fails, the Camunda job may fail intentionally so Camunda can retry it.
+Use the existing company-context mechanism instead of introducing parallel tenant-resolution mechanisms.
 
-## Configuration Rules
+---
 
-Use profile-based configuration:
+## Persistence Rules
 
-```text
-application.yml
-application-dev.yml
-application-prod.yml
-```
+Use Flyway for every database schema change.
 
-`application.yml` should contain shared defaults.
+Do not use Hibernate automatic schema modification as a replacement for migrations.
 
-`application-dev.yml` should contain local development values, for example localhost URLs, Mailpit, mock services, short timeout.
+Keep persistence entities internal to the backend.
 
-`application-prod.yml` should be production-like and use environment variables for external URLs and credentials.
+Do not expose JPA entities directly through REST APIs.
 
-During local development, run backend with:
+Be deliberate about:
 
-```text
--Dspring.profiles.active=dev
-```
+* transaction boundaries;
+* lazy-loading;
+* locking;
+* concurrent workflow execution;
+* historical data preservation.
 
-## Local Development
+Do not delete historical business records merely to simplify current-state handling unless the business requirement explicitly requires deletion.
 
-Infrastructure and mocks are started with Docker Compose.
+---
 
-Backend is usually started locally from IntelliJ or Maven during active development.
+## API Rules
 
-Expected local services:
+External contracts use dedicated DTOs.
 
-```text
-Backend:     http://localhost:8080
-Mailpit:     http://localhost:8025
-pgAdmin:     http://localhost:5050
-DISPO Mock:  http://localhost:8090
-SMS Mock:    http://localhost:8091
-Swagger:     http://localhost:8080/swagger-ui.html
-```
+Do not expose internal persistence IDs unless the external contract requires them.
+
+`GET` endpoints must not mutate business state.
+
+Use HTTP status codes that reflect what has actually happened.
+
+For asynchronous operations, do not return a response that falsely implies the asynchronous work has already completed.
+
+When changing an external API contract, update its tests and relevant technical documentation.
+
+---
+
+## Time Handling
+
+Business time must be testable.
+
+Prefer the existing injected `Clock` where business decisions depend on the current time.
+
+Avoid introducing uncontrolled calls to the system clock in business logic when an injectable clock can be used.
+
+Keep time calculations centralized in the appropriate domain or application logic.
+
+---
+
+## Asynchronous and Workflow Code
+
+Durable asynchronous operations must be designed for retries.
+
+Assume that a workflow job may execute more than once.
+
+Operations triggered by Camunda should therefore be idempotent where duplicate execution could cause incorrect business behavior or duplicate external effects.
+
+Do not implement workflow retries using:
+
+* blocking sleeps;
+* ad-hoc application loops;
+* unrelated schedulers.
+
+Keep logically independent retry mechanisms independent.
+
+When changing asynchronous behavior, explicitly consider:
+
+* duplicate execution;
+* stale workflow instances;
+* concurrent requests;
+* transaction boundaries;
+* external side effects;
+* failure after partial progress.
+
+---
 
 ## Testing Rules
 
-Use integration tests for important business behavior.
+Behavior changes require tests.
 
-Typical setup:
+Do not weaken or delete existing tests merely to make an implementation pass.
 
-* `@SpringBootTest`
-* `@AutoConfigureMockMvc`
-* PostgreSQL Testcontainer
-* `JdbcTemplate` for DB assertions
-* `@MockitoBean` for external service interfaces
-* Awaitility for Camunda async behavior
+Prefer the lowest useful test level.
 
-Important scenarios to keep covered:
+Use unit tests for isolated domain and application behavior.
 
-* create confirmation request
-* duplicate unchanged active request
-* changed data creates new request
-* changed channel creates new request
-* customer confirms
-* customer rejects
-* no response timeout
-* timeout does not overwrite customer response
-* DISPO callback is triggered
-* DISPO callback failure creates retryable Camunda job
-* EMAIL and SMS channel behavior
+Use integration tests when correctness depends on integration between components such as:
 
-## Current MVP Limitations
+* PostgreSQL;
+* Flyway;
+* Spring MVC;
+* QueryDSL;
+* Camunda;
+* tenant isolation;
+* persistence locking;
+* asynchronous behavior.
 
-* Real DISPO is replaced by `dispo-mock`.
-* Real SMS provider is replaced by `sms-mock`.
-* Real WhatsApp integration is not implemented.
-* Real SMTP provider is not configured.
-* Token hashing may be added later.
-* Authentication/authorization is outside current MVP scope.
+When fixing a bug, add a regression test when practical.
+
+When changing a business invariant, search for existing tests that encode the previous invariant and update them deliberately.
+
+Do not assume tests are green.
+
+Run them.
+
+---
+
+## Documentation Rules
+
+Documentation is part of the implementation when a change affects developer-visible behavior.
+
+Update technical documentation when a change materially affects:
+
+* architecture;
+* external API contracts;
+* domain concepts;
+* important workflows;
+* persistence;
+* configuration;
+* local development setup.
+
+Do not duplicate every implementation detail in documentation.
+
+Prefer documentation that explains:
+
+* responsibilities;
+* boundaries;
+* important concepts;
+* architectural decisions;
+* externally relevant behavior.
+
+Avoid documenting details that are easier and safer to discover directly from source code unless they are important for understanding or operating the system.
+
+Do not automatically modify repository-level university/project deliverables under `/docs` during normal backend development.
+
+---
+
+## README Rules
+
+`backend/README.md` is the backend entry point.
+
+Keep it focused on:
+
+* what the backend does;
+* how to run it;
+* local infrastructure;
+* test execution;
+* useful developer URLs;
+* links to detailed technical documentation.
+
+Do not turn the README into a second copy of the business logic or BPMN implementation.
+
+---
+
+## Change Discipline
+
+Prefer simple solutions.
+
+Do not introduce abstractions without a concrete reason.
+
+Before creating a new:
+
+* interface;
+* service;
+* factory;
+* adapter;
+* DTO layer;
+* workflow;
+* scheduler;
+
+check whether the existing architecture already has the appropriate extension point.
+
+Reuse existing business flows instead of creating parallel implementations for special cases.
+
+Do not refactor unrelated areas as part of a focused feature or bug fix unless the existing structure directly blocks a correct implementation.
+
+---
+
+## Verification Before Completion
+
+Before declaring a backend task complete:
+
+1. inspect the final diff;
+2. verify the intended behavior against the current source of truth;
+3. run the relevant tests;
+4. run broader tests when shared behavior was changed;
+5. verify migrations when persistence changed;
+6. verify tenant isolation when tenant-owned data was touched;
+7. verify retry/idempotency behavior when asynchronous code was touched;
+8. update relevant technical documentation;
+9. check that no credentials or secrets were introduced;
+10. check for accidental unrelated changes.
+
+Do not claim that something works, is fixed, or is complete without verification evidence.
+
+---
 
 ## Do Not
 
-* Do not put business logic into controllers.
-* Do not mutate state from `GET` endpoints.
-* Do not treat inactive requests as duplicates.
-* Do not remove communication channel from duplicate detection.
-* Do not change database schema without Flyway migration.
-* Do not expose internal technical IDs in external API contracts unless explicitly required.
-* Do not hardcode production credentials.
+Do not:
+
+* put business logic into controllers;
+* expose JPA entities as external API contracts;
+* mutate state through `GET` endpoints;
+* bypass tenant isolation;
+* change the database schema without Flyway;
+* hardcode production credentials;
+* duplicate mutable domain definitions in this file;
+* duplicate BPMN implementation details in this file;
+* invent current business behavior without inspecting code and tests;
+* introduce parallel implementations when an existing use case or port should be reused;
+* add ad-hoc schedulers to reproduce behavior already owned by Camunda;
+* ignore retry and duplicate-execution behavior in asynchronous code;
+* silently change external API contracts;
+* knowingly leave technical documentation inconsistent with the resulting implementation;
+* claim completion without running relevant verification.
+
