@@ -8,6 +8,7 @@ import heizoel.backend.application.port.out.location.GeocodingClient;
 import heizoel.backend.application.model.GeoCoordinate;
 import heizoel.backend.adapter.out.notification.email.EmailNotificationSender;
 import heizoel.backend.adapter.out.notification.sms.SmsNotificationSender;
+import heizoel.backend.adapter.out.notification.whatsapp.WhatsAppNotificationSender;
 import heizoel.backend.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,6 +85,9 @@ class ConfirmationNotificationTest {
     @MockitoSpyBean
     SmsNotificationSender smsConfirmationSender;
 
+    @MockitoSpyBean
+    WhatsAppNotificationSender whatsappNotificationSender;
+
     @MockitoBean
     JavaMailSender javaMailSender;
 
@@ -101,6 +105,7 @@ class ConfirmationNotificationTest {
         reset(
                 emailSender,
                 smsConfirmationSender,
+                whatsappNotificationSender,
                 noResponseWorkflowService,
                 dispoStatusCallbackService,
                 geocodingClient
@@ -110,6 +115,8 @@ class ConfirmationNotificationTest {
         doNothing().when(emailSender)
                 .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
         doNothing().when(smsConfirmationSender)
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
+        doNothing().when(whatsappNotificationSender)
                 .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
@@ -199,6 +206,7 @@ class ConfirmationNotificationTest {
                 .sendConfirmationRequest(orderCaptor.capture(), requestCaptor.capture());
 
         verifyNoInteractions(emailSender);
+        verifyNoInteractions(whatsappNotificationSender);
 
         Order capturedOrder = orderCaptor.getValue();
         ConfirmationRequest capturedRequest = requestCaptor.getValue();
@@ -211,6 +219,60 @@ class ConfirmationNotificationTest {
 
         assertThat(capturedRequest.getCommunicationChannel())
                 .isEqualTo(CommunicationChannel.SMS);
+
+        assertThat(capturedRequest.getToken())
+                .isNotBlank();
+
+        verify(noResponseWorkflowService, times(1))
+                .startTimeoutProcess(anyLong(), any(Instant.class));
+    }
+
+    @Test
+    void shouldSendConfirmationViaWhatsApp_whenCommunicationChannelIsWhatsApp() throws Exception {
+        String externalOrderId = uniqueOrderId("A-NOTIFICATION-WHATSAPP");
+
+        createDispoConfirmationRequest(
+                externalOrderId,
+                "WHATSAPP",
+                null,
+                "+491701234567"
+        ).andExpect(status().isCreated());
+
+        assertThat(getConfirmationStatus(externalOrderId))
+                .isEqualTo("SENT");
+
+        assertThat(getLatestCommunicationChannel(externalOrderId))
+                .isEqualTo("WHATSAPP");
+
+        assertThat(getCustomerEmail(externalOrderId))
+                .isNull();
+
+        assertThat(getCustomerPhoneNumber(externalOrderId))
+                .isEqualTo("+491701234567");
+
+        ArgumentCaptor<Order> orderCaptor =
+                ArgumentCaptor.forClass(Order.class);
+
+        ArgumentCaptor<ConfirmationRequest> requestCaptor =
+                ArgumentCaptor.forClass(ConfirmationRequest.class);
+
+        verify(whatsappNotificationSender, times(1))
+                .sendConfirmationRequest(orderCaptor.capture(), requestCaptor.capture());
+
+        verifyNoInteractions(emailSender);
+        verifyNoInteractions(smsConfirmationSender);
+
+        Order capturedOrder = orderCaptor.getValue();
+        ConfirmationRequest capturedRequest = requestCaptor.getValue();
+
+        assertThat(capturedOrder.getExternalOrderId())
+                .isEqualTo(externalOrderId);
+
+        assertThat(capturedOrder.getCustomerPhoneNumber())
+                .isEqualTo("+491701234567");
+
+        assertThat(capturedRequest.getCommunicationChannel())
+                .isEqualTo(CommunicationChannel.WHATSAPP);
 
         assertThat(capturedRequest.getToken())
                 .isNotBlank();
@@ -304,4 +366,3 @@ class ConfirmationNotificationTest {
                 """, String.class, externalOrderId);
     }
 }
-
