@@ -77,15 +77,14 @@ class DispoSecurityIntegrationTest {
     }
 
     @Test
-    void allowsCorsPreflightWithoutApiKey() throws Exception {
+    void rejectsCorsPreflightForDispoApi() throws Exception {
         mockMvc.perform(options("/api/dispo/confirmation-requests")
                         .header("Origin", "http://localhost:3000")
                         .header("Access-Control-Request-Method", "POST")
                         .header("Access-Control-Request-Headers", "X-API-Key, Content-Type"))
-                .andExpect(status().isOk())
-                .andExpect(header().string(
-                        "Access-Control-Allow-Origin",
-                        "http://localhost:3000"
+                .andExpect(status().isForbidden())
+                .andExpect(header().doesNotExist(
+                        "Access-Control-Allow-Origin"
                 ));
     }
 

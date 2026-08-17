@@ -1,6 +1,8 @@
 package heizoel.backend.adapter.in.web.overview;
 
 import heizoel.backend.adapter.in.web.security.ApiKeyAuthenticationToken;
+import heizoel.backend.adapter.in.web.security.DashboardAccessService;
+import heizoel.backend.adapter.in.web.security.DashboardAuthenticationService;
 import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.exception.OrderNotFoundException;
 import heizoel.backend.application.model.overview.ConfirmationDetail;
@@ -63,6 +65,12 @@ class DashboardControllerTest {
     ResendConfirmationRequestUseCase resendConfirmationRequestUseCase;
 
     @MockitoBean
+    DashboardAccessService dashboardAccessService;
+
+    @MockitoBean
+    DashboardAuthenticationService dashboardAuthenticationService;
+
+    @MockitoBean
     Clock clock;
 
     @BeforeEach
@@ -83,7 +91,7 @@ class DashboardControllerTest {
         when(getConfirmationDetailUseCase.getOrderDetail(any()))
                 .thenReturn(detail());
 
-        mockMvc.perform(get("/api/dispo/dashboard/orders/{externalOrderId}", "ORDER-4711"))
+        mockMvc.perform(get("/api/dashboard/orders/{externalOrderId}", "ORDER-4711"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.order.externalOrderId").value("ORDER-4711"))
                 .andExpect(jsonPath("$.order.customerName").value("Erika Mustermann"))
@@ -139,12 +147,12 @@ class DashboardControllerTest {
         when(getConfirmationDetailUseCase.getOrderDetail(any()))
                 .thenThrow(new OrderNotFoundException("Order was not found."));
 
-        mockMvc.perform(get("/api/dispo/dashboard/orders/{externalOrderId}", "MISSING"))
+        mockMvc.perform(get("/api/dashboard/orders/{externalOrderId}", "MISSING"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("ORDER_SNAPSHOT_NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("Order was not found."))
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.path").value("/api/dispo/dashboard/orders/MISSING"));
+                .andExpect(jsonPath("$.path").value("/api/dashboard/orders/MISSING"));
     }
 
     private ConfirmationDetail detail() {

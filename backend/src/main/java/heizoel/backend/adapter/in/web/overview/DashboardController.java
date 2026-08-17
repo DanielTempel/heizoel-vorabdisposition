@@ -3,6 +3,8 @@ package heizoel.backend.adapter.in.web.overview;
 import heizoel.backend.adapter.in.web.overview.dto.ResendConfirmationRequestRequestDto;
 import heizoel.backend.adapter.in.web.overview.dto.detail.DashboardOrderDetailResponseDto;
 import heizoel.backend.adapter.in.web.overview.dto.detail.ResendConfirmationRequestResponseDto;
+import heizoel.backend.adapter.in.web.security.DashboardAccessService;
+import heizoel.backend.adapter.in.web.security.DashboardAuthenticationService;
 import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.model.overview.ConfirmationDetail;
 import heizoel.backend.application.port.in.confirmation.ResendConfirmationRequestCommand;
@@ -12,11 +14,15 @@ import heizoel.backend.application.port.in.overview.*;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.adapter.in.web.overview.dto.ToursPageResponseDto;
 import heizoel.backend.application.model.overview.TourOverviewPage;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -24,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/dispo/dashboard")
+@RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
 public class DashboardController {
 
@@ -32,6 +38,8 @@ public class DashboardController {
     private final GetTourNumbersUseCase getTourNumbersUseCase;
     private final GetConfirmationDetailUseCase getConfirmationDetailUseCase;
     private final ResendConfirmationRequestUseCase resendConfirmationRequestUseCase;
+    private final DashboardAccessService dashboardAccessService;
+    private final DashboardAuthenticationService dashboardAuthenticationService;
 
     @GetMapping("/tours")
     public ToursPageResponseDto getTours(
@@ -124,6 +132,31 @@ public class DashboardController {
                 result.externalOrderId(),
                 result.confirmationStatus()
         );
+    }
+
+    @PostMapping(
+            value = "/auth/exchange",
+            consumes = MediaType.TEXT_PLAIN_VALUE
+    )
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void exchangeDashboardAccess(
+            @RequestBody String code,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        CompanyContext companyContext =
+                dashboardAccessService.consume(code);
+
+        dashboardAuthenticationService.authenticate(
+                companyContext,
+                request,
+                response
+        );
+    }
+
+    @GetMapping("/csrf")
+    public CsrfToken csrf(CsrfToken csrfToken) {
+        return csrfToken;
     }
 
 }

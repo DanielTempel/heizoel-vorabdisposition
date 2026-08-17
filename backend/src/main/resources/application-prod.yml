@@ -14,9 +14,15 @@ spring:
       hibernate:
         format_sql: false
 
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true
+
 heizoel:
   confirmation:
-    frontend-url: ${FRONTEND_URL:http://localhost:3000}
+    frontend-url: ${FRONTEND_URL}
     sms-provider-url: ${SMS_PROVIDER_URL}
     whatsapp-provider-url: ${WHATSAPP_PROVIDER_URL}
 

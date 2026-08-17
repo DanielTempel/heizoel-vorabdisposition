@@ -10,6 +10,13 @@ spring:
       - classpath:db/migration
       - classpath:db/dev
 
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
+
   jpa:
     show-sql: true
     properties:

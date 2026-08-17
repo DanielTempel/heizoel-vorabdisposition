@@ -1,6 +1,8 @@
 package heizoel.backend.adapter.in.web.overview;
 
 import heizoel.backend.adapter.in.web.security.ApiKeyAuthenticationToken;
+import heizoel.backend.adapter.in.web.security.DashboardAccessService;
+import heizoel.backend.adapter.in.web.security.DashboardAuthenticationService;
 import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.exception.InvalidFilterException;
 import heizoel.backend.application.model.overview.OrderOverviewItem;
@@ -62,6 +64,12 @@ class OverviewControllerTest {
     ResendConfirmationRequestUseCase resendConfirmationRequestUseCase;
 
     @MockitoBean
+    DashboardAccessService dashboardAccessService;
+
+    @MockitoBean
+    DashboardAuthenticationService dashboardAuthenticationService;
+
+    @MockitoBean
     Clock clock;
 
     @BeforeEach
@@ -83,7 +91,7 @@ class OverviewControllerTest {
 
     @Test
     void getsToursWithDefaultParametersAndPageMetadata() throws Exception {
-        mockMvc.perform(get("/api/dispo/dashboard/tours"))
+        mockMvc.perform(get("/api/dashboard/tours"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.page").value(0))
@@ -123,7 +131,7 @@ class OverviewControllerTest {
                 new TourOverviewPage(List.of(tour), 0, 20, 1, 1)
         );
 
-        mockMvc.perform(get("/api/dispo/dashboard/tours"))
+        mockMvc.perform(get("/api/dashboard/tours"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].orders[0].confirmationStatus")
                         .value("OPEN"))
@@ -135,7 +143,7 @@ class OverviewControllerTest {
 
     @Test
     void bindsSeveralStatuses() throws Exception {
-        mockMvc.perform(get("/api/dispo/dashboard/tours")
+        mockMvc.perform(get("/api/dashboard/tours")
                         .param("statuses", "REJECTED", "NO_RESPONSE"))
                 .andExpect(status().isOk());
 
@@ -147,7 +155,7 @@ class OverviewControllerTest {
 
     @Test
     void bindsSeveralTourNumbers() throws Exception {
-        mockMvc.perform(get("/api/dispo/dashboard/tours")
+        mockMvc.perform(get("/api/dashboard/tours")
                         .param("tourNumbers", "A-17", "NORD-3"))
                 .andExpect(status().isOk());
 
@@ -157,7 +165,7 @@ class OverviewControllerTest {
 
     @Test
     void bindsIsoDates() throws Exception {
-        mockMvc.perform(get("/api/dispo/dashboard/tours")
+        mockMvc.perform(get("/api/dashboard/tours")
                         .param("dateFrom", "2026-08-01")
                         .param("dateTo", "2026-08-31"))
                 .andExpect(status().isOk());
@@ -169,7 +177,7 @@ class OverviewControllerTest {
 
     @Test
     void passesSearchWithoutNormalizingIt() throws Exception {
-        mockMvc.perform(get("/api/dispo/dashboard/tours")
+        mockMvc.perform(get("/api/dashboard/tours")
                         .param("search", "Müller"))
                 .andExpect(status().isOk());
 
@@ -178,7 +186,7 @@ class OverviewControllerTest {
 
     @Test
     void rejectsUnknownStatus() throws Exception {
-        mockMvc.perform(get("/api/dispo/dashboard/tours")
+        mockMvc.perform(get("/api/dashboard/tours")
                         .param("statuses", "UNKNOWN"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
@@ -188,7 +196,7 @@ class OverviewControllerTest {
 
     @Test
     void rejectsNonIsoDate() throws Exception {
-        mockMvc.perform(get("/api/dispo/dashboard/tours")
+        mockMvc.perform(get("/api/dashboard/tours")
                         .param("dateFrom", "04.08.2026"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
@@ -202,7 +210,7 @@ class OverviewControllerTest {
                 new InvalidFilterException("Date from must not be after date to.")
         );
 
-        mockMvc.perform(get("/api/dispo/dashboard/tours")
+        mockMvc.perform(get("/api/dashboard/tours")
                         .param("dateFrom", "2026-08-05")
                         .param("dateTo", "2026-08-04"))
                 .andExpect(status().isBadRequest())
@@ -215,7 +223,7 @@ class OverviewControllerTest {
 
     @Test
     void bindsTourNumberOptionsParameters() throws Exception {
-        mockMvc.perform(get("/api/dispo/dashboard/tour-numbers")
+        mockMvc.perform(get("/api/dashboard/tour-numbers")
                         .param("search", " A-1 ")
                         .param("dateFrom", "2026-08-01")
                         .param("dateTo", "2026-08-31"))
@@ -234,7 +242,7 @@ class OverviewControllerTest {
                 List.of("A-17", "NORD-3")
         );
 
-        mockMvc.perform(get("/api/dispo/dashboard/tour-numbers"))
+        mockMvc.perform(get("/api/dashboard/tour-numbers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0]").value("A-17"))
@@ -243,7 +251,7 @@ class OverviewControllerTest {
 
     @Test
     void rejectsNonIsoDateForTourNumbers() throws Exception {
-        mockMvc.perform(get("/api/dispo/dashboard/tour-numbers")
+        mockMvc.perform(get("/api/dashboard/tour-numbers")
                         .param("dateFrom", "05.08.2026"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));

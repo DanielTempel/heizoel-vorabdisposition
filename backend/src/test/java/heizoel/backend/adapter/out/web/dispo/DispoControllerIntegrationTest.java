@@ -1,6 +1,7 @@
 package heizoel.backend.adapter.out.web.dispo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import heizoel.backend.adapter.in.web.overview.dto.ResendConfirmationRequestRequestDto;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
@@ -21,11 +22,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -37,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -259,11 +264,15 @@ class DispoControllerIntegrationTest {
                         .isActive()
         ).isTrue();
 
+        MockHttpSession session = authenticatedDashboardSession();
+        CsrfData csrf = fetchCsrfToken(session);
+
         mockMvc.perform(post(
-                        "/api/dispo/dashboard/orders/{externalOrderId}/resend",
+                        "/api/dashboard/orders/{externalOrderId}/resend",
                         "ORDER-RESEND"
                 )
-                        .header("X-API-Key", TEST_API_KEY)
+                        .session(session)
+                        .header(csrf.headerName(), csrf.token())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 new ResendConfirmationRequestRequestDto(
@@ -300,6 +309,53 @@ class DispoControllerIntegrationTest {
                 .processInstanceBusinessKey(newRequest.getId().toString())
                 .singleResult();
         assertThat(newProcess).isNotNull();
+    }
+
+    private MockHttpSession authenticatedDashboardSession() throws Exception {
+        MvcResult accessResult = mockMvc.perform(
+                        post("/api/dispo/dashboard-access")
+                                .header("X-API-Key", TEST_API_KEY)
+                )
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String code = UriComponentsBuilder
+                .fromUriString(accessResult.getResponse().getContentAsString())
+                .build()
+                .getQueryParams()
+                .getFirst("code");
+        assertThat(code).isNotBlank();
+
+        MvcResult exchangeResult = mockMvc.perform(
+                        post("/api/dashboard/auth/exchange")
+                                .contentType(MediaType.TEXT_PLAIN)
+                                .content(code)
+                )
+                .andExpect(status().isNoContent())
+                .andReturn();
+
+        assertThat(exchangeResult.getRequest().getSession(false))
+                .isInstanceOf(MockHttpSession.class);
+        return (MockHttpSession) exchangeResult.getRequest().getSession(false);
+    }
+
+    private CsrfData fetchCsrfToken(MockHttpSession session) throws Exception {
+        MvcResult result = mockMvc.perform(
+                        get("/api/dashboard/csrf").session(session)
+                )
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode response = objectMapper.readTree(
+                result.getResponse().getContentAsString()
+        );
+        return new CsrfData(
+                response.path("headerName").asText(),
+                response.path("token").asText()
+        );
+    }
+
+    private record CsrfData(String headerName, String token) {
     }
 
     private org.springframework.test.web.servlet.ResultActions performCreate(

@@ -19,10 +19,20 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
-                registry.addMapping("/api/**")
+
+                registry.addMapping("/api/dashboard/**")
                         .allowedOrigins(confirmationProperties.getFrontendUrl())
-                        .allowedMethods("GET", "POST", "OPTIONS", "PUT")
-                        .allowedHeaders("*");
+                        .allowedMethods("GET", "POST", "PUT", "OPTIONS")
+                        .allowedHeaders(
+                                "Content-Type",
+                                "X-CSRF-TOKEN"
+                        )
+                        .allowCredentials(true);
+
+                registry.addMapping("/api/customer/confirmations/**")
+                        .allowedOrigins(confirmationProperties.getFrontendUrl())
+                        .allowedMethods("GET", "POST", "OPTIONS")
+                        .allowedHeaders("Content-Type");
             }
         };
     }
