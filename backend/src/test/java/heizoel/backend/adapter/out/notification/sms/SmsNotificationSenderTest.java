@@ -4,11 +4,11 @@ import heizoel.backend.adapter.out.notification.ConfirmationMessageContent;
 import heizoel.backend.adapter.out.notification.twilio.TwilioMessageSender;
 import heizoel.backend.configuration.properties.ConfirmationProperties;
 import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.Company;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.DeliverySlot;
 import heizoel.backend.domain.Order;
 import heizoel.backend.domain.Tour;
+import heizoel.backend.domain.company.Company;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -67,7 +67,7 @@ class SmsNotificationSenderTest {
             Order order,
             CommunicationChannel channel
     ) {
-        return ConfirmationRequest.create(
+        return ConfirmationRequest.createPending(
                 order,
                 "token-123",
                 channel,
@@ -76,7 +76,6 @@ class SmsNotificationSenderTest {
                         LocalTime.of(10, 0),
                         LocalTime.of(11, 0)
                 ),
-                Instant.parse("2099-06-10T08:00:00Z"),
                 24
         );
     }
