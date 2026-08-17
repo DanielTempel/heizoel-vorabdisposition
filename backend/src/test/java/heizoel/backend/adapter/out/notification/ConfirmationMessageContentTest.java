@@ -1,11 +1,11 @@
 package heizoel.backend.adapter.out.notification;
 
 import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.Company;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.DeliverySlot;
 import heizoel.backend.domain.Order;
 import heizoel.backend.domain.Tour;
+import heizoel.backend.domain.company.Company;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -31,7 +31,7 @@ class ConfirmationMessageContentTest {
                 "95,40 EUR / 100 L"
         );
 
-        ConfirmationRequest confirmationRequest = ConfirmationRequest.create(
+        ConfirmationRequest confirmationRequest = ConfirmationRequest.createPending(
                 order,
                 "token-123",
                 CommunicationChannel.WHATSAPP,
@@ -40,7 +40,6 @@ class ConfirmationMessageContentTest {
                         LocalTime.of(10, 0),
                         LocalTime.of(11, 0)
                 ),
-                Instant.parse("2099-06-10T08:00:00Z"),
                 24
         );
 

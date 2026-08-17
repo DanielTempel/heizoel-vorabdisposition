@@ -2,10 +2,11 @@ package heizoel.backend.adapter.out.notification;
 
 import heizoel.backend.adapter.out.notification.twilio.TwilioMessageSender;
 import heizoel.backend.application.model.GeoCoordinate;
+import heizoel.backend.application.port.in.workflow.SendConfirmationRequestResult;
+import heizoel.backend.application.port.in.workflow.SendConfirmationRequestUseCase;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackService;
 import heizoel.backend.application.port.out.location.GeocodingClient;
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
-import heizoel.backend.application.port.out.workflow.NoResponseWorkflowService;
 import heizoel.backend.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -22,13 +24,13 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Testcontainers
@@ -63,14 +65,17 @@ class NotificationDeliveryErrorIntegrationTest {
     @Autowired
     MockMvc mockMvc;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    SendConfirmationRequestUseCase sendConfirmationRequestUseCase;
+
     @MockitoBean
     TwilioMessageSender twilioMessageSender;
 
     @MockitoBean
     JavaMailSender javaMailSender;
-
-    @MockitoBean
-    NoResponseWorkflowService noResponseWorkflowService;
 
     @MockitoBean
     DispoStatusCallbackService dispoStatusCallbackService;
@@ -94,13 +99,15 @@ class NotificationDeliveryErrorIntegrationTest {
         )).when(twilioMessageSender).sendSms(anyString(), anyString(), any());
 
         createDispoConfirmationRequest("A-SMS-FAIL-1", "SMS")
-                .andExpect(status().isBadGateway())
-                .andExpect(jsonPath("$.code").value("SMS_SENDING_FAILED"))
-                .andExpect(jsonPath("$.status").value(502))
-                .andExpect(jsonPath("$.path").value("/api/dispo/confirmation-requests"))
-                .andExpect(jsonPath("$.message").value(
-                        "Twilio notification could not be delivered for externalOrderId=A-SMS-FAIL-1"
-                ));
+                .andExpect(status().isAccepted());
+
+        Long confirmationRequestId = findLatestConfirmationRequestId("A-SMS-FAIL-1");
+
+        SendConfirmationRequestResult result = sendConfirmationRequestUseCase.send(confirmationRequestId);
+
+        assertThat(result.outcome()).isEqualTo(SendConfirmationRequestResult.Outcome.RETRYABLE_FAILURE);
+        assertThat(getDeliveryStatus("A-SMS-FAIL-1")).isEqualTo("PENDING");
+        assertThat(getOrderStatus("A-SMS-FAIL-1")).isEqualTo("OPEN");
     }
 
     @Test
@@ -112,13 +119,15 @@ class NotificationDeliveryErrorIntegrationTest {
         )).when(twilioMessageSender).sendWhatsApp(anyString(), anyString(), any());
 
         createDispoConfirmationRequest("A-WA-FAIL-1", "WHATSAPP")
-                .andExpect(status().isBadGateway())
-                .andExpect(jsonPath("$.code").value("WHATSAPP_SENDING_FAILED"))
-                .andExpect(jsonPath("$.status").value(502))
-                .andExpect(jsonPath("$.path").value("/api/dispo/confirmation-requests"))
-                .andExpect(jsonPath("$.message").value(
-                        "Twilio notification could not be delivered for externalOrderId=A-WA-FAIL-1"
-                ));
+                .andExpect(status().isAccepted());
+
+        Long confirmationRequestId = findLatestConfirmationRequestId("A-WA-FAIL-1");
+
+        SendConfirmationRequestResult result = sendConfirmationRequestUseCase.send(confirmationRequestId);
+
+        assertThat(result.outcome()).isEqualTo(SendConfirmationRequestResult.Outcome.RETRYABLE_FAILURE);
+        assertThat(getDeliveryStatus("A-WA-FAIL-1")).isEqualTo("PENDING");
+        assertThat(getOrderStatus("A-WA-FAIL-1")).isEqualTo("OPEN");
     }
 
     private org.springframework.test.web.servlet.ResultActions createDispoConfirmationRequest(
@@ -150,5 +159,35 @@ class NotificationDeliveryErrorIntegrationTest {
                           "priceDisplayText": "100 EUR"
                         }
                         """.formatted(externalOrderId, communicationChannel)));
+    }
+
+    private Long findLatestConfirmationRequestId(String externalOrderId) {
+        return jdbcTemplate.queryForObject("""
+                SELECT cr.id
+                FROM confirmation_request cr
+                JOIN order_snapshot os ON os.id = cr.order_snapshot_id
+                WHERE os.external_order_id = ?
+                ORDER BY cr.id DESC
+                LIMIT 1
+                """, Long.class, externalOrderId);
+    }
+
+    private String getDeliveryStatus(String externalOrderId) {
+        return jdbcTemplate.queryForObject("""
+                SELECT cr.delivery_status
+                FROM confirmation_request cr
+                JOIN order_snapshot os ON os.id = cr.order_snapshot_id
+                WHERE os.external_order_id = ?
+                ORDER BY cr.id DESC
+                LIMIT 1
+                """, String.class, externalOrderId);
+    }
+
+    private String getOrderStatus(String externalOrderId) {
+        return jdbcTemplate.queryForObject("""
+                SELECT confirmation_status
+                FROM order_snapshot
+                WHERE external_order_id = ?
+                """, String.class, externalOrderId);
     }
 }
