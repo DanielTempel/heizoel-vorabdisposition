@@ -1,9 +1,13 @@
 package heizoel.backend.adapter.out.notification.whatsapp;
 
+import heizoel.backend.adapter.out.notification.ConfirmationMessageContent;
 import heizoel.backend.adapter.out.notification.NotificationChannelSender;
 import heizoel.backend.adapter.out.notification.twilio.TwilioMessageSender;
-import heizoel.backend.domain.*;
 import heizoel.backend.configuration.properties.ConfirmationProperties;
+import heizoel.backend.domain.CommunicationChannel;
+import heizoel.backend.domain.ConfirmationRequest;
+import heizoel.backend.domain.CustomerResponseType;
+import heizoel.backend.domain.Order;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +17,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class WhatsAppNotificationSender implements NotificationChannelSender {
 
-    private final ConfirmationProperties properties;
+    private final ConfirmationProperties confirmationProperties;
     private final TwilioMessageSender twilioMessageSender;
 
     @Override
@@ -26,14 +30,14 @@ public class WhatsAppNotificationSender implements NotificationChannelSender {
             Order order,
             ConfirmationRequest confirmationRequest
     ) {
-        String link = properties.getFrontendUrl()
-                + "/confirmation/"
-                + confirmationRequest.getToken();
-
         twilioMessageSender.sendWhatsApp(
-                order,
-                confirmationRequest,
-                "Bitte bestaetigen Sie Ihren Liefertermin: " + link
+                order.getExternalOrderId(),
+                order.getCustomerPhoneNumber(),
+                ConfirmationMessageContent.from(
+                        order,
+                        confirmationRequest,
+                        confirmationProperties.getFrontendUrl()
+                )
         );
     }
 

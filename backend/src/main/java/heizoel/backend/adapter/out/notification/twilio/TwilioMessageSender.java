@@ -7,149 +7,163 @@ import com.twilio.exception.ApiException;
 import com.twilio.http.TwilioRestClient;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
+import heizoel.backend.adapter.out.notification.ConfirmationMessageContent;
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
-import heizoel.backend.configuration.properties.ConfirmationProperties;
 import heizoel.backend.configuration.properties.TwilioProperties;
 import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.ConfirmationRequest;
-import heizoel.backend.domain.Order;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.regex.Pattern;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class TwilioMessageSender {
 
-    private static final DateTimeFormatter DATE_FORMAT =
-            DateTimeFormatter.ofPattern("dd.MM.yyyy");
-    private static final DateTimeFormatter TIME_FORMAT =
-            DateTimeFormatter.ofPattern("HH:mm");
+    private static final String WHATSAPP_PREFIX = "whatsapp:";
+    private static final Pattern E164_PATTERN = Pattern.compile("^\\+[1-9]\\d{1,14}$");
 
     private final TwilioRestClient twilioRestClient;
-    private final ConfirmationProperties confirmationProperties;
     private final TwilioProperties twilioProperties;
     private final ObjectMapper objectMapper;
 
     public void sendSms(
-            Order order,
-            ConfirmationRequest confirmationRequest,
-            String messageBody
+            String externalOrderId,
+            String to,
+            ConfirmationMessageContent content
     ) {
         sendMessage(
-                order,
-                confirmationRequest,
+                externalOrderId,
                 CommunicationChannel.SMS,
                 twilioProperties.getSmsFrom(),
-                order.getCustomerPhoneNumber(),
-                messageBody
+                to,
+                content
         );
     }
 
     public void sendWhatsApp(
-            Order order,
-            ConfirmationRequest confirmationRequest,
-            String messageBody
+            String externalOrderId,
+            String to,
+            ConfirmationMessageContent content
     ) {
         sendMessage(
-                order,
-                confirmationRequest,
+                externalOrderId,
                 CommunicationChannel.WHATSAPP,
                 twilioProperties.getWhatsappFrom(),
-                whatsappAddress(order.getCustomerPhoneNumber()),
-                messageBody
+                to,
+                content
         );
     }
 
     private void sendMessage(
-            Order order,
-            ConfirmationRequest confirmationRequest,
+            String externalOrderId,
             CommunicationChannel channel,
             String from,
             String to,
-            String messageBody
+            ConfirmationMessageContent content
     ) {
-        validateConfiguration(channel, from, to);
+        validateProviderConfiguration(channel, from);
+        validateRecipient(channel, to);
+
+        String normalizedFrom = normalizeAddress(channel, from);
+        String normalizedTo = normalizeAddress(channel, to);
 
         try {
             log.info(
                     "Sending Twilio notification. externalOrderId={}, channel={}, from={}, to={}, contentTemplateSidPresent={}",
-                    order.getExternalOrderId(),
+                    externalOrderId,
                     channel,
-                    maskAddress(from),
-                    maskAddress(to),
+                    maskAddress(normalizedFrom),
+                    maskAddress(normalizedTo),
                     hasText(twilioProperties.getContentTemplateSid())
             );
-            createMessage(order, confirmationRequest, from, to, messageBody)
-                    .create(twilioRestClient);
-        } catch (ApiException ex) {
+
+            Message result = createMessage(
+                    normalizedFrom,
+                    normalizedTo,
+                    content
+            ).create(twilioRestClient);
+
+            log.info(
+                    "Twilio notification accepted. externalOrderId={}, channel={}, messageSid={}, status={}",
+                    externalOrderId,
+                    channel,
+                    result.getSid(),
+                    result.getStatus()
+            );
+        } catch (ApiException | JsonProcessingException ex) {
             log.error(
                     "Twilio delivery failed. externalOrderId={}, channel={}, from={}, to={}, contentTemplateSid={}, twilioCode={}, twilioStatus={}, possibleCause={}",
-                    order.getExternalOrderId(),
+                    externalOrderId,
                     channel,
-                    maskAddress(from),
-                    maskAddress(to),
+                    maskAddress(normalizedFrom),
+                    maskAddress(normalizedTo),
                     twilioProperties.getContentTemplateSid(),
-                    ex.getCode(),
-                    ex.getStatusCode(),
-                    determinePossibleCause(channel, from, to),
+                    ex instanceof ApiException apiException ? apiException.getCode() : null,
+                    ex instanceof ApiException apiException ? apiException.getStatusCode() : null,
+                    determinePossibleCause(channel, normalizedFrom, normalizedTo),
                     ex
             );
             throw new NotificationDeliveryException(
                     channel,
-                    "Twilio notification could not be delivered for externalOrderId="
-                            + order.getExternalOrderId(),
+                    "Twilio notification could not be delivered for externalOrderId=" + externalOrderId,
                     ex
             );
         }
     }
 
     private Creator<Message> createMessage(
-            Order order,
-            ConfirmationRequest confirmationRequest,
             String from,
             String to,
-            String messageBody
-    ) {
+            ConfirmationMessageContent content
+    ) throws JsonProcessingException {
         var messageCreator = Message.creator(
                 new PhoneNumber(to),
                 new PhoneNumber(from),
-                hasText(twilioProperties.getContentTemplateSid()) ? null : messageBody
+                (String) null
         );
 
-        if (hasText(twilioProperties.getContentTemplateSid())) {
-            messageCreator.setContentSid(twilioProperties.getContentTemplateSid());
-            messageCreator.setContentVariables(
-                    buildContentVariables(order, confirmationRequest)
-            );
-        }
+        messageCreator.setContentSid(twilioProperties.getContentTemplateSid());
+        messageCreator.setContentVariables(
+                objectMapper.writeValueAsString(toContentVariables(content))
+        );
 
         return messageCreator;
     }
 
-    private void validateConfiguration(
+    private Map<String, String> toContentVariables(ConfirmationMessageContent content) {
+        Map<String, String> variables = new LinkedHashMap<>();
+        variables.put("1", content.customerName());
+        variables.put("2", content.externalOrderId());
+        variables.put("3", content.product());
+        variables.put("4", content.quantityLiters());
+        variables.put("5", content.deliveryDate());
+        variables.put("6", content.deliveryWindow());
+        variables.put("7", content.deliveryAddress());
+        variables.put("8", content.confirmationLink());
+        return variables;
+    }
+
+    private void validateProviderConfiguration(
             CommunicationChannel channel,
-            String from,
-            String to
+            String from
     ) {
         if (!hasText(twilioProperties.getAccountSid())
                 || !hasText(twilioProperties.getAuthToken())
                 || !hasText(from)
-                || !hasText(to)) {
+                || !hasText(twilioProperties.getContentTemplateSid())) {
             log.error(
-                    "Twilio configuration is incomplete. channel={}, hasAccountSid={}, hasAuthToken={}, hasFrom={}, hasTo={}, from={}, to={}",
+                    "Twilio configuration is incomplete. channel={}, hasAccountSid={}, hasAuthToken={}, hasFrom={}, hasContentTemplateSid={}, from={}",
                     channel,
                     hasText(twilioProperties.getAccountSid()),
                     hasText(twilioProperties.getAuthToken()),
                     hasText(from),
-                    hasText(to),
-                    maskAddress(from),
-                    maskAddress(to)
+                    hasText(twilioProperties.getContentTemplateSid()),
+                    maskAddress(from)
             );
             throw new NotificationDeliveryException(
                     channel,
@@ -157,50 +171,55 @@ public class TwilioMessageSender {
                     new IllegalStateException("Missing required Twilio properties.")
             );
         }
-    }
 
-    private String buildContentVariables(
-            Order order,
-            ConfirmationRequest confirmationRequest
-    ) {
-        Map<String, String> variables = new LinkedHashMap<>();
-        variables.put("1", order.getCustomerName());
-        variables.put("2", order.getExternalOrderId());
-        variables.put("3", order.getProduct());
-        variables.put("4", String.valueOf(order.getQuantityLiters()));
-        variables.put(
-                "5",
-                confirmationRequest.getDeliverySlot().getDate().format(DATE_FORMAT)
-        );
-        variables.put(
-                "6",
-                confirmationRequest.getDeliverySlot().getStart().format(TIME_FORMAT)
-                        + " - "
-                        + confirmationRequest.getDeliverySlot().getEnd().format(TIME_FORMAT)
-        );
-        variables.put("7", order.getDeliveryAddress());
-        variables.put(
-                "8",
-                buildConfirmationLink(confirmationRequest)
-        );
-
-        try {
-            return objectMapper.writeValueAsString(variables);
-        } catch (JsonProcessingException ex) {
-            throw new IllegalStateException("Twilio content variables could not be serialized.", ex);
+        if (!isE164(stripWhatsAppPrefix(from))) {
+            throw new NotificationDeliveryException(
+                    channel,
+                    "Twilio sender is not in valid E.164 format for channel " + channel,
+                    new IllegalStateException("Invalid Twilio sender.")
+            );
         }
     }
 
-    private String buildConfirmationLink(ConfirmationRequest confirmationRequest) {
-        return confirmationProperties.getFrontendUrl()
-                + "/confirmation/"
-                + confirmationRequest.getToken();
+    private void validateRecipient(
+            CommunicationChannel channel,
+            String to
+    ) {
+        if (!hasText(to)) {
+            throw new NotificationDeliveryException(
+                    channel,
+                    "Twilio recipient is missing for channel " + channel,
+                    new IllegalArgumentException("Missing recipient.")
+            );
+        }
+
+        if (!isE164(stripWhatsAppPrefix(to))) {
+            throw new NotificationDeliveryException(
+                    channel,
+                    "Twilio recipient is not in valid E.164 format for channel " + channel,
+                    new IllegalArgumentException("Invalid recipient.")
+            );
+        }
     }
 
-    private String whatsappAddress(String phoneNumber) {
-        return hasText(phoneNumber) && phoneNumber.startsWith("whatsapp:")
-                ? phoneNumber
-                : "whatsapp:" + phoneNumber;
+    private String normalizeAddress(
+            CommunicationChannel channel,
+            String address
+    ) {
+        String stripped = stripWhatsAppPrefix(address);
+        return channel == CommunicationChannel.WHATSAPP
+                ? WHATSAPP_PREFIX + stripped
+                : stripped;
+    }
+
+    private String stripWhatsAppPrefix(String value) {
+        return hasText(value) && value.startsWith(WHATSAPP_PREFIX)
+                ? value.substring(WHATSAPP_PREFIX.length())
+                : value;
+    }
+
+    private boolean isE164(String value) {
+        return hasText(value) && E164_PATTERN.matcher(value).matches();
     }
 
     private boolean hasText(String value) {
@@ -225,15 +244,12 @@ public class TwilioMessageSender {
             if (!from.startsWith("whatsapp:+")) {
                 return "configured WhatsApp sender is not in expected Twilio format";
             }
-            if (hasText(twilioProperties.getContentTemplateSid())) {
-                return "WhatsApp template may be unapproved, not enabled for the sender, or the recipient may not be joined to the sandbox";
-            }
-            return "recipient may not be joined to the Twilio WhatsApp sandbox or the sender may not be enabled for production WhatsApp";
+            return "shared content template may be unapproved for WhatsApp, not enabled for the sender, or the recipient may not be joined to the sandbox";
         }
         if (channel == CommunicationChannel.SMS && !to.startsWith("+")) {
             return "recipient SMS number is not in expected E.164 format";
         }
-        return "check Twilio account credentials, sender provisioning, and destination reachability";
+        return "check Twilio account credentials, shared content template provisioning, sender provisioning, and destination reachability";
     }
 
     private String maskAddress(String value) {
@@ -241,7 +257,7 @@ public class TwilioMessageSender {
             return "<empty>";
         }
         int visibleDigits = 4;
-        int prefixLength = value.startsWith("whatsapp:") ? "whatsapp:".length() : 0;
+        int prefixLength = value.startsWith(WHATSAPP_PREFIX) ? WHATSAPP_PREFIX.length() : 0;
         String prefix = value.substring(0, prefixLength);
         String rest = value.substring(prefixLength);
 
