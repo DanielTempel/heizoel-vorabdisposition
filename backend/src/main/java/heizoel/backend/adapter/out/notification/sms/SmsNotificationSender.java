@@ -1,22 +1,24 @@
 package heizoel.backend.adapter.out.notification.sms;
 
+import heizoel.backend.adapter.out.notification.ConfirmationMessageContent;
 import heizoel.backend.adapter.out.notification.NotificationChannelSender;
-import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
-import heizoel.backend.domain.*;
+import heizoel.backend.adapter.out.notification.twilio.TwilioMessageSender;
 import heizoel.backend.configuration.properties.ConfirmationProperties;
+import heizoel.backend.domain.CommunicationChannel;
+import heizoel.backend.domain.ConfirmationRequest;
+import heizoel.backend.domain.CustomerResponseType;
+import heizoel.backend.domain.Order;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class SmsNotificationSender implements NotificationChannelSender {
 
-    private final RestClient restClient;
-    private final ConfirmationProperties properties;
+    private final ConfirmationProperties confirmationProperties;
+    private final TwilioMessageSender twilioMessageSender;
 
     @Override
     public CommunicationChannel channel() {
@@ -28,29 +30,15 @@ public class SmsNotificationSender implements NotificationChannelSender {
             Order order,
             ConfirmationRequest confirmationRequest
     ) {
-        String link = properties.getFrontendUrl()
-                + "/confirmation/"
-                + confirmationRequest.getToken();
-
-        SmsSendRequestDto request = new SmsSendRequestDto(
+        twilioMessageSender.sendSms(
+                order.getExternalOrderId(),
                 order.getCustomerPhoneNumber(),
-                "Lieferung bestaetigen: " + link
+                ConfirmationMessageContent.from(
+                        order,
+                        confirmationRequest,
+                        confirmationProperties.getFrontendUrl()
+                )
         );
-
-        try {
-            restClient.post()
-                    .uri(properties.getSmsProviderUrl())
-                    .body(request)
-                    .retrieve()
-                    .toBodilessEntity();
-        } catch (RestClientException ex) {
-            throw new NotificationDeliveryException(
-                    CommunicationChannel.SMS,
-                    "Notification could not be delivered for externalOrderId="
-                            + order.getExternalOrderId(),
-                    ex
-            );
-        }
     }
 
     @Override

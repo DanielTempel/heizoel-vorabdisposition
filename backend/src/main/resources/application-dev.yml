@@ -20,8 +20,13 @@ heizoel:
   confirmation:
     frontend-url: http://localhost:3000
     dispo-tracking-url: http://localhost:8090/api/dispo/confirmation-status-updates/tracking/orders
-    sms-provider-url: http://localhost:8091/api/sms/messages
-    whatsapp-provider-url: http://localhost:8092/api/whatsapp/messages
+
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID:}
+    auth-token: ${TWILIO_AUTH_TOKEN:}
+    sms-from: ${TWILIO_SMS_FROM:}
+    whatsapp-from: ${TWILIO_WHATSAPP_FROM:}
+    content-template-sid: ${TWILIO_CONTENT_TEMPLATE_SID:}
 
 logging:
   level:
