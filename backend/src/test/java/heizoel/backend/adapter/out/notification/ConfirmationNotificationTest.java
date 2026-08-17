@@ -8,6 +8,7 @@ import heizoel.backend.application.port.out.location.GeocodingClient;
 import heizoel.backend.application.model.GeoCoordinate;
 import heizoel.backend.adapter.out.notification.email.EmailNotificationSender;
 import heizoel.backend.adapter.out.notification.sms.SmsNotificationSender;
+import heizoel.backend.adapter.out.notification.whatsapp.WhatsAppNotificationSender;
 import heizoel.backend.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -90,6 +92,9 @@ class ConfirmationNotificationTest {
     SmsNotificationSender smsConfirmationSender;
 
 
+    @MockitoSpyBean
+    WhatsAppNotificationSender whatsappNotificationSender;
+
     @MockitoBean
     DispoStatusCallbackService dispoStatusCallbackService;
 
@@ -101,6 +106,7 @@ class ConfirmationNotificationTest {
         reset(
                 emailSender,
                 smsConfirmationSender,
+                whatsappNotificationSender,
                 dispoStatusCallbackService,
                 geocodingClient
         );
@@ -109,6 +115,8 @@ class ConfirmationNotificationTest {
         doNothing().when(emailSender)
                 .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
         doNothing().when(smsConfirmationSender)
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
+        doNothing().when(whatsappNotificationSender)
                 .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
@@ -198,6 +206,7 @@ class ConfirmationNotificationTest {
                 .sendConfirmationRequest(orderCaptor.capture(), requestCaptor.capture());
 
         verifyNoInteractions(emailSender);
+        verifyNoInteractions(whatsappNotificationSender);
 
         Order capturedOrder = orderCaptor.getValue();
         ConfirmationRequest capturedRequest = requestCaptor.getValue();
@@ -214,6 +223,61 @@ class ConfirmationNotificationTest {
         assertThat(capturedRequest.getToken())
                 .isNotBlank();
 
+    }
+
+    @Test
+    void shouldSendConfirmationViaWhatsApp_whenCommunicationChannelIsWhatsApp() throws Exception {
+        String externalOrderId = uniqueOrderId("A-NOTIFICATION-WHATSAPP");
+
+        createDispoConfirmationRequest(
+                externalOrderId,
+                "WHATSAPP",
+                null,
+                "+491701234567"
+        ).andExpect(status().isAccepted());
+
+        sendConfirmationRequestUseCase.send(
+                getLatestConfirmationRequestId(externalOrderId)
+        );
+
+        assertThat(getConfirmationStatus(externalOrderId))
+                .isEqualTo("SENT");
+
+        assertThat(getLatestCommunicationChannel(externalOrderId))
+                .isEqualTo("WHATSAPP");
+
+        assertThat(getCustomerEmail(externalOrderId))
+                .isNull();
+
+        assertThat(getCustomerPhoneNumber(externalOrderId))
+                .isEqualTo("+491701234567");
+
+        ArgumentCaptor<Order> orderCaptor =
+                ArgumentCaptor.forClass(Order.class);
+
+        ArgumentCaptor<ConfirmationRequest> requestCaptor =
+                ArgumentCaptor.forClass(ConfirmationRequest.class);
+
+        verify(whatsappNotificationSender, times(1))
+                .sendConfirmationRequest(orderCaptor.capture(), requestCaptor.capture());
+
+        verifyNoInteractions(emailSender);
+        verifyNoInteractions(smsConfirmationSender);
+
+        Order capturedOrder = orderCaptor.getValue();
+        ConfirmationRequest capturedRequest = requestCaptor.getValue();
+
+        assertThat(capturedOrder.getExternalOrderId())
+                .isEqualTo(externalOrderId);
+
+        assertThat(capturedOrder.getCustomerPhoneNumber())
+                .isEqualTo("+491701234567");
+
+        assertThat(capturedRequest.getCommunicationChannel())
+                .isEqualTo(CommunicationChannel.WHATSAPP);
+
+        assertThat(capturedRequest.getToken())
+                .isNotBlank();
     }
 
     private org.springframework.test.web.servlet.ResultActions createDispoConfirmationRequest(
@@ -301,8 +365,7 @@ class ConfirmationNotificationTest {
                 LIMIT 1
                 """, String.class, externalOrderId);
     }
-
-    private Long getLatestConfirmationRequestId(String externalOrderId) {
+        private Long getLatestConfirmationRequestId(String externalOrderId) {
         return jdbcTemplate.queryForObject("""
                 SELECT cr.id
                 FROM confirmation_request cr
