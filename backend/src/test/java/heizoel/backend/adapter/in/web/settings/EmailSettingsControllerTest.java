@@ -1,12 +1,16 @@
 package heizoel.backend.adapter.in.web.settings;
 
-import heizoel.backend.adapter.in.web.security.CompanyContextResolver;
+import heizoel.backend.adapter.in.web.security.ApiKeyAuthenticationToken;
 import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.port.in.settings.*;
 import heizoel.backend.domain.company.SmtpSecurityMode;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -19,13 +23,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(EmailSettingsController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class EmailSettingsControllerTest {
+
+    private static final CompanyContext COMPANY_CONTEXT = new CompanyContext(1L);
 
     @Autowired
     private MockMvc mockMvc;
-
-    @MockitoBean
-    private CompanyContextResolver companyContextResolver;
 
     @MockitoBean
     private GetEmailSettingsUseCase getEmailSettingsUseCase;
@@ -39,15 +43,21 @@ class EmailSettingsControllerTest {
     @MockitoBean
     private SendTestEmailUseCase sendTestEmailUseCase;
 
+    @BeforeEach
+    void setUp() {
+        SecurityContextHolder.getContext().setAuthentication(
+                ApiKeyAuthenticationToken.authenticated(COMPANY_CONTEXT)
+        );
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
     @Test
     void returnsEmailSettingsWithoutPassword() throws Exception {
-        CompanyContext companyContext =
-                new CompanyContext(1L);
-
-        when(companyContextResolver.resolve())
-                .thenReturn(companyContext);
-
-        when(getEmailSettingsUseCase.getEmailSettings(companyContext))
+        when(getEmailSettingsUseCase.getEmailSettings(COMPANY_CONTEXT))
                 .thenReturn(new GetEmailSettingsResult(
                         true,
                         "smtp.example.de",
@@ -81,12 +91,7 @@ class EmailSettingsControllerTest {
 
     @Test
     void returnsUnconfiguredState() throws Exception {
-        CompanyContext companyContext =
-                new CompanyContext(1L);
-
-        when(companyContextResolver.resolve()).thenReturn(companyContext);
-
-        when(getEmailSettingsUseCase.getEmailSettings(companyContext))
+        when(getEmailSettingsUseCase.getEmailSettings(COMPANY_CONTEXT))
                 .thenReturn(
                         GetEmailSettingsResult.notConfigured()
                 );
@@ -101,12 +106,6 @@ class EmailSettingsControllerTest {
 
     @Test
     void updatesEmailSettings() throws Exception {
-        CompanyContext companyContext =
-                new CompanyContext(1L);
-
-        when(companyContextResolver.resolve())
-                .thenReturn(companyContext);
-
         mockMvc.perform(
                         put("/api/dispo/settings/email")
                                 .contentType("application/json")
@@ -128,7 +127,7 @@ class EmailSettingsControllerTest {
         verify(updateEmailSettingsUseCase)
                 .updateEmailSettings(
                         new UpdateEmailSettingsCommand(
-                                companyContext,
+                                COMPANY_CONTEXT,
                                 "smtp.example.de",
                                 587,
                                 SmtpSecurityMode.STARTTLS,
@@ -143,9 +142,6 @@ class EmailSettingsControllerTest {
 
     @Test
     void rejectsInvalidSmtpPort() throws Exception {
-        when(companyContextResolver.resolve())
-                .thenReturn(new CompanyContext(1L));
-
         mockMvc.perform(
                         put("/api/dispo/settings/email")
                                 .contentType("application/json")
@@ -167,12 +163,6 @@ class EmailSettingsControllerTest {
 
     @Test
     void testsEmailConnection() throws Exception {
-        CompanyContext companyContext =
-                new CompanyContext(1L);
-
-        when(companyContextResolver.resolve())
-                .thenReturn(companyContext);
-
         mockMvc.perform(
                         post(
                                 "/api/dispo/settings/email/test-connection"
@@ -181,17 +171,11 @@ class EmailSettingsControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(testEmailConnectionUseCase)
-                .testEmailConnection(companyContext);
+                .testEmailConnection(COMPANY_CONTEXT);
     }
 
     @Test
     void sendsTestEmail() throws Exception {
-        CompanyContext companyContext =
-                new CompanyContext(1L);
-
-        when(companyContextResolver.resolve())
-                .thenReturn(companyContext);
-
         mockMvc.perform(
                         post(
                                 "/api/dispo/settings/email/test-message"
@@ -200,7 +184,7 @@ class EmailSettingsControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(sendTestEmailUseCase)
-                .sendTestEmail(companyContext);
+                .sendTestEmail(COMPANY_CONTEXT);
     }
 
 }

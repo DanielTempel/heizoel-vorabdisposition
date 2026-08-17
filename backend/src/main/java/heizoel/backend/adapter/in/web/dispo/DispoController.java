@@ -2,7 +2,6 @@ package heizoel.backend.adapter.in.web.dispo;
 
 import heizoel.backend.adapter.in.web.dispo.dto.DispoConfirmationRequestDto;
 import heizoel.backend.adapter.in.web.dispo.dto.DispoConfirmationResponseDto;
-import heizoel.backend.adapter.in.web.security.CompanyContextResolver;
 import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestCommand;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestResult;
@@ -12,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,14 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class DispoController {
 
     private final CreateConfirmationRequestUseCase createConfirmationRequestUseCase;
-    private final CompanyContextResolver companyContextResolver;
 
     @PostMapping
     public ResponseEntity<DispoConfirmationResponseDto> createConfirmationRequest(
+            @AuthenticationPrincipal CompanyContext companyContext,
             @Valid @RequestBody DispoConfirmationRequestDto request
     ) {
-        CompanyContext companyContext = companyContextResolver.resolve();
-
         CreateConfirmationRequestCommand command = new CreateConfirmationRequestCommand(
                 companyContext,
                 request.externalOrderId(),

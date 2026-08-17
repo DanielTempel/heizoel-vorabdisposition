@@ -1,7 +1,5 @@
 package heizoel.backend.adapter.in.web.error;
 
-import heizoel.backend.adapter.in.web.security.InvalidApiKeyException;
-import heizoel.backend.adapter.in.web.security.MissingApiKeyException;
 import heizoel.backend.application.exception.*;
 import heizoel.backend.application.port.out.dispo.DispoCallbackException;
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
@@ -145,16 +143,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidFilterException.class)
     ResponseEntity<ErrorResponseDto> invalidDashboardFilter(InvalidFilterException e, HttpServletRequest req) {
         return respond(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", e.getMessage(), req.getRequestURI());
-    }
-
-    @ExceptionHandler(MissingApiKeyException.class)
-    ResponseEntity<ErrorResponseDto> missingApiKey(MissingApiKeyException e, HttpServletRequest req) {
-        return respond(HttpStatus.UNAUTHORIZED, "MISSING_API_KEY", e.getMessage(), req.getRequestURI());
-    }
-
-    @ExceptionHandler(InvalidApiKeyException.class)
-    ResponseEntity<ErrorResponseDto> invalidApiKey(InvalidApiKeyException e, HttpServletRequest req) {
-        return respond(HttpStatus.UNAUTHORIZED, "INVALID_API_KEY", e.getMessage(), req.getRequestURI());
     }
 
     @ExceptionHandler(InvalidEmailSettingsException.class)

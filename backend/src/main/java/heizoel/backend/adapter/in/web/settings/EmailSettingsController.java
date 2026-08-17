@@ -1,6 +1,5 @@
 package heizoel.backend.adapter.in.web.settings;
 
-import heizoel.backend.adapter.in.web.security.CompanyContextResolver;
 import heizoel.backend.adapter.in.web.settings.dto.EmailSettingsResponseDto;
 import heizoel.backend.adapter.in.web.settings.dto.UpdateEmailSettingsRequestDto;
 import heizoel.backend.application.context.CompanyContext;
@@ -8,6 +7,7 @@ import heizoel.backend.application.port.in.settings.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,16 +15,15 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class EmailSettingsController {
 
-    private final CompanyContextResolver companyContextResolver;
     private final GetEmailSettingsUseCase getEmailSettingsUseCase;
     private final UpdateEmailSettingsUseCase updateEmailSettingsUseCase;
     private final TestEmailConnectionUseCase testEmailConnectionUseCase;
     private final SendTestEmailUseCase sendTestEmailUseCase;
 
     @GetMapping
-    public EmailSettingsResponseDto getEmailSettings() {
-
-        CompanyContext companyContext = companyContextResolver.resolve();
+    public EmailSettingsResponseDto getEmailSettings(
+            @AuthenticationPrincipal CompanyContext companyContext
+    ) {
         GetEmailSettingsResult result = getEmailSettingsUseCase.getEmailSettings(companyContext);
 
         return EmailSettingsResponseDto.from(result);
@@ -32,12 +31,9 @@ public class EmailSettingsController {
 
     @PutMapping
     public ResponseEntity<Void> updateEmailSettings(
-            @Valid @RequestBody
-            UpdateEmailSettingsRequestDto request
+            @AuthenticationPrincipal CompanyContext companyContext,
+            @Valid @RequestBody UpdateEmailSettingsRequestDto request
     ) {
-        CompanyContext companyContext =
-                companyContextResolver.resolve();
-
         updateEmailSettingsUseCase.updateEmailSettings(
                 new UpdateEmailSettingsCommand(
                         companyContext,
@@ -56,22 +52,19 @@ public class EmailSettingsController {
     }
 
     @PostMapping("/test-connection")
-    public ResponseEntity<Void> testEmailConnection() {
-
-        CompanyContext companyContext = companyContextResolver.resolve();
+    public ResponseEntity<Void> testEmailConnection(
+            @AuthenticationPrincipal CompanyContext companyContext
+    ) {
         testEmailConnectionUseCase.testEmailConnection(companyContext);
 
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/test-message")
-    public ResponseEntity<Void> sendTestEmail() {
-        CompanyContext companyContext =
-                companyContextResolver.resolve();
-
-        sendTestEmailUseCase.sendTestEmail(
-                companyContext
-        );
+    public ResponseEntity<Void> sendTestEmail(
+            @AuthenticationPrincipal CompanyContext companyContext
+    ) {
+        sendTestEmailUseCase.sendTestEmail(companyContext);
 
         return ResponseEntity.noContent().build();
     }

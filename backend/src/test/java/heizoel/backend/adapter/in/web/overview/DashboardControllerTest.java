@@ -1,6 +1,6 @@
 package heizoel.backend.adapter.in.web.overview;
 
-import heizoel.backend.adapter.in.web.security.CompanyContextResolver;
+import heizoel.backend.adapter.in.web.security.ApiKeyAuthenticationToken;
 import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.exception.OrderNotFoundException;
 import heizoel.backend.application.model.overview.ConfirmationDetail;
@@ -16,11 +16,14 @@ import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.CustomerResponseType;
 import heizoel.backend.domain.NotificationDeliveryStatus;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -39,15 +42,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(DashboardController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class DashboardControllerTest {
 
     private static final CompanyContext COMPANY_CONTEXT = new CompanyContext(7L);
 
     @Autowired
     MockMvc mockMvc;
-
-    @MockitoBean
-    CompanyContextResolver companyContextResolver;
 
     @MockitoBean
     GetTourOverviewUseCase getTourOverviewUseCase;
@@ -66,8 +67,15 @@ class DashboardControllerTest {
 
     @BeforeEach
     void setUp() {
-        when(companyContextResolver.resolve()).thenReturn(COMPANY_CONTEXT);
+        SecurityContextHolder.getContext().setAuthentication(
+                ApiKeyAuthenticationToken.authenticated(COMPANY_CONTEXT)
+        );
         when(clock.instant()).thenReturn(Instant.parse("2026-08-05T10:00:00Z"));
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
