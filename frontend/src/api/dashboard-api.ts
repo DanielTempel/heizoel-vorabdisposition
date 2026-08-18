@@ -27,9 +27,10 @@ export async function getTours(
   }
 
   const response = await fetch(
-    `${apiBaseUrl}/api/dispo/dashboard/tours?${searchParams}`,
+    `${apiBaseUrl}/api/dashboard/tours?${searchParams}`,
     {
       cache: 'no-store',
+      credentials: 'include',
       signal,
     },
   )
