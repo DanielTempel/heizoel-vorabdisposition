@@ -49,6 +49,7 @@ public record TourResponseDto(
                         order.confirmationStatus();
 
                 switch (status) {
+                    case OPEN -> {}
                     case SENT -> sent++;
                     case CONFIRMED -> confirmed++;
                     case REJECTED -> rejected++;

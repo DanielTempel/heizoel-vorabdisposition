@@ -8,6 +8,7 @@ import java.util.Set;
 
 public record GetTourOverviewQuery(
         CompanyContext companyContext,
+        Set<String> tourNumbers,
         Set<ConfirmationStatus> statuses,
         String search,
         LocalDate dateFrom,

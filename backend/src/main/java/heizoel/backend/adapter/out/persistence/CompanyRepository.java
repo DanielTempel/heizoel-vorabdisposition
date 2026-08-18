@@ -1,6 +1,6 @@
 package heizoel.backend.adapter.out.persistence;
 
-import heizoel.backend.domain.Company;
+import heizoel.backend.domain.company.Company;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

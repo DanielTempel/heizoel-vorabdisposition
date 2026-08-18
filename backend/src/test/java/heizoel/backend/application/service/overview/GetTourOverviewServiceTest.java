@@ -119,6 +119,42 @@ class GetTourOverviewServiceTest {
     }
 
     @Test
+    void normalizesNullTourNumbersToEmptySet() {
+        PortCall call = call(query(null, null, null, TODAY, null, 0));
+
+        assertThat(call.filter().tourNumbers()).isEmpty();
+    }
+
+    @Test
+    void trimsTourNumbers() {
+        PortCall call = call(query(
+                Set.of("  A-17  ", " NORD-3"),
+                null,
+                null,
+                TODAY,
+                null,
+                0
+        ));
+
+        assertThat(call.filter().tourNumbers())
+                .containsExactlyInAnyOrder("A-17", "NORD-3");
+    }
+
+    @Test
+    void removesBlankTourNumbers() {
+        PortCall call = call(query(
+                Set.of("A-17", "", "   "),
+                null,
+                null,
+                TODAY,
+                null,
+                0
+        ));
+
+        assertThat(call.filter().tourNumbers()).containsExactly("A-17");
+    }
+
+    @Test
     void clampsNegativePageToZero() {
         PortCall call = call(query(null, null, TODAY, null, -5));
 
@@ -183,8 +219,20 @@ class GetTourOverviewServiceTest {
             LocalDate dateTo,
             int page
     ) {
+        return query(null, statuses, search, dateFrom, dateTo, page);
+    }
+
+    private GetTourOverviewQuery query(
+            Set<String> tourNumbers,
+            Set<ConfirmationStatus> statuses,
+            String search,
+            LocalDate dateFrom,
+            LocalDate dateTo,
+            int page
+    ) {
         return new GetTourOverviewQuery(
                 new CompanyContext(7L),
+                tourNumbers,
                 statuses,
                 search,
                 dateFrom,

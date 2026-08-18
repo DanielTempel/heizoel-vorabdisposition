@@ -9,6 +9,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import heizoel.backend.application.model.overview.OrderOverviewItem;
 import heizoel.backend.application.model.overview.TourOverviewItem;
+import heizoel.backend.application.port.out.persistence.TourNumberFilter;
 import heizoel.backend.application.port.out.persistence.TourOverviewFilter;
 import heizoel.backend.application.port.out.persistence.TourOverviewQueryPort;
 import heizoel.backend.domain.QConfirmationRequest;
@@ -112,6 +113,65 @@ public class TourOverviewQueryAdapter implements TourOverviewQueryPort {
         );
     }
 
+    @Override
+    public List<String> findTourNumbers(
+            TourNumberFilter filter
+    ) {
+        QOrder order = QOrder.order;
+        QConfirmationRequest confirmationRequest = QConfirmationRequest.confirmationRequest;
+
+        BooleanBuilder where = new BooleanBuilder();
+
+        where.and(order.company.id.eq(filter.companyId()));
+        where.and(latestConfirmationRequestOnly(
+                        order,
+                        confirmationRequest
+                )
+        );
+
+        applyDateFilter(
+                where,
+                filter.dateFrom(),
+                filter.dateTo(),
+                confirmationRequest
+        );
+
+        if (filter.search() != null) {
+            String search = filter.search().toLowerCase(Locale.ROOT);
+
+            where.and(
+                    order.tour.tourNumber
+                            .lower()
+                            .contains(search)
+            );
+        }
+
+        List<Tuple> rows = queryFactory
+                .select(
+                        order.tour.tourNumber,
+                        confirmationRequest.deliverySlot.date
+                )
+                .from(order)
+                .join(confirmationRequest)
+                .on(confirmationRequest.order.eq(order))
+                .where(where)
+                .groupBy(
+                        order.tour.tourNumber,
+                        confirmationRequest.deliverySlot.date
+                )
+                .orderBy(
+                        confirmationRequest.deliverySlot.date.asc(),
+                        order.tour.tourNumber.asc()
+                )
+                .fetch();
+
+        return rows.stream()
+                .map(row -> row.get(order.tour.tourNumber))
+                .toList();
+    }
+
+
+
     private Map<String, TourAccumulator> createTourAccumulators(
             List<Tuple> tourRows,
             QOrder order,
@@ -211,23 +271,18 @@ public class TourOverviewQueryAdapter implements TourOverviewQueryPort {
                 )
         );
 
+        applyTourFilter(where, filter, order);
+
         applyDateFilter(
                 where,
-                filter,
+                filter.dateFrom(),
+                filter.dateTo(),
                 confirmationRequest
         );
 
-        applyStatusFilter(
-                where,
-                filter,
-                order
-        );
+        applyStatusFilter(where, filter, order);
 
-        applySearchFilter(
-                where,
-                filter,
-                order
-        );
+        applySearchFilter(where, filter, order);
 
         return where;
     }
@@ -251,23 +306,16 @@ public class TourOverviewQueryAdapter implements TourOverviewQueryPort {
 
     private void applyDateFilter(
             BooleanBuilder where,
-            TourOverviewFilter filter,
+            LocalDate dateFrom,
+            LocalDate dateTo,
             QConfirmationRequest confirmationRequest
     ) {
-        if (filter.dateFrom() != null) {
-            where.and(
-                    confirmationRequest.deliverySlot.date.goe(
-                            filter.dateFrom()
-                    )
-            );
+        if (dateFrom != null) {
+            where.and(confirmationRequest.deliverySlot.date.goe(dateFrom));
         }
 
-        if (filter.dateTo() != null) {
-            where.and(
-                    confirmationRequest.deliverySlot.date.loe(
-                            filter.dateTo()
-                    )
-            );
+        if (dateTo != null) {
+            where.and(confirmationRequest.deliverySlot.date.loe(dateTo));
         }
     }
 
@@ -308,6 +356,22 @@ public class TourOverviewQueryAdapter implements TourOverviewQueryPort {
                         .or(order.deliveryAddress
                                 .lower()
                                 .contains(search))
+        );
+    }
+
+    private void applyTourFilter(
+            BooleanBuilder where,
+            TourOverviewFilter filter,
+            QOrder order
+    ) {
+        if (filter.tourNumbers().isEmpty()) {
+            return;
+        }
+
+        where.and(
+                order.tour.tourNumber.in(
+                        filter.tourNumbers()
+                )
         );
     }
 

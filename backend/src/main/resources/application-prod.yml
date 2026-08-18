@@ -13,29 +13,22 @@ spring:
       hibernate:
         format_sql: false
 
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-          connectiontimeout: 5000
-          timeout: 3000
-          writetimeout: 5000
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true
 
 heizoel:
   confirmation:
     frontend-url: ${FRONTEND_URL:http://localhost:3000}
-    sms-provider-url: ${SMS_PROVIDER_URL}
-    whatsapp-provider-url: ${WHATSAPP_PROVIDER_URL}
 
-  mail:
-    from: ${MAIL_FROM:${MAIL_USERNAME}}
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID:}
+    auth-token: ${TWILIO_AUTH_TOKEN:}
+    sms-from: ${TWILIO_SMS_FROM:}
+    whatsapp-from: ${TWILIO_WHATSAPP_FROM:}
+    content-template-sid: ${TWILIO_CONTENT_TEMPLATE_SID:}
 
 logging:
   level:

@@ -1,13 +1,14 @@
 package heizoel.backend.adapter.out.notification;
 
-import heizoel.backend.application.port.out.workflow.NoResponseWorkflowService;
 import heizoel.backend.application.port.out.dispo.DispoStatusCallbackService;
+import heizoel.backend.application.port.in.workflow.SendConfirmationRequestUseCase;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.Order;
 import heizoel.backend.application.port.out.location.GeocodingClient;
 import heizoel.backend.application.model.GeoCoordinate;
 import heizoel.backend.adapter.out.notification.email.EmailNotificationSender;
 import heizoel.backend.adapter.out.notification.sms.SmsNotificationSender;
+import heizoel.backend.adapter.out.notification.whatsapp.WhatsAppNotificationSender;
 import heizoel.backend.domain.CommunicationChannel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,21 +17,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,7 +40,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
+@Sql(
+        scripts = "/db/test/configure-test-company.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS
+)
 class ConfirmationNotificationTest {
+
+    private static final String TEST_API_KEY = "test-minova-api-key";
+
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
             .withDatabaseName("heizoel_backend_test")
@@ -59,16 +67,12 @@ class ConfirmationNotificationTest {
         registry.add("camunda.bpm.auto-deployment-enabled", () -> "true");
         registry.add("camunda.bpm.deployment-resource-pattern[0]", () -> "classpath*:processes/*.bpmn");
 
-        /*
-         * We mock NoResponseWorkflowService in this test.
-         * Therefore, the Camunda job executor is not needed here.
-         */
+        // Delivery is invoked explicitly through the application use case.
         registry.add("camunda.bpm.job-execution.enabled", () -> "false");
 
         registry.add("heizoel.confirmation.frontend-url", () -> "http://localhost:3000");
         registry.add("heizoel.confirmation.dispo-url", () -> "http://localhost:8090/api/dispo/confirmation-status-updates");
 
-        registry.add("heizoel.mail.from", () -> "no-reply@heizoel.local");
         registry.add("heizoel.sms.mock-url", () -> "http://localhost:8091/api/sms/messages");
     }
 
@@ -78,17 +82,18 @@ class ConfirmationNotificationTest {
     @Autowired
     JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    SendConfirmationRequestUseCase sendConfirmationRequestUseCase;
+
     @MockitoSpyBean
     EmailNotificationSender emailSender;
 
     @MockitoSpyBean
     SmsNotificationSender smsConfirmationSender;
 
-    @MockitoBean
-    JavaMailSender javaMailSender;
 
-    @MockitoBean
-    NoResponseWorkflowService noResponseWorkflowService;
+    @MockitoSpyBean
+    WhatsAppNotificationSender whatsappNotificationSender;
 
     @MockitoBean
     DispoStatusCallbackService dispoStatusCallbackService;
@@ -101,7 +106,7 @@ class ConfirmationNotificationTest {
         reset(
                 emailSender,
                 smsConfirmationSender,
-                noResponseWorkflowService,
+                whatsappNotificationSender,
                 dispoStatusCallbackService,
                 geocodingClient
         );
@@ -110,6 +115,8 @@ class ConfirmationNotificationTest {
         doNothing().when(emailSender)
                 .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
         doNothing().when(smsConfirmationSender)
+                .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
+        doNothing().when(whatsappNotificationSender)
                 .sendConfirmationRequest(any(Order.class), any(ConfirmationRequest.class));
     }
 
@@ -122,7 +129,8 @@ class ConfirmationNotificationTest {
                 "EMAIL",
                 "daniel@example.com",
                 null
-        ).andExpect(status().isCreated());
+        ).andExpect(status().isAccepted());
+        sendConfirmationRequestUseCase.send(getLatestConfirmationRequestId(externalOrderId));
 
         assertThat(getConfirmationStatus(externalOrderId))
                 .isEqualTo("SENT");
@@ -162,8 +170,6 @@ class ConfirmationNotificationTest {
         assertThat(capturedRequest.getToken())
                 .isNotBlank();
 
-        verify(noResponseWorkflowService, times(1))
-                .startTimeoutProcess(anyLong(), any(Instant.class));
     }
 
     @Test
@@ -175,7 +181,8 @@ class ConfirmationNotificationTest {
                 "SMS",
                 null,
                 "+491701234567"
-        ).andExpect(status().isCreated());
+        ).andExpect(status().isAccepted());
+        sendConfirmationRequestUseCase.send(getLatestConfirmationRequestId(externalOrderId));
 
         assertThat(getConfirmationStatus(externalOrderId))
                 .isEqualTo("SENT");
@@ -199,6 +206,7 @@ class ConfirmationNotificationTest {
                 .sendConfirmationRequest(orderCaptor.capture(), requestCaptor.capture());
 
         verifyNoInteractions(emailSender);
+        verifyNoInteractions(whatsappNotificationSender);
 
         Order capturedOrder = orderCaptor.getValue();
         ConfirmationRequest capturedRequest = requestCaptor.getValue();
@@ -215,8 +223,61 @@ class ConfirmationNotificationTest {
         assertThat(capturedRequest.getToken())
                 .isNotBlank();
 
-        verify(noResponseWorkflowService, times(1))
-                .startTimeoutProcess(anyLong(), any(Instant.class));
+    }
+
+    @Test
+    void shouldSendConfirmationViaWhatsApp_whenCommunicationChannelIsWhatsApp() throws Exception {
+        String externalOrderId = uniqueOrderId("A-NOTIFICATION-WHATSAPP");
+
+        createDispoConfirmationRequest(
+                externalOrderId,
+                "WHATSAPP",
+                null,
+                "+491701234567"
+        ).andExpect(status().isAccepted());
+
+        sendConfirmationRequestUseCase.send(
+                getLatestConfirmationRequestId(externalOrderId)
+        );
+
+        assertThat(getConfirmationStatus(externalOrderId))
+                .isEqualTo("SENT");
+
+        assertThat(getLatestCommunicationChannel(externalOrderId))
+                .isEqualTo("WHATSAPP");
+
+        assertThat(getCustomerEmail(externalOrderId))
+                .isNull();
+
+        assertThat(getCustomerPhoneNumber(externalOrderId))
+                .isEqualTo("+491701234567");
+
+        ArgumentCaptor<Order> orderCaptor =
+                ArgumentCaptor.forClass(Order.class);
+
+        ArgumentCaptor<ConfirmationRequest> requestCaptor =
+                ArgumentCaptor.forClass(ConfirmationRequest.class);
+
+        verify(whatsappNotificationSender, times(1))
+                .sendConfirmationRequest(orderCaptor.capture(), requestCaptor.capture());
+
+        verifyNoInteractions(emailSender);
+        verifyNoInteractions(smsConfirmationSender);
+
+        Order capturedOrder = orderCaptor.getValue();
+        ConfirmationRequest capturedRequest = requestCaptor.getValue();
+
+        assertThat(capturedOrder.getExternalOrderId())
+                .isEqualTo(externalOrderId);
+
+        assertThat(capturedOrder.getCustomerPhoneNumber())
+                .isEqualTo("+491701234567");
+
+        assertThat(capturedRequest.getCommunicationChannel())
+                .isEqualTo(CommunicationChannel.WHATSAPP);
+
+        assertThat(capturedRequest.getToken())
+                .isNotBlank();
     }
 
     private org.springframework.test.web.servlet.ResultActions createDispoConfirmationRequest(
@@ -226,6 +287,7 @@ class ConfirmationNotificationTest {
             String customerPhoneNumber
     ) throws Exception {
         return mockMvc.perform(post("/api/dispo/confirmation-requests")
+                .header("X-API-Key", TEST_API_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -302,6 +364,16 @@ class ConfirmationNotificationTest {
                 ORDER BY cr.id DESC
                 LIMIT 1
                 """, String.class, externalOrderId);
+    }
+        private Long getLatestConfirmationRequestId(String externalOrderId) {
+        return jdbcTemplate.queryForObject("""
+                SELECT cr.id
+                FROM confirmation_request cr
+                JOIN order_snapshot os ON os.id = cr.order_snapshot_id
+                WHERE os.external_order_id = ?
+                ORDER BY cr.id DESC
+                LIMIT 1
+                """, Long.class, externalOrderId);
     }
 }
 

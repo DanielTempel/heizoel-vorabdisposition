@@ -9,6 +9,7 @@ import heizoel.backend.domain.Order;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +19,7 @@ public class SendDispoStatusCallbackService implements SendDispoStatusCallbackUs
     private final OrderRepository orderRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public void sendDispoStatusCallback(SendDispoStatusCallbackCommand command) {
 
         Order order = orderRepository.findById(command.orderId())

@@ -14,7 +14,4 @@ public class ConfirmationProperties {
 
     private String frontendUrl = "http://localhost:3000";
     private String dispoTrackingUrl;
-    private String smsProviderUrl;
-    private String whatsappProviderUrl;
 }
-

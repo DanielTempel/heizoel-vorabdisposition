@@ -8,9 +8,11 @@ import heizoel.backend.application.port.out.location.LocationTrackingService;
 import heizoel.backend.application.model.GeoCoordinate;
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
 import heizoel.backend.application.port.out.notification.NotificationService;
+import heizoel.backend.application.port.out.workflow.ConfirmationWorkflowService;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.CustomerResponseRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,12 +20,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -32,11 +35,12 @@ import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -45,7 +49,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
+@Sql(
+        scripts = "/db/test/configure-test-company.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS
+)
+@Transactional
 class CustomerConfirmationIntegrationTest {
+
+    private static final String TEST_API_KEY = "test-minova-api-key";
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -79,10 +90,10 @@ class CustomerConfirmationIntegrationTest {
     }
 
     @MockitoBean
-    JavaMailSender javaMailSender;
+    NotificationService notificationService;
 
     @MockitoBean
-    NotificationService notificationService;
+    ConfirmationWorkflowService confirmationWorkflowService;
 
     @MockitoBean
     LocationTrackingService locationTrackingService;
@@ -105,13 +116,21 @@ class CustomerConfirmationIntegrationTest {
     @Autowired
     CustomerResponseRepository customerResponseRepository;
 
+    @Autowired
+    EntityManager entityManager;
+
     @BeforeEach
     void cleanDatabase() {
         customerResponseRepository.deleteAll();
         confirmationRequestRepository.deleteAll();
         orderRepository.deleteAll();
 
-        Mockito.reset(notificationService, locationTrackingService, geocodingClient);
+        Mockito.reset(
+                notificationService,
+                confirmationWorkflowService,
+                locationTrackingService,
+                geocodingClient
+        );
         when(locationTrackingService.getDriverLocation(any()))
                 .thenAnswer(invocation -> {
                     return java.util.Optional.of(new GeoCoordinate(9.8820D, 49.8166D));
@@ -140,6 +159,23 @@ class CustomerConfirmationIntegrationTest {
                 .andExpect(jsonPath("$.deliveryWindowEnd").value("11:00:00"))
                 .andExpect(jsonPath("$.priceDisplayText").value("100 EUR"))
                 .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
+    }
+
+    @Test
+    void getConfirmationPreview_rejectsOlderTokenAfterNewerRequestExists() throws Exception {
+        String externalOrderId = "A-3001-LATEST-TOKEN";
+        createDispoConfirmationRequest(externalOrderId);
+        String olderToken = findActiveTokenByExternalOrderId(externalOrderId);
+        String latestToken = createLaterRequest(externalOrderId);
+
+        mockMvc.perform(get("/api/customer/confirmations/{token}", olderToken))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("CONFIRMATION_REQUEST_NOT_FOUND"))
+                .andExpect(jsonPath("$.status").value(404));
+
+        mockMvc.perform(get("/api/customer/confirmations/{token}", latestToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.externalOrderId").value(externalOrderId));
     }
 
     @Test
@@ -200,7 +236,7 @@ class CustomerConfirmationIntegrationTest {
                 .isEqualTo(ConfirmationStatus.CONFIRMED);
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         assertThat(confirmationRequest.isActive()).isFalse();
@@ -252,7 +288,7 @@ class CustomerConfirmationIntegrationTest {
                 .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
                 .orElseThrow();
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         assertThat(order.getConfirmationStatus())
@@ -289,7 +325,7 @@ class CustomerConfirmationIntegrationTest {
                 .isEqualTo(ConfirmationStatus.REJECTED);
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         assertThat(confirmationRequest.isActive()).isFalse();
@@ -353,7 +389,7 @@ class CustomerConfirmationIntegrationTest {
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         assertThat(order.getConfirmationStatus())
@@ -440,26 +476,13 @@ class CustomerConfirmationIntegrationTest {
                 .orElseThrow();
 
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         assertThat(order.getConfirmationStatus())
                 .isEqualTo(ConfirmationStatus.SENT);
         assertThat(confirmationRequest.isActive()).isTrue();
         assertThat(customerResponseRepository.findAll()).isEmpty();
-    }
-
-    @Test
-    void createDispoConfirmationRequest_usesNotificationService() throws Exception {
-        String externalOrderId = "A-3005";
-
-        createDispoConfirmationRequest(externalOrderId);
-
-        Mockito.verify(notificationService, times(1))
-                .sendConfirmationRequest(
-                        any(Order.class),
-                        any(ConfirmationRequest.class)
-                );
     }
 
     private void createDispoConfirmationRequest(String externalOrderId) throws Exception {
@@ -492,11 +515,23 @@ class CustomerConfirmationIntegrationTest {
                 """.formatted(externalOrderId, deliveryDate);
 
         mockMvc.perform(post("/api/dispo/confirmation-requests")
+                        .header("X-API-Key", TEST_API_KEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
-                .andExpect(status().isCreated())
+                .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.externalOrderId").value(externalOrderId))
-                .andExpect(jsonPath("$.confirmationStatus").value("SENT"));
+                .andExpect(jsonPath("$.confirmationStatus").value("OPEN"));
+
+        Order order = orderRepository
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
+                .orElseThrow();
+        ConfirmationRequest confirmationRequest = confirmationRequestRepository
+                .findTopByOrderOrderByIdDesc(order)
+                .orElseThrow();
+        confirmationRequest.markSent(Instant.now(clock));
+        order.markSent();
+        confirmationRequestRepository.save(confirmationRequest);
+        orderRepository.save(order);
     }
 
     private String findActiveTokenByExternalOrderId(String externalOrderId) {
@@ -508,6 +543,27 @@ class CustomerConfirmationIntegrationTest {
                 .findTopByOrderOrderByIdDesc(order)
                 .orElseThrow()
                 .getToken();
+    }
+
+    private String createLaterRequest(String externalOrderId) {
+        Order order = orderRepository
+                .findByCompanyIdAndExternalOrderId(1L, externalOrderId)
+                .orElseThrow();
+        ConfirmationRequest request = ConfirmationRequest.createPending(
+                order,
+                UUID.randomUUID().toString(),
+                CommunicationChannel.EMAIL,
+                DeliverySlot.of(
+                        LocalDate.of(2099, 6, 12),
+                        LocalTime.of(10, 0),
+                        LocalTime.of(11, 0)
+                ),
+                24
+        );
+        request.markSent(Instant.now(clock));
+        confirmationRequestRepository.saveAndFlush(request);
+        entityManager.clear();
+        return request.getToken();
     }
 
     private void setLatestDeliveryDate(String externalOrderId, LocalDate deliveryDate) {
@@ -524,11 +580,12 @@ class CustomerConfirmationIntegrationTest {
                 deliveryDate,
                 confirmationRequest.getId()
         );
+        entityManager.clear();
     }
 
     private void expireRequest(String token) {
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         jdbcTemplate.update(
@@ -536,11 +593,12 @@ class CustomerConfirmationIntegrationTest {
                 Timestamp.from(Instant.now(clock).minusSeconds(1)),
                 confirmationRequest.getId()
         );
+        entityManager.clear();
     }
 
     private void markRequestInactive(String token) {
         ConfirmationRequest confirmationRequest = confirmationRequestRepository
-                .findByToken(token)
+                .findLatestByToken(token)
                 .orElseThrow();
 
         confirmationRequest.markInactive();

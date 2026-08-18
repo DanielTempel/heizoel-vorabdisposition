@@ -2,34 +2,33 @@ package heizoel.backend.adapter.in.web.dispo;
 
 import heizoel.backend.adapter.in.web.dispo.dto.DispoConfirmationRequestDto;
 import heizoel.backend.adapter.in.web.dispo.dto.DispoConfirmationResponseDto;
-import heizoel.backend.adapter.in.web.security.CompanyContextResolver;
+import heizoel.backend.adapter.in.web.security.DashboardAccessService;
 import heizoel.backend.application.context.CompanyContext;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestCommand;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestResult;
 import heizoel.backend.application.port.in.confirmation.CreateConfirmationRequestUseCase;
+import heizoel.backend.domain.ConfirmationStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/dispo/confirmation-requests")
+@RequestMapping("/api/dispo")
 @RequiredArgsConstructor
 public class DispoController {
 
     private final CreateConfirmationRequestUseCase createConfirmationRequestUseCase;
-    private final CompanyContextResolver companyContextResolver;
+    private final DashboardAccessService dashboardAccessService;
 
-    @PostMapping
+    @PostMapping("/confirmation-requests")
     public ResponseEntity<DispoConfirmationResponseDto> createConfirmationRequest(
+            @AuthenticationPrincipal CompanyContext companyContext,
             @Valid @RequestBody DispoConfirmationRequestDto request
     ) {
-        CompanyContext companyContext = companyContextResolver.resolve();
-
         CreateConfirmationRequestCommand command = new CreateConfirmationRequestCommand(
                 companyContext,
                 request.externalOrderId(),
@@ -52,7 +51,11 @@ public class DispoController {
         CreateConfirmationRequestResult result =
                 createConfirmationRequestUseCase.createConfirmationRequest(command);
 
-        HttpStatus status = result.created() ? HttpStatus.CREATED : HttpStatus.OK;
+        HttpStatus status =
+                result.confirmationStatus() == ConfirmationStatus.OPEN
+                        ? HttpStatus.ACCEPTED
+                        : HttpStatus.OK;
+
         DispoConfirmationResponseDto response = new DispoConfirmationResponseDto(
                 result.externalOrderId(),
                 result.confirmationStatus()
@@ -60,4 +63,15 @@ public class DispoController {
 
         return ResponseEntity.status(status).body(response);
     }
+
+    @PostMapping("/dashboard-access")
+    public String createDashboardAccess(
+            @AuthenticationPrincipal CompanyContext companyContext
+    ) {
+        return dashboardAccessService.createRedirectUrl(
+                companyContext.companyId()
+        );
+    }
+
+
 }

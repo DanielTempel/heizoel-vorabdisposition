@@ -1,7 +1,7 @@
 package heizoel.backend.adapter.out.persistence;
 
 import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.Company;
+import heizoel.backend.domain.company.Company;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.DeliverySlot;
@@ -79,32 +79,66 @@ final class DashboardTestData {
         return order;
     }
 
-    ConfirmationRequest createRequest(
+    void createRequest(
             Order order,
             LocalDate date,
             LocalTime start,
             LocalTime end
     ) {
-        return createRequest(order, date, start, end, CommunicationChannel.EMAIL);
+        createRequest(order, date, start, end, CommunicationChannel.EMAIL);
     }
 
-    ConfirmationRequest createRequest(
+    void createRequest(
             Order order,
             LocalDate date,
             LocalTime start,
             LocalTime end,
             CommunicationChannel channel
     ) {
-        ConfirmationRequest request = ConfirmationRequest.create(
+        ConfirmationRequest request = ConfirmationRequest.createPending(
                 order,
                 UUID.randomUUID().toString(),
                 channel,
                 DeliverySlot.of(date, start, end),
-                SENT_AT,
                 24
         );
+        request.markSent(SENT_AT);
         entityManager.persist(request);
-        return request;
+    }
+
+    void createPendingRequest(
+            Order order,
+            LocalDate date,
+            LocalTime start,
+            LocalTime end
+    ) {
+        ConfirmationRequest request = ConfirmationRequest.createPending(
+                order,
+                UUID.randomUUID().toString(),
+                CommunicationChannel.EMAIL,
+                DeliverySlot.of(date, start, end),
+                24
+        );
+
+        entityManager.persist(request);
+    }
+
+    void createFailedRequest(
+            Order order,
+            LocalDate date,
+            LocalTime start,
+            LocalTime end
+    ) {
+        ConfirmationRequest request = ConfirmationRequest.createPending(
+                order,
+                UUID.randomUUID().toString(),
+                CommunicationChannel.EMAIL,
+                DeliverySlot.of(date, start, end),
+                24
+        );
+
+        request.markDeliveryFailed();
+        entityManager.persist(request);
     }
 
     void flushAndClear() {

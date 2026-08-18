@@ -1,6 +1,7 @@
 package heizoel.backend.adapter.out.notification.email;
 
 import heizoel.backend.domain.*;
+import heizoel.backend.domain.company.Company;
 import org.junit.jupiter.api.Test;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
@@ -14,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ThymeleafConfirmationMailRendererTest {
 
     @Test
-    void shouldRenderResponseDeadlineWithoutMinutes() {
+    void shouldRenderDeliveryWindow() {
         ThymeleafConfirmationMailRenderer renderer = new ThymeleafConfirmationMailRenderer(
                 templateEngine()
         );
@@ -30,9 +31,7 @@ class ThymeleafConfirmationMailRendererTest {
         assertThat(html)
                 .contains("13.06.2026")
                 .contains("10:15")
-                .contains("11:45")
-                .contains("11.06.2026, 18 Uhr")
-                .doesNotContain("18:09 Uhr");
+                .contains("11:45");
     }
 
     @Test
@@ -88,7 +87,7 @@ class ThymeleafConfirmationMailRendererTest {
     }
 
     private ConfirmationRequest confirmationRequest() {
-        return ConfirmationRequest.create(
+        ConfirmationRequest request = ConfirmationRequest.createPending(
                 order(),
                 "token",
                 CommunicationChannel.EMAIL,
@@ -97,9 +96,10 @@ class ThymeleafConfirmationMailRendererTest {
                         LocalTime.of(10, 15),
                         LocalTime.of(11, 45)
                 ),
-                Instant.parse("2026-06-11T15:09:00Z"),
                 1
         );
+        request.markSent(Instant.parse("2026-06-11T15:09:00Z"));
+        return request;
     }
 }
 

@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: heizoel-backend
 
@@ -18,6 +20,12 @@ spring:
 
 server:
   port: 8080
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        http-only: true
+        same-site: lax
 
 camunda:
   bpm:
@@ -29,8 +37,13 @@ heizoel:
   confirmation:
     frontend-url: http://localhost:3000
     dispo-tracking-url: http://localhost:8090/api/dispo/confirmation-status-updates/tracking/orders
-    sms-provider-url: http://localhost:8091/api/sms/messages
-    whatsapp-provider-url: http://localhost:8092/api/whatsapp/messages
+
+  twilio:
+    account-sid:
+    auth-token:
+    sms-from:
+    whatsapp-from:
+    content-template-sid:
 
   location:
     geocoding:
@@ -44,8 +57,9 @@ heizoel:
       result-limit: 1
       cache-ttl-minutes: 60
 
-  mail:
-    from: no-reply@heizoel.local
+  security:
+    secret-encryption:
+      master-key: ${SECRET_ENCRYPTION_MASTER_KEY}
 
 logging:
   level:

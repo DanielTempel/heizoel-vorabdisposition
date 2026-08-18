@@ -8,6 +8,7 @@ import java.util.Set;
 
 public record TourOverviewFilter(
         Long companyId,
+        Set<String> tourNumbers,
         Set<ConfirmationStatus> statuses,
         String search,
         LocalDate dateFrom,
