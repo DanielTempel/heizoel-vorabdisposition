@@ -17,8 +17,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +33,10 @@ import static org.mockito.Mockito.when;
 class GetDriverLocationServiceTest {
 
     private static final String TOKEN = "driver-location-token";
+    private static final Clock CLOCK = Clock.fixed(
+            Instant.parse("2026-08-21T10:00:00Z"),
+            ZoneId.of("Europe/Berlin")
+    );
 
     @Mock
     ConfirmationRequestRepository confirmationRequestRepository;
@@ -43,7 +50,8 @@ class GetDriverLocationServiceTest {
     void setUp() {
         service = new GetDriverLocationService(
                 confirmationRequestRepository,
-                locationTrackingService
+                locationTrackingService,
+                CLOCK
         );
     }
 
@@ -81,7 +89,7 @@ class GetDriverLocationServiceTest {
                 TOKEN,
                 CommunicationChannel.EMAIL,
                 DeliverySlot.of(
-                        LocalDate.now(),
+                        LocalDate.now(CLOCK),
                         LocalTime.of(10, 0),
                         LocalTime.of(11, 0)
                 ),

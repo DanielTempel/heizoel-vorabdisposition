@@ -34,7 +34,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -166,15 +165,18 @@ class DispoControllerIntegrationTest {
     }
 
     @Test
-    void pastDeliveryWindowIsAcceptedForAsynchronousSendValidation() throws Exception {
+    void pastDeliveryWindowIsRejectedBeforePersistence() throws Exception {
         TestDispoRequest request = request("ORDER-PAST-SLOT", CommunicationChannel.EMAIL)
-                .withDelivery(LocalDate.now().minusDays(1).toString(), "10:00", "11:00");
+                .withDelivery("2000-01-01", "10:00", "11:00");
 
         performCreate(request)
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$.confirmationStatus").value("OPEN"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message")
+                        .value("Delivery window must start in the future."));
 
-        assertThat(confirmationRequestRepository.findAll().get(0).isPending()).isTrue();
+        assertThat(orderRepository.count()).isZero();
+        assertThat(confirmationRequestRepository.count()).isZero();
         verifyNoInteractions(notificationService);
     }
 
