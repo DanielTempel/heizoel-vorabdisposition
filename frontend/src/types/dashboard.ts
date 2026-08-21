@@ -1,4 +1,8 @@
-import type { ConfirmationStatus } from './confirmation'
+import type {
+  ConfirmationRequestStatus,
+  ConfirmationStatus,
+  OrderConfirmationStatus,
+} from './confirmation'
 
 export type CommunicationChannel = 'EMAIL' | 'SMS' | 'WHATSAPP'
 
@@ -41,4 +45,44 @@ export type ToursPage = {
   size: number
   totalElements: number
   totalPages: number
+}
+
+export type CustomerResponse = {
+  responseType: 'CONFIRM' | 'REJECT'
+  comment: string | null
+  receivedAt: string
+}
+
+export type ConfirmationRequestHistoryItem = {
+  requestId: number
+  communicationChannel: CommunicationChannel
+  deliveryDate: string
+  deliveryWindowStart: string
+  deliveryWindowEnd: string
+  sentAt: string | null
+  expiresAt: string | null
+  responseDeadlineHours: number
+  active: boolean
+  status: ConfirmationRequestStatus
+  customerResponse: CustomerResponse | null
+}
+
+export type OrderInformation = {
+  externalOrderId: string
+  customerName: string
+  customerEmail: string | null
+  customerPhoneNumber: string | null
+  deliveryAddress: string
+  product: string
+  quantityLiters: number
+  priceDisplayText: string | null
+  tourNumber: string
+  vehicleLicensePlate: string
+  confirmationStatus: OrderConfirmationStatus
+}
+
+export type OrderDetail = {
+  order: OrderInformation
+  currentRequest: ConfirmationRequestHistoryItem | null
+  previousRequests: ConfirmationRequestHistoryItem[]
 }

@@ -1,13 +1,21 @@
 import { cn } from '@/lib/utils'
-import type { ConfirmationStatus } from '@/types/confirmation'
+import type { ConfirmationDisplayStatus } from '@/types/confirmation'
 
 type ConfirmationStatusBadgeProps = {
-  status: ConfirmationStatus
+  status: ConfirmationDisplayStatus
   count?: number
   className?: string
 }
 
 const statusPresentation = {
+  OPEN: {
+    label: 'Offen',
+    className: 'border-slate-200 bg-slate-50 text-slate-800',
+  },
+  PENDING: {
+    label: 'Wird versendet',
+    className: 'border-violet-200 bg-violet-50 text-violet-800',
+  },
   SENT: {
     label: 'Versendet',
     className: 'border-blue-200 bg-blue-50 text-blue-800',
@@ -24,8 +32,12 @@ const statusPresentation = {
     label: 'Keine Rückmeldung',
     className: 'border-amber-200 bg-amber-50 text-amber-900',
   },
+  FAILED: {
+    label: 'Versand fehlgeschlagen',
+    className: 'border-rose-300 bg-rose-50 text-rose-900',
+  },
 } satisfies Record<
-  ConfirmationStatus,
+  ConfirmationDisplayStatus,
   { label: string; className: string }
 >
 
