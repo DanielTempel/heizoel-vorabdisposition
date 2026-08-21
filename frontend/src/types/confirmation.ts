@@ -29,6 +29,7 @@ export type ConfirmationDisplayStatus =
   | ConfirmationRequestStatus
 
 export type CustomerAnswerRequest = {
+  responseType: 'CONFIRM' | 'REJECT'
   customerComment?: string
 }
 

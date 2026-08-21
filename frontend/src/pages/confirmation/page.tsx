@@ -10,9 +10,8 @@ import {
 } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import {
-  confirmDelivery,
   getConfirmationPreview,
-  rejectDelivery,
+  submitCustomerResponse,
 } from '../../api/confirmation-api'
 import { getDriverLocation, getTrackingInfo } from '../../api/tracking-api'
 import { formatDate, formatTime } from '../../lib/format-delivery'
@@ -84,11 +83,9 @@ export function ConfirmationPage() {
     setAnswerType(type)
 
     try {
-      if (type === 'confirm') {
-        await confirmDelivery(token, {})
-      } else {
-        await rejectDelivery(token, {})
-      }
+      await submitCustomerResponse(token, {
+        responseType: type === 'confirm' ? 'CONFIRM' : 'REJECT',
+      })
 
       const preview = await getConfirmationPreview(token)
       setConfirmation(preview)

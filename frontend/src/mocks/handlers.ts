@@ -1,6 +1,7 @@
 import { delay, http, HttpResponse } from 'msw'
 import type {
   ConfirmationStatus,
+  CustomerAnswerRequest,
   CustomerConfirmationPreview,
 } from '../types/confirmation'
 import type { DriverLocation, TrackingInfo } from '../types/tracking'
@@ -168,20 +169,15 @@ export const handlers = [
   ),
 
   http.post(
-    `${apiBaseUrl}/api/customer/confirmations/:token/confirm`,
-    async ({ params }) => {
+    `${apiBaseUrl}/api/customer/confirmations/:token/response`,
+    async ({ params, request }) => {
       await delay(300)
-      statusByToken.set(getToken(params.token), 'CONFIRMED')
+      const answer = (await request.json()) as CustomerAnswerRequest
 
-      return new HttpResponse(null, { status: 204 })
-    },
-  ),
-
-  http.post(
-    `${apiBaseUrl}/api/customer/confirmations/:token/reject`,
-    async ({ params }) => {
-      await delay(300)
-      statusByToken.set(getToken(params.token), 'REJECTED')
+      statusByToken.set(
+        getToken(params.token),
+        answer.responseType === 'CONFIRM' ? 'CONFIRMED' : 'REJECTED',
+      )
 
       return new HttpResponse(null, { status: 204 })
     },
