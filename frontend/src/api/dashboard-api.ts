@@ -1,6 +1,8 @@
 import type {
   DashboardFilters,
   OrderDetail,
+  ResendConfirmationInput,
+  ResendConfirmationResult,
   ToursPage,
 } from '../types/dashboard'
 
@@ -13,6 +15,11 @@ type GetToursInput = DashboardFilters & {
 type BackendErrorResponse = {
   code: string
   message: string
+}
+
+type CsrfTokenResponse = {
+  token: string
+  headerName: string
 }
 
 export class ApiError extends Error {
@@ -98,4 +105,37 @@ export async function getOrderDetail(
   )
 
   return readJsonResponse<OrderDetail>(response)
+}
+
+async function getCsrfToken(signal?: AbortSignal) {
+  const response = await fetch(`${apiBaseUrl}/api/dashboard/csrf`, {
+    cache: 'no-store',
+    credentials: 'include',
+    signal,
+  })
+
+  return readJsonResponse<CsrfTokenResponse>(response)
+}
+
+export async function resendConfirmation(
+  externalOrderId: string,
+  input: ResendConfirmationInput,
+  signal?: AbortSignal,
+): Promise<ResendConfirmationResult> {
+  const csrfToken = await getCsrfToken(signal)
+  const response = await fetch(
+    `${apiBaseUrl}/api/dashboard/orders/${encodeURIComponent(externalOrderId)}/resend`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        [csrfToken.headerName]: csrfToken.token,
+      },
+      body: JSON.stringify(input),
+      credentials: 'include',
+      signal,
+    },
+  )
+
+  return readJsonResponse<ResendConfirmationResult>(response)
 }

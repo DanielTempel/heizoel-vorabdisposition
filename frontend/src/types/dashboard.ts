@@ -86,3 +86,13 @@ export type OrderDetail = {
   currentRequest: ConfirmationRequestHistoryItem | null
   previousRequests: ConfirmationRequestHistoryItem[]
 }
+
+export type ResendConfirmationInput = {
+  communicationChannel: CommunicationChannel
+  responseDeadlineHours: number
+}
+
+export type ResendConfirmationResult = {
+  externalOrderId: string
+  confirmationStatus: OrderConfirmationStatus
+}

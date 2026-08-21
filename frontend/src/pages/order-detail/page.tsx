@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card'
 import type { OrderDetail } from '@/types/dashboard'
 import { RequestCard } from './components/request-card'
+import { ResendConfirmationCard } from './components/resend-confirmation-card'
 
 type PageStatus = 'loading' | 'ready' | 'not-found' | 'error'
 
@@ -92,6 +93,10 @@ export function OrderDetailPage() {
 
   function reload() {
     setStatus('loading')
+    refreshDetail()
+  }
+
+  function refreshDetail() {
     setReloadKey((currentKey) => currentKey + 1)
   }
 
@@ -150,74 +155,89 @@ export function OrderDetailPage() {
       ) : null}
 
       {status === 'ready' && detail && order ? (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle>Auftragsinformationen</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                <DetailField label="Kunde" value={order.customerName} />
-                <DetailField
-                  label="E-Mail"
-                  value={order.customerEmail ?? '–'}
-                />
-                <DetailField
-                  label="Telefon"
-                  value={order.customerPhoneNumber ?? '–'}
-                />
-                <DetailField
-                  label="Lieferadresse"
-                  value={order.deliveryAddress}
-                />
-                <DetailField label="Tour" value={order.tourNumber} />
-                <DetailField
-                  label="Fahrzeug"
-                  value={order.vehicleLicensePlate || '–'}
-                />
-                <DetailField label="Produkt" value={order.product} />
-                <DetailField
-                  label="Menge"
-                  value={`${new Intl.NumberFormat('de-DE').format(order.quantityLiters)} Liter`}
-                />
-                <DetailField
-                  label="Preis"
-                  value={order.priceDisplayText ?? '–'}
-                />
-              </dl>
-            </CardContent>
-          </Card>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+          <div className="grid gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Auftragsinformationen</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                  <DetailField label="Kunde" value={order.customerName} />
+                  <DetailField
+                    label="E-Mail"
+                    value={order.customerEmail ?? '–'}
+                  />
+                  <DetailField
+                    label="Telefon"
+                    value={order.customerPhoneNumber ?? '–'}
+                  />
+                  <DetailField
+                    label="Lieferadresse"
+                    value={order.deliveryAddress}
+                  />
+                  <DetailField label="Tour" value={order.tourNumber} />
+                  <DetailField
+                    label="Fahrzeug"
+                    value={order.vehicleLicensePlate || '–'}
+                  />
+                  <DetailField label="Produkt" value={order.product} />
+                  <DetailField
+                    label="Menge"
+                    value={`${new Intl.NumberFormat('de-DE').format(order.quantityLiters)} Liter`}
+                  />
+                  <DetailField
+                    label="Preis"
+                    value={order.priceDisplayText ?? '–'}
+                  />
+                </dl>
+              </CardContent>
+            </Card>
 
-          <section className="grid gap-3" aria-labelledby="current-request-title">
-            <h3 className="text-lg font-semibold" id="current-request-title">
-              Aktuelle Anfrage
-            </h3>
-            {detail.currentRequest === null ? (
-              <div className="rounded-lg border border-dashed bg-background p-8 text-center text-sm text-muted-foreground">
-                Keine aktuelle Avisierungsanfrage vorhanden.
-              </div>
-            ) : (
-              <RequestCard request={detail.currentRequest} />
-            )}
-          </section>
+            <section
+              className="grid gap-3"
+              aria-labelledby="current-request-title"
+            >
+              <h3 className="text-lg font-semibold" id="current-request-title">
+                Aktuelle Anfrage
+              </h3>
+              {detail.currentRequest === null ? (
+                <div className="rounded-lg border border-dashed bg-background p-8 text-center text-sm text-muted-foreground">
+                  Keine aktuelle Avisierungsanfrage vorhanden.
+                </div>
+              ) : (
+                <RequestCard request={detail.currentRequest} />
+              )}
+            </section>
 
-          <section className="grid gap-3" aria-labelledby="request-history-title">
-            <h3 className="text-lg font-semibold" id="request-history-title">
-              Frühere Anfragen
-            </h3>
-            {detail.previousRequests.length === 0 ? (
-              <div className="rounded-lg border border-dashed bg-background p-8 text-center text-sm text-muted-foreground">
-                Keine früheren Avisierungsanfragen vorhanden.
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                {detail.previousRequests.map((request) => (
-                  <RequestCard key={request.requestId} request={request} />
-                ))}
-              </div>
-            )}
-          </section>
-        </>
+            <section
+              className="grid gap-3"
+              aria-labelledby="request-history-title"
+            >
+              <h3 className="text-lg font-semibold" id="request-history-title">
+                Frühere Anfragen
+              </h3>
+              {detail.previousRequests.length === 0 ? (
+                <div className="rounded-lg border border-dashed bg-background p-8 text-center text-sm text-muted-foreground">
+                  Keine früheren Avisierungsanfragen vorhanden.
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {detail.previousRequests.map((request) => (
+                    <RequestCard key={request.requestId} request={request} />
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+
+          <aside aria-label="Aktionen" className="lg:sticky lg:top-6">
+            <ResendConfirmationCard
+              detail={detail}
+              onSuccess={refreshDetail}
+            />
+          </aside>
+        </div>
       ) : null}
     </section>
   )

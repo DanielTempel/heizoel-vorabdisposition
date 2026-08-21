@@ -45,6 +45,30 @@ function formatTime(value: string) {
   return value.slice(0, 5)
 }
 
+function getSentAtText(request: ConfirmationRequestHistoryItem) {
+  if (request.status === 'PENDING') {
+    return 'Versand läuft…'
+  }
+
+  if (request.status === 'FAILED') {
+    return 'Nicht versendet'
+  }
+
+  return formatDateTime(request.sentAt)
+}
+
+function getResponseDeadlineText(request: ConfirmationRequestHistoryItem) {
+  if (request.status === 'PENDING') {
+    return `Wird nach Versand berechnet (${request.responseDeadlineHours} Std.)`
+  }
+
+  if (request.status === 'FAILED') {
+    return 'Nicht gestartet'
+  }
+
+  return formatDateTime(request.expiresAt)
+}
+
 function RequestField({
   label,
   value,
@@ -80,15 +104,11 @@ export function RequestCard({ request }: RequestCardProps) {
         <dl className="grid gap-4 sm:grid-cols-2">
           <RequestField
             label="Versendet am"
-            value={formatDateTime(request.sentAt)}
+            value={getSentAtText(request)}
           />
           <RequestField
             label="Antwort möglich bis"
-            value={
-              request.expiresAt === null
-                ? `${request.responseDeadlineHours} Std. nach Versand`
-                : formatDateTime(request.expiresAt)
-            }
+            value={getResponseDeadlineText(request)}
           />
         </dl>
 
