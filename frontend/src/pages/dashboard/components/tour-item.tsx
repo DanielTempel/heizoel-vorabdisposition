@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { ConfirmationStatusBadge } from '@/components/confirmation-status-badge'
 import {
   Card,
@@ -133,9 +134,18 @@ export function TourItem({ tour }: TourItemProps) {
               </TableHeader>
               <TableBody>
                 {tour.orders.map((order) => (
-                  <TableRow key={order.externalOrderId}>
-                    <TableCell className="font-medium">
-                      {order.externalOrderId}
+                  <TableRow
+                    className="relative cursor-pointer hover:bg-muted/50"
+                    key={order.externalOrderId}
+                  >
+                    <TableCell>
+                      <Link
+                        aria-label={`Auftrag ${order.externalOrderId} öffnen`}
+                        className="font-medium outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-ring"
+                        to={`/dashboard/orders/${encodeURIComponent(order.externalOrderId)}`}
+                      >
+                        {order.externalOrderId}
+                      </Link>
                     </TableCell>
                     <TableCell>{order.customerName}</TableCell>
                     <TableCell className="max-w-72 whitespace-normal">
