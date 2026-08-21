@@ -2,7 +2,6 @@ package heizoel.backend.adapter.in.web.overview.dto.detail;
 
 import heizoel.backend.application.model.overview.ConfirmationDetail.RequestDetail;
 import heizoel.backend.domain.CommunicationChannel;
-import heizoel.backend.domain.ConfirmationStatus;
 
 import java.time.Instant;
 import java.time.LocalDate;

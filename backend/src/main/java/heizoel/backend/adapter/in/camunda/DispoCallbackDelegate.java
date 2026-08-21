@@ -21,11 +21,14 @@ public class DispoCallbackDelegate implements JavaDelegate {
     @Override
     public void execute(DelegateExecution execution) {
 
+        Long confirmationRequestId = Long.valueOf(execution.getProcessBusinessKey());
+
         SendDispoStatusCallbackCommand command = new SendDispoStatusCallbackCommand(
-                        ((Number) execution.getVariable(VAR_ORDER_ID)).longValue(),
-                        ConfirmationStatus.valueOf((String) execution.getVariable(VAR_CONFIRMATION_STATUS)),
-                        (String) execution.getVariable(VAR_CUSTOMER_COMMENT)
-                );
+                confirmationRequestId,
+                ((Number) execution.getVariable(VAR_ORDER_ID)).longValue(),
+                ConfirmationStatus.valueOf((String) execution.getVariable(VAR_CONFIRMATION_STATUS)),
+                (String) execution.getVariable(VAR_CUSTOMER_COMMENT)
+        );
 
         sendDispoStatusCallbackUseCase.sendDispoStatusCallback(command);
     }

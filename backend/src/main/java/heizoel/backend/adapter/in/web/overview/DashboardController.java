@@ -144,8 +144,7 @@ public class DashboardController {
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        CompanyContext companyContext =
-                dashboardAccessService.consume(code);
+        CompanyContext companyContext = dashboardAccessService.consume(code);
 
         dashboardAuthenticationService.authenticate(
                 companyContext,

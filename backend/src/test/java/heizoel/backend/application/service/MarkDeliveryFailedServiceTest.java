@@ -2,6 +2,7 @@ package heizoel.backend.application.service;
 
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
+import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.application.service.confirmation.MarkDeliveryFailedService;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationRequest;
@@ -20,10 +21,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -86,6 +89,18 @@ class MarkDeliveryFailedServiceTest {
         assertThat(order.getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
     }
 
+    @Test
+    void unknownRequestIsRejectedWithoutRepositoryFollowUp() {
+        when(orderRepository.findByConfirmationRequestIdForUpdate(11L))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.markDeliveryFailed(11L))
+                .isInstanceOf(ConfirmationRequestNotFoundException.class)
+                .hasMessage("Confirmation request was not found.");
+
+        verifyNoInteractions(confirmationRequestRepository);
+    }
+
     private void mockRequest(Order order, ConfirmationRequest request) {
         when(orderRepository.findByConfirmationRequestIdForUpdate(11L))
                 .thenReturn(Optional.of(order));
@@ -99,7 +114,7 @@ class MarkDeliveryFailedServiceTest {
                 "token",
                 CommunicationChannel.EMAIL,
                 DeliverySlot.of(
-                        LocalDate.of(2026, 8, 10),
+                        LocalDate.of(2026, Month.AUGUST, 10),
                         LocalTime.of(10, 0),
                         LocalTime.of(12, 0)
                 ),

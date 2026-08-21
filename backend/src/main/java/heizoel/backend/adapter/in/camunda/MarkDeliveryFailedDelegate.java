@@ -10,15 +10,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MarkDeliveryFailedDelegate implements JavaDelegate {
 
-    private static final String VAR_CONFIRMATION_REQUEST_ID = "confirmationRequestId";
-
     private final MarkDeliveryFailedUseCase markDeliveryFailedUseCase;
 
     @Override
     public void execute(DelegateExecution execution) {
 
-        Long confirmationRequestId = ((Number) execution.getVariable(VAR_CONFIRMATION_REQUEST_ID)).longValue();
-
+        Long confirmationRequestId = Long.valueOf(execution.getProcessBusinessKey());
         markDeliveryFailedUseCase.markDeliveryFailed(confirmationRequestId);
     }
 

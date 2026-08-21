@@ -56,6 +56,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -173,8 +174,9 @@ class ConfirmationRequestProcessIntegrationTest {
         Job sendJob = job(parent.getId(), SEND_ACTIVITY);
         assertThat(sendJob).isNotNull();
         assertThat(sendJob.getRetries()).isPositive();
-        assertThat(runtimeService.getVariable(parent.getId(), "confirmationRequestId"))
-                .isEqualTo(fixture.request().getId());
+        assertThat(parent.getBusinessKey()).isEqualTo(fixture.request().getId().toString());
+        assertThat(runtimeService.getVariables(parent.getId()))
+                .doesNotContainKey("confirmationRequestId");
         assertThat(runtimeService.getVariable(parent.getId(), "deliveryAttempt")).isEqualTo(0);
         assertThat(runtimeService.getVariable(parent.getId(), "maxDeliveryAttempts")).isEqualTo(3);
         verifyNoInteractions(notificationService);
@@ -381,12 +383,7 @@ class ConfirmationRequestProcessIntegrationTest {
         Job callbackJob = job(parent.getId(), CALLBACK_ACTIVITY);
         int initialRetries = callbackJob.getRetries();
 
-        while (callbackJob.getRetries() > 0) {
-            String callbackJobId = callbackJob.getId();
-            assertThatThrownBy(() -> managementService.executeJob(callbackJobId))
-                    .isInstanceOf(RuntimeException.class);
-            callbackJob = managementService.createJobQuery().jobId(callbackJobId).singleResult();
-        }
+        callbackJob = exhaustRetries(callbackJob);
 
         assertThat(initialRetries).isEqualTo(5);
         assertThat(callbackJob.getRetries()).isZero();
@@ -400,6 +397,48 @@ class ConfirmationRequestProcessIntegrationTest {
                 .singleResult()).isNotNull();
         assertThat(runtimeService.getVariable(parent.getId(), "deliveryAttempt"))
                 .isEqualTo(deliveryAttemptBeforeCallback);
+    }
+
+    @Test
+    void staleCallbackClosesExistingIncidentWithoutSendingStatusUpdate() {
+        doThrow(new RuntimeException("DISPO unavailable"))
+                .when(dispoStatusCallbackService)
+                .sendStatusUpdate(any());
+        ProcessFixture fixture = createPendingFixture();
+        ProcessInstance staleProcess = startAndSendSuccessfully(fixture);
+        submitCustomerResponseService.submitCustomerResponse(
+                new SubmitCustomerResponseCommand(
+                        fixture.request().getToken(),
+                        CustomerResponseType.CONFIRM,
+                        "Please call first"
+                )
+        );
+
+        Job staleCallbackJob = exhaustRetries(job(staleProcess.getId(), CALLBACK_ACTIVITY));
+        assertThat(runtimeService.createIncidentQuery()
+                .processInstanceId(staleProcess.getId())
+                .count()).isOne();
+
+        createConfirmationRequestService.createConfirmationRequest(
+                changedCommand(fixture, CommunicationChannel.SMS)
+        );
+        ConfirmationRequest latestRequest = confirmationRequestRepository
+                .findTopByOrderOrderByIdDesc(fixture.order())
+                .orElseThrow();
+        assertThat(latestRequest.getId()).isNotEqualTo(fixture.request().getId());
+        assertThat(staleProcess.getBusinessKey())
+                .isEqualTo(fixture.request().getId().toString());
+
+        reset(dispoStatusCallbackService);
+        execute(staleCallbackJob);
+
+        assertThat(runtimeService.createIncidentQuery()
+                .processInstanceId(staleProcess.getId())
+                .count()).isZero();
+        assertThat(runtimeService.createProcessInstanceQuery()
+                .processInstanceId(staleProcess.getId())
+                .count()).isZero();
+        verifyNoInteractions(dispoStatusCallbackService);
     }
 
     @Test
@@ -472,16 +511,17 @@ class ConfirmationRequestProcessIntegrationTest {
         ProcessInstance parent = startProcess(fixture.request());
 
         Job sendJob = job(parent.getId(), SEND_ACTIVITY);
+        String sendJobId = sendJob.getId();
 
         assertThat(sendJob.getRetries()).isEqualTo(3);
 
         assertThatThrownBy(() ->
-                managementService.executeJob(sendJob.getId())
+                managementService.executeJob(sendJobId)
         ).isInstanceOf(RuntimeException.class);
 
         Job failedJob = managementService
                 .createJobQuery()
-                .jobId(sendJob.getId())
+                .jobId(sendJobId)
                 .singleResult();
 
         assertThat(failedJob.getRetries()).isEqualTo(2);
@@ -611,7 +651,7 @@ class ConfirmationRequestProcessIntegrationTest {
                 order.getDeliveryAddress(),
                 order.getProduct(),
                 order.getQuantityLiters(),
-                LocalDate.of(2026, 8, 10),
+                LocalDate.of(2026, Month.AUGUST, 10),
                 LocalTime.of(10, 0),
                 LocalTime.of(12, 0),
                 24,
@@ -645,6 +685,16 @@ class ConfirmationRequestProcessIntegrationTest {
                 .singleResult();
     }
 
+    private Job exhaustRetries(Job job) {
+        while (job.getRetries() > 0) {
+            String jobId = job.getId();
+            assertThatThrownBy(() -> managementService.executeJob(jobId))
+                    .isInstanceOf(RuntimeException.class);
+            job = managementService.createJobQuery().jobId(jobId).singleResult();
+        }
+        return job;
+    }
+
     private void execute(Job job) {
         assertThat(job).as("job must exist before execution").isNotNull();
         managementService.executeJob(job.getId());
@@ -675,7 +725,7 @@ class ConfirmationRequestProcessIntegrationTest {
                         "token-" + unique,
                         CommunicationChannel.EMAIL,
                         DeliverySlot.of(
-                                LocalDate.of(2026, 8, 10),
+                                LocalDate.of(2026, Month.AUGUST, 10),
                                 LocalTime.of(10, 0),
                                 LocalTime.of(12, 0)
                         ),

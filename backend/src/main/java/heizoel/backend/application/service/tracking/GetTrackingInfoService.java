@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -21,6 +22,7 @@ public class GetTrackingInfoService implements GetTrackingInfoUseCase {
 
     private final ConfirmationRequestRepository confirmationRequestRepository;
     private final DeliveryAddressCoordinateResolver deliveryAddressCoordinateResolver;
+    private final Clock clock;
 
     @Override
     @Transactional(readOnly = true)
@@ -31,7 +33,7 @@ public class GetTrackingInfoService implements GetTrackingInfoUseCase {
                 ));
         DeliverySlot deliverySlot = confirmationRequest.getDeliverySlot();
 
-        boolean trackingAvailable = deliverySlot.getDate().isEqual(LocalDate.now());
+        boolean trackingAvailable = deliverySlot.getDate().isEqual(LocalDate.now(clock));
 
         Optional<GeoCoordinate> targetCoordinate = trackingAvailable
                 ? deliveryAddressCoordinateResolver.resolve(

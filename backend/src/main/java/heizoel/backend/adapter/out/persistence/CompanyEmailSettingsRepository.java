@@ -9,6 +9,5 @@ public interface CompanyEmailSettingsRepository   extends JpaRepository<CompanyE
 
     Optional<CompanyEmailSettings> findByCompanyId(Long companyId);
 
-    boolean existsByCompanyId(Long companyId);
 }
 

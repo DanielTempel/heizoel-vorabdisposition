@@ -10,12 +10,15 @@ import heizoel.backend.application.port.out.workflow.ConfirmationWorkflowService
 import heizoel.backend.domain.*;
 import heizoel.backend.domain.company.Company;
 import heizoel.backend.application.exception.CompanyNotFoundException;
+import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.domain.exception.MissingDigitalContactException;
 import heizoel.backend.adapter.out.persistence.CompanyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Optional;
 
 @Service
@@ -27,6 +30,7 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
     private final ConfirmationRequestRepository confirmationRequestRepository;
     private final ConfirmationWorkflowService confirmationWorkflowService;
     private final ConfirmationRequestStarter confirmationRequestStarter;
+    private final Clock clock;
 
     @Override
     @Transactional
@@ -40,6 +44,14 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
 
         OrderData orderData = OrderData.from(command);
         RequestData requestData = RequestData.from(command);
+
+        Instant now = Instant.now(clock);
+
+        if (!requestData.deliverySlot().startsAt().isAfter(now)) {
+            throw new InvalidDeliveryWindowException(
+                    "Delivery window must start in the future."
+            );
+        }
 
         Optional<Order> existingOrder =
                 orderRepository

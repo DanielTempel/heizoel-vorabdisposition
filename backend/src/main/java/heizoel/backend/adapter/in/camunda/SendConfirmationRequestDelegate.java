@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 public class SendConfirmationRequestDelegate implements JavaDelegate {
 
     private static final String ERROR_DELIVERY_FAILED = "NOTIFICATION_DELIVERY_FAILED";
-    private static final String VAR_CONFIRMATION_REQUEST_ID = "confirmationRequestId";
     private static final String VAR_DELIVERY_ATTEMPT = "deliveryAttempt";
     private static final String VAR_MAX_DELIVERY_ATTEMPTS = "maxDeliveryAttempts";
     private static final String VAR_RETRY_DELAY = "retryDelay";
@@ -29,7 +28,7 @@ public class SendConfirmationRequestDelegate implements JavaDelegate {
     @Override
     public void execute(DelegateExecution execution) {
 
-        Long confirmationRequestId = ((Number) execution.getVariable(VAR_CONFIRMATION_REQUEST_ID)).longValue();
+        Long confirmationRequestId = Long.valueOf(execution.getProcessBusinessKey());
         int attempt = ((Number) execution.getVariable(VAR_DELIVERY_ATTEMPT)).intValue() + 1;
         int maxAttempts = ((Number) execution.getVariable(VAR_MAX_DELIVERY_ATTEMPTS)).intValue();
 

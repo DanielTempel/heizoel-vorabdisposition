@@ -4,6 +4,7 @@ import heizoel.backend.adapter.in.web.security.ApiKeyAuthenticationToken;
 import heizoel.backend.adapter.in.web.security.DashboardAccessService;
 import heizoel.backend.adapter.in.web.security.DashboardAuthenticationService;
 import heizoel.backend.application.context.CompanyContext;
+import heizoel.backend.application.exception.ConfirmationRequestDeliveryInProgressException;
 import heizoel.backend.application.exception.OrderNotFoundException;
 import heizoel.backend.application.model.overview.ConfirmationDetail;
 import heizoel.backend.application.model.overview.ConfirmationDetail.CustomerResponseDetail;
@@ -33,6 +34,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +42,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -152,7 +155,35 @@ class DashboardControllerTest {
                 .andExpect(jsonPath("$.code").value("ORDER_SNAPSHOT_NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("Order was not found."))
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.path").value("/api/dashboard/orders/MISSING"));
+                .andExpect(jsonPath("$.path").value("/api/dashboard/orders/MISSING"))
+                .andExpect(jsonPath("$.timestamp")
+                        .value("2026-08-05T10:00:00Z"));
+    }
+
+    @Test
+    void returnsConflictWhileConfirmationDeliveryIsInProgress()
+            throws Exception {
+        when(resendConfirmationRequestUseCase.resend(any()))
+                .thenThrow(new ConfirmationRequestDeliveryInProgressException(
+                        "Confirmation request delivery is already in progress."
+                ));
+
+        mockMvc.perform(post(
+                        "/api/dashboard/orders/{externalOrderId}/resend",
+                        "ORDER-4711"
+                )
+                        .contentType("application/json")
+                        .content("""
+                            {
+                              "communicationChannel": "SMS",
+                              "responseDeadlineHours": 24
+                            }
+                            """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value(
+                        "CONFIRMATION_REQUEST_DELIVERY_IN_PROGRESS"
+                ))
+                .andExpect(jsonPath("$.status").value(409));
     }
 
     private ConfirmationDetail detail() {
@@ -173,7 +204,7 @@ class DashboardControllerTest {
                 new RequestDetail(
                         30L,
                         CommunicationChannel.EMAIL,
-                        LocalDate.of(2026, 8, 10),
+                        LocalDate.of(2026, Month.AUGUST, 10),
                         LocalTime.of(8, 0),
                         LocalTime.of(10, 0),
                         Instant.parse("2026-08-03T10:00:00Z"),
@@ -190,7 +221,7 @@ class DashboardControllerTest {
                 List.of(new RequestDetail(
                         20L,
                         CommunicationChannel.SMS,
-                        LocalDate.of(2026, 8, 9),
+                        LocalDate.of(2026, Month.AUGUST, 9),
                         LocalTime.of(9, 0),
                         LocalTime.of(11, 0),
                         Instant.parse("2026-08-01T10:00:00Z"),

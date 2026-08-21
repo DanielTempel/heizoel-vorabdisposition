@@ -127,6 +127,12 @@ public class UpdateEmailSettingsService implements UpdateEmailSettingsUseCase {
             );
         }
 
+        if (existingSettings == null || !existingSettings.hasConfiguredPassword()) {
+            throw new InvalidEmailSettingsException(
+                    "SMTP password is required when authentication is enabled."
+            );
+        }
+
         return existingSettings.getEncryptedPassword();
     }
 

@@ -2,6 +2,9 @@ package heizoel.backend.adapter.in.web.settings;
 
 import heizoel.backend.adapter.in.web.security.ApiKeyAuthenticationToken;
 import heizoel.backend.application.context.CompanyContext;
+import heizoel.backend.application.exception.EmailConnectionTestException;
+import heizoel.backend.application.exception.EmailSettingsNotConfiguredException;
+import heizoel.backend.application.exception.TestEmailDeliveryException;
 import heizoel.backend.application.port.in.settings.*;
 import heizoel.backend.domain.company.SmtpSecurityMode;
 import org.junit.jupiter.api.AfterEach;
@@ -16,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -185,6 +189,57 @@ class EmailSettingsControllerTest {
 
         verify(sendTestEmailUseCase)
                 .sendTestEmail(COMPANY_CONTEXT);
+    }
+
+    @Test
+    void returnsUnprocessableEntityWhenEmailSettingsAreMissing()
+            throws Exception {
+        when(getEmailSettingsUseCase.getEmailSettings(COMPANY_CONTEXT))
+                .thenThrow(new EmailSettingsNotConfiguredException(
+                        "Email settings are not configured."
+                ));
+
+        mockMvc.perform(get("/api/dispo/settings/email"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code")
+                        .value("EMAIL_SETTINGS_NOT_CONFIGURED"))
+                .andExpect(jsonPath("$.status").value(422));
+    }
+
+    @Test
+    void returnsBadGatewayWhenEmailConnectionTestFails()
+            throws Exception {
+        doThrow(new EmailConnectionTestException(
+                "SMTP connection failed.",
+                new RuntimeException("Connection refused")
+        )).when(testEmailConnectionUseCase)
+                .testEmailConnection(COMPANY_CONTEXT);
+
+        mockMvc.perform(post(
+                        "/api/dispo/settings/email/test-connection"
+                ))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.code")
+                        .value("SMTP_CONNECTION_FAILED"))
+                .andExpect(jsonPath("$.status").value(502));
+    }
+
+    @Test
+    void returnsBadGatewayWhenTestEmailDeliveryFails()
+            throws Exception {
+        doThrow(new TestEmailDeliveryException(
+                "SMTP test message failed.",
+                new RuntimeException("Delivery rejected")
+        )).when(sendTestEmailUseCase)
+                .sendTestEmail(COMPANY_CONTEXT);
+
+        mockMvc.perform(post(
+                        "/api/dispo/settings/email/test-message"
+                ))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.code")
+                        .value("SMTP_TEST_MESSAGE_FAILED"))
+                .andExpect(jsonPath("$.status").value(502));
     }
 
 }

@@ -206,24 +206,23 @@ class DispoControllerIntegrationTest {
     }
 
     @Test
-    void responseDeadlineOutsideAllowedRangeIsRejected() throws Exception {
+    void nonPositiveResponseDeadlineIsRejected() throws Exception {
         performCreate(request("ORDER-ZERO-DEADLINE", CommunicationChannel.EMAIL).withDeadline(0))
-                .andExpect(status().isBadRequest());
-        performCreate(request("ORDER-LARGE-DEADLINE", CommunicationChannel.EMAIL).withDeadline(169))
                 .andExpect(status().isBadRequest());
 
         assertThat(confirmationRequestRepository.count()).isZero();
     }
 
     @Test
-    void maximumResponseDeadlineIsAcceptedAndStoredPending() throws Exception {
-        performCreate(request("ORDER-MAX-DEADLINE", CommunicationChannel.EMAIL).withDeadline(168))
+    void responseDeadlineAboveFormerMaximumIsAcceptedAndStoredPending()
+            throws Exception {
+        performCreate(request("ORDER-LARGE-DEADLINE", CommunicationChannel.EMAIL).withDeadline(169))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.confirmationStatus").value("OPEN"));
 
         List<ConfirmationRequest> requests = confirmationRequestRepository.findAll();
         assertThat(requests).hasSize(1);
-        assertThat(requests.get(0).getResponseDeadlineHours()).isEqualTo(168);
+        assertThat(requests.get(0).getResponseDeadlineHours()).isEqualTo(169);
         assertThat(requests.get(0).getExpiresAt()).isNull();
     }
 

@@ -141,7 +141,6 @@ public class SecurityConfig {
                         authenticationConverter
                 );
 
-        authenticationFilter.setRequestMatcher(withDefaults().matcher("/api/dispo/**"));
         authenticationFilter.setFailureHandler(errorHandler);
 
         authenticationFilter.setSuccessHandler(
