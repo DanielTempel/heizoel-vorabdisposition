@@ -1,0 +1,8 @@
+\babel@toc {german}{}\relax 
+\contentsline {section}{\numberline {1}Allgemeine Informationen}{2}{}%
+\contentsline {section}{\numberline {2}Projektstatus}{2}{}%
+\contentsline {section}{\numberline {3}Besprochene Punkte}{2}{}%
+\contentsline {section}{\numberline {4}Nächste Schritte}{2}{}%
+\contentsline {section}{\numberline {5}Nächste Projektphase}{2}{}%
+\contentsline {section}{\numberline {6}Nächste Meilensteine}{3}{}%
+\contentsline {section}{\numberline {7}Zusammenfassung}{3}{}%
