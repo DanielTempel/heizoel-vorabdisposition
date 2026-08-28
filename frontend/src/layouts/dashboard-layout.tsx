@@ -16,6 +16,7 @@ export type DashboardOutletContext = {
 function createEmptyFilters(): DashboardFilters {
   return {
     search: '',
+    tourNumbers: [],
     statuses: [],
     dateFrom: '',
     dateTo: '',

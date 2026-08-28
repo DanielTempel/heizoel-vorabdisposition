@@ -37,6 +37,7 @@ type FilterPanelProps = {
   filters: DashboardFilters
   onApply: (filters: DashboardFilters) => void
   onChange: (filters: DashboardFilters) => void
+  tourNumberOptions: string[]
 }
 
 const statusOptions: ConfirmationStatus[] = [
@@ -103,12 +104,16 @@ export function FilterPanel({
   filters,
   onApply,
   onChange,
+  tourNumberOptions,
 }: FilterPanelProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [isStatusOpen, setIsStatusOpen] = useState(false)
+  const [isTourOpen, setIsTourOpen] = useState(false)
   const statusComboboxAnchor = useComboboxAnchor()
+  const tourComboboxAnchor = useComboboxAnchor()
   const dateRange = getDateRange(filters)
   const hasPopoverFilters =
+    filters.tourNumbers.length > 0 ||
     filters.statuses.length > 0 ||
     filters.dateFrom !== '' ||
     filters.dateTo !== ''
@@ -116,6 +121,7 @@ export function FilterPanel({
   function resetPopoverFilters() {
     const nextFilters = {
       ...filters,
+      tourNumbers: [],
       statuses: [],
       dateFrom: '',
       dateTo: '',
@@ -169,7 +175,7 @@ export function FilterPanel({
 
       <Popover
         onOpenChange={(open) => {
-          if (!open && isStatusOpen) {
+          if (!open && (isStatusOpen || isTourOpen)) {
             return
           }
 
@@ -200,6 +206,47 @@ export function FilterPanel({
           <PopoverHeader>
             <PopoverTitle>Filter</PopoverTitle>
           </PopoverHeader>
+
+          <div className="grid gap-2">
+            <span className="text-xs font-medium">Tour</span>
+            <Combobox
+              items={tourNumberOptions}
+              multiple
+              onOpenChange={setIsTourOpen}
+              onValueChange={(tourNumbers) =>
+                onChange({ ...filters, tourNumbers })
+              }
+              open={isTourOpen}
+              value={filters.tourNumbers}
+            >
+              <ComboboxChips
+                className="min-h-9 w-full cursor-pointer bg-background"
+                ref={tourComboboxAnchor}
+              >
+                <ComboboxValue>
+                  {filters.tourNumbers.map((tourNumber) => (
+                    <ComboboxChip key={tourNumber}>
+                      {tourNumber}
+                    </ComboboxChip>
+                  ))}
+                </ComboboxValue>
+                <ComboboxChipsInput
+                  className="cursor-pointer caret-foreground"
+                  placeholder="Tour auswählen"
+                />
+              </ComboboxChips>
+              <ComboboxContent anchor={tourComboboxAnchor}>
+                <ComboboxEmpty>Keine Tour gefunden.</ComboboxEmpty>
+                <ComboboxList>
+                  {(tourNumber: string) => (
+                    <ComboboxItem key={tourNumber} value={tourNumber}>
+                      {tourNumber}
+                    </ComboboxItem>
+                  )}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
+          </div>
 
           <div className="grid gap-2">
             <span className="text-xs font-medium">Avisierungsstatus</span>

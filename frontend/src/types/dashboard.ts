@@ -8,6 +8,7 @@ export type CommunicationChannel = 'EMAIL' | 'SMS' | 'WHATSAPP'
 
 export type DashboardFilters = {
   search: string
+  tourNumbers: string[]
   statuses: ConfirmationStatus[]
   dateFrom: string
   dateTo: string

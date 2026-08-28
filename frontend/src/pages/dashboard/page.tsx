@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { useOutletContext } from 'react-router-dom'
-import { getTours } from '@/api/dashboard-api'
+import { getTourNumbers, getTours } from '@/api/dashboard-api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import type { DashboardOutletContext } from '@/layouts/dashboard-layout'
@@ -18,6 +18,27 @@ export function DashboardPage() {
   const [reloadKey, setReloadKey] = useState(0)
   const [status, setStatus] = useState<PageStatus>('loading')
   const [toursPage, setToursPage] = useState<ToursPage | null>(null)
+  const [tourNumberOptions, setTourNumberOptions] = useState<string[]>([])
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function loadTourNumbers() {
+      try {
+        const nextTourNumbers = await getTourNumbers(controller.signal)
+
+        if (!controller.signal.aborted) {
+          setTourNumberOptions(nextTourNumbers)
+        }
+      } catch {
+        // The overview remains usable if the optional filter cannot be loaded.
+      }
+    }
+
+    void loadTourNumbers()
+
+    return () => controller.abort()
+  }, [])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -75,6 +96,7 @@ export function DashboardPage() {
   const totalPages = toursPage?.totalPages ?? 0
   const hasAppliedFilters =
     appliedFilters.search !== '' ||
+    appliedFilters.tourNumbers.length > 0 ||
     appliedFilters.statuses.length > 0 ||
     appliedFilters.dateFrom !== '' ||
     appliedFilters.dateTo !== ''
@@ -97,6 +119,7 @@ export function DashboardPage() {
               draftFilters: filters,
             }))
           }
+          tourNumberOptions={tourNumberOptions}
         />
         <Button
           disabled={status === 'loading'}

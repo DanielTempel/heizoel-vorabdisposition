@@ -70,6 +70,9 @@ export async function getTours(
   }
 
   input.statuses.forEach((status) => searchParams.append('statuses', status))
+  input.tourNumbers.forEach((tourNumber) =>
+    searchParams.append('tourNumbers', tourNumber),
+  )
 
   if (input.dateFrom !== '') {
     searchParams.set('dateFrom', input.dateFrom)
@@ -89,6 +92,18 @@ export async function getTours(
   )
 
   return readJsonResponse<ToursPage>(response)
+}
+
+export async function getTourNumbers(
+  signal?: AbortSignal,
+): Promise<string[]> {
+  const response = await fetch(`${apiBaseUrl}/api/dashboard/tour-numbers`, {
+    cache: 'no-store',
+    credentials: 'include',
+    signal,
+  })
+
+  return readJsonResponse<string[]>(response)
 }
 
 export async function getOrderDetail(
