@@ -19,6 +19,7 @@ class DeliverySlotTest {
     private static final LocalDate DELIVERY_DATE = LocalDate.of(2026, 7, 15);
     private static final LocalTime START = LocalTime.of(10, 0);
     private static final LocalTime END = LocalTime.of(12, 0);
+    private static final Instant DELIVERY_START = Instant.parse("2026-07-15T08:00:00Z");
 
     @Test
     void rejectsMissingDeliveryDate() {
@@ -48,7 +49,23 @@ class DeliverySlotTest {
         DeliverySlot slot = DeliverySlot.of(DELIVERY_DATE, START, END);
 
         assertThat(slot.startsAt())
-                .isEqualTo(Instant.parse("2026-07-15T08:00:00Z"));
+                .isEqualTo(DELIVERY_START);
+    }
+
+    @Test
+    void validateStartsAfterAcceptsInstantBeforeDeliveryWindow() {
+        DeliverySlot slot = DeliverySlot.of(DELIVERY_DATE, START, END);
+
+        slot.validateStartsAfter(DELIVERY_START.minusNanos(1));
+    }
+
+    @Test
+    void validateStartsAfterRejectsDeliveryWindowThatAlreadyStarted() {
+        DeliverySlot slot = DeliverySlot.of(DELIVERY_DATE, START, END);
+
+        assertThatThrownBy(() -> slot.validateStartsAfter(DELIVERY_START))
+                .isInstanceOf(InvalidDeliveryWindowException.class)
+                .hasMessage("Delivery window must start in the future.");
     }
 
     private static Stream<Arguments> missingWindowBoundaries() {

@@ -2,20 +2,23 @@ package heizoel.backend.application.service.confirmation;
 
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
-import heizoel.backend.application.exception.ConfirmationRequestDeliveryInProgressException;
+import heizoel.backend.application.exception.ConfirmationRequestResendNotAllowedException;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.application.exception.OrderNotFoundException;
 import heizoel.backend.application.port.in.confirmation.ResendConfirmationRequestCommand;
 import heizoel.backend.application.port.in.confirmation.ResendConfirmationRequestResult;
 import heizoel.backend.application.port.in.confirmation.ResendConfirmationRequestUseCase;
-import heizoel.backend.application.port.out.workflow.ConfirmationWorkflowService;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationRequest;
+import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.Order;
 import heizoel.backend.domain.exception.MissingDigitalContactException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Clock;
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -25,8 +28,7 @@ public class ResendConfirmationRequestService implements ResendConfirmationReque
     private final OrderRepository orderRepository;
     private final ConfirmationRequestRepository confirmationRequestRepository;
     private final ConfirmationRequestStarter confirmationRequestStarter;
-    private final ConfirmationWorkflowService confirmationWorkflowService;
-
+    private final Clock clock;
 
     @Override
     @Transactional
@@ -54,20 +56,9 @@ public class ResendConfirmationRequestService implements ResendConfirmationReque
                                 )
                         );
 
-        if (previousRequest.isPending()) {
-            throw new ConfirmationRequestDeliveryInProgressException(
-                    "Confirmation request delivery is already in progress."
-            );
-        }
+        validateResendAllowed(order, previousRequest);
 
-        if (previousRequest.isActive()) {
-            previousRequest.markInactive();
-
-            confirmationWorkflowService
-                    .notifyConfirmationRequestSuperseded(
-                            previousRequest.getId()
-                    );
-        }
+        previousRequest.getDeliverySlot().validateStartsAfter(Instant.now(clock));
 
         order.markOpen();
 
@@ -82,6 +73,26 @@ public class ResendConfirmationRequestService implements ResendConfirmationReque
                 order.getExternalOrderId(),
                 order.getConfirmationStatus()
         );
+    }
+
+    private void validateResendAllowed(
+            Order order,
+            ConfirmationRequest previousRequest
+    ) {
+        boolean afterDeliveryFailure =
+                previousRequest.isDeliveryFailed()
+                        && !previousRequest.isActive();
+
+        boolean afterNoResponse =
+                order.getConfirmationStatus() == ConfirmationStatus.NO_RESPONSE
+                        && previousRequest.isSent()
+                        && !previousRequest.isActive();
+
+        if (!afterDeliveryFailure && !afterNoResponse) {
+            throw new ConfirmationRequestResendNotAllowedException(
+                    "Confirmation request cannot be resent in the current state."
+            );
+        }
     }
 
     private void validateCommunicationChannel(

@@ -10,7 +10,6 @@ import heizoel.backend.application.port.out.workflow.ConfirmationWorkflowService
 import heizoel.backend.domain.*;
 import heizoel.backend.domain.company.Company;
 import heizoel.backend.application.exception.CompanyNotFoundException;
-import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.domain.exception.MissingDigitalContactException;
 import heizoel.backend.adapter.out.persistence.CompanyRepository;
 import lombok.RequiredArgsConstructor;
@@ -45,13 +44,9 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
         OrderData orderData = OrderData.from(command);
         RequestData requestData = RequestData.from(command);
 
-        Instant now = Instant.now(clock);
-
-        if (!requestData.deliverySlot().startsAt().isAfter(now)) {
-            throw new InvalidDeliveryWindowException(
-                    "Delivery window must start in the future."
-            );
-        }
+        requestData.deliverySlot().validateStartsAfter(
+                Instant.now(clock)
+        );
 
         Optional<Order> existingOrder =
                 orderRepository

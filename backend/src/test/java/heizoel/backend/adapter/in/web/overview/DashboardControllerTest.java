@@ -4,7 +4,7 @@ import heizoel.backend.adapter.in.web.security.ApiKeyAuthenticationToken;
 import heizoel.backend.adapter.in.web.security.DashboardAccessService;
 import heizoel.backend.adapter.in.web.security.DashboardAuthenticationService;
 import heizoel.backend.application.context.CompanyContext;
-import heizoel.backend.application.exception.ConfirmationRequestDeliveryInProgressException;
+import heizoel.backend.application.exception.ConfirmationRequestResendNotAllowedException;
 import heizoel.backend.application.exception.OrderNotFoundException;
 import heizoel.backend.application.model.overview.ConfirmationDetail;
 import heizoel.backend.application.model.overview.ConfirmationDetail.CustomerResponseDetail;
@@ -161,11 +161,11 @@ class DashboardControllerTest {
     }
 
     @Test
-    void returnsConflictWhileConfirmationDeliveryIsInProgress()
+    void returnsConflictWhenConfirmationRequestCannotBeResent()
             throws Exception {
         when(resendConfirmationRequestUseCase.resend(any()))
-                .thenThrow(new ConfirmationRequestDeliveryInProgressException(
-                        "Confirmation request delivery is already in progress."
+                .thenThrow(new ConfirmationRequestResendNotAllowedException(
+                        "Confirmation request cannot be resent in the current state."
                 ));
 
         mockMvc.perform(post(
@@ -181,7 +181,10 @@ class DashboardControllerTest {
                             """))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value(
-                        "CONFIRMATION_REQUEST_DELIVERY_IN_PROGRESS"
+                        "CONFIRMATION_REQUEST_RESEND_NOT_ALLOWED"
+                ))
+                .andExpect(jsonPath("$.message").value(
+                        "Confirmation request cannot be resent in the current state."
                 ))
                 .andExpect(jsonPath("$.status").value(409));
     }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import heizoel.backend.adapter.in.web.overview.dto.ResendConfirmationRequestRequestDto;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
+import heizoel.backend.application.exception.EmailSettingsNotConfiguredException;
 import heizoel.backend.application.port.out.notification.NotificationService;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationRequest;
@@ -37,6 +38,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -55,6 +58,7 @@ class DispoControllerIntegrationTest {
 
     private static final String CONFIRMATION_PROCESS_KEY = "confirmation-request-process";
     private static final String SEND_ACTIVITY = "ServiceTask_SendConfirmationRequest";
+    private static final String MARK_FAILED_ACTIVITY = "ServiceTask_MarkDeliveryFailed";
     private static final String TEST_API_KEY = "test-minova-api-key";
 
     @Container
@@ -229,7 +233,8 @@ class DispoControllerIntegrationTest {
     }
 
     @Test
-    void resendEndpointReturnsAcceptedAndStartsPendingWorkflow() throws Exception {
+    void resendEndpointAfterDeliveryFailureReturnsAcceptedAndStartsPendingWorkflow()
+            throws Exception {
         performCreate(
                 request("ORDER-RESEND", CommunicationChannel.EMAIL)
                         .withContacts(
@@ -258,12 +263,33 @@ class DispoControllerIntegrationTest {
                 .activityId(SEND_ACTIVITY)
                 .singleResult();
         assertThat(oldSendJob).isNotNull();
+
+        doThrow(new EmailSettingsNotConfiguredException(
+                "Mail sender is not configured"
+        )).when(notificationService).sendConfirmationRequest(
+                any(Order.class),
+                any(ConfirmationRequest.class)
+        );
+
         managementService.executeJob(oldSendJob.getId());
-        assertThat(
-                confirmationRequestRepository.findById(oldRequestId)
-                        .orElseThrow()
-                        .isActive()
-        ).isTrue();
+
+        Job markFailedJob = managementService
+                .createJobQuery()
+                .processInstanceId(oldProcess.getId())
+                .activityId(MARK_FAILED_ACTIVITY)
+                .singleResult();
+        assertThat(markFailedJob).isNotNull();
+        managementService.executeJob(markFailedJob.getId());
+
+        ConfirmationRequest failedRequest = confirmationRequestRepository
+                .findById(oldRequestId)
+                .orElseThrow();
+        assertThat(failedRequest.getDeliveryStatus())
+                .isEqualTo(NotificationDeliveryStatus.FAILED);
+        assertThat(failedRequest.isActive()).isFalse();
+        assertThat(runtimeService.createProcessInstanceQuery()
+                .processInstanceId(oldProcess.getId())
+                .count()).isZero();
 
         MockHttpSession session = authenticatedDashboardSession();
         CsrfData csrf = fetchCsrfToken(session);

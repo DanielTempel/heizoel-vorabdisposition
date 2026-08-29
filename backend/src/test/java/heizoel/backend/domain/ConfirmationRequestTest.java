@@ -1,6 +1,5 @@
 package heizoel.backend.domain;
 
-import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -69,22 +68,6 @@ class ConfirmationRequestTest {
 
         assertThat(request.calculateResponseDeadline(SENT_AT))
                 .isEqualTo(DELIVERY_START);
-    }
-
-    @Test
-    void validateCanBeSentAtAcceptsInstantBeforeDeliveryWindow() {
-        ConfirmationRequest request = pendingRequest(24);
-
-        request.validateCanBeSentAt(DELIVERY_START.minusNanos(1));
-    }
-
-    @Test
-    void validateCanBeSentAtRejectsDeliveryWindowThatAlreadyStarted() {
-        ConfirmationRequest request = pendingRequest(24);
-
-        assertThatThrownBy(() -> request.validateCanBeSentAt(DELIVERY_START))
-                .isInstanceOf(InvalidDeliveryWindowException.class)
-                .hasMessage("Delivery window must start in the future.");
     }
 
     @Test
