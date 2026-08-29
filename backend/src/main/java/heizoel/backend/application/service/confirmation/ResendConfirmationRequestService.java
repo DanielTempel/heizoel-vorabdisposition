@@ -45,8 +45,6 @@ public class ResendConfirmationRequestService implements ResendConfirmationReque
                         )
                 );
 
-        validateCommunicationChannel(order, command.communicationChannel());
-
         ConfirmationRequest previousRequest =
                 confirmationRequestRepository
                         .findTopByOrderOrderByIdDesc(order)
@@ -59,6 +57,8 @@ public class ResendConfirmationRequestService implements ResendConfirmationReque
         validateResendAllowed(order, previousRequest);
 
         previousRequest.getDeliverySlot().validateStartsAfter(Instant.now(clock));
+
+        validateCommunicationChannel(order, command.communicationChannel());
 
         order.markOpen();
 

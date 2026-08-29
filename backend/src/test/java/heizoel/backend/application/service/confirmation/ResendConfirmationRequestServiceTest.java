@@ -130,10 +130,10 @@ class ResendConfirmationRequestServiceTest {
             value = ConfirmationStatus.class,
             names = {"CONFIRMED", "REJECTED"}
     )
-    void resend_answeredRequest_isRejectedWithoutSideEffects(
+    void resend_answeredRequest_takesPrecedenceOverMissingContact(
             ConfirmationStatus status
     ) {
-        Order order = spy(order("customer@example.com", "+491701234567"));
+        Order order = spy(order(null, "+491701234567"));
         ConfirmationRequest previousRequest = sentRequest(order, futureDeliverySlot());
         previousRequest.markInactive();
         if (status == ConfirmationStatus.CONFIRMED) {
@@ -146,8 +146,8 @@ class ResendConfirmationRequestServiceTest {
     }
 
     @Test
-    void resend_startedDeliveryWindow_isRejectedBeforeStateChanges() {
-        Order order = spy(order("customer@example.com", "+491701234567"));
+    void resend_startedDeliveryWindow_takesPrecedenceOverMissingContact() {
+        Order order = spy(order(null, "+491701234567"));
         ConfirmationRequest previousRequest = pendingRequest(
                 order,
                 DeliverySlot.of(
@@ -181,8 +181,8 @@ class ResendConfirmationRequestServiceTest {
     }
 
     @Test
-    void resend_orderHasNoConfirmationRequest_throwsConfirmationRequestNotFound() {
-        Order order = order("customer@example.com", "+491701234567");
+    void resend_missingPreviousRequest_takesPrecedenceOverMissingContact() {
+        Order order = order(null, "+491701234567");
         when(orderRepository.findByCompanyIdAndExternalOrderId(COMPANY_ID, EXTERNAL_ORDER_ID))
                 .thenReturn(Optional.of(order));
         when(confirmationRequestRepository.findTopByOrderOrderByIdDesc(order))
@@ -195,15 +195,17 @@ class ResendConfirmationRequestServiceTest {
     }
 
     @Test
-    void resend_emailWithoutCustomerEmail_throwsMissingDigitalContactBeforeRequestLookup() {
-        Order order = order(null, "+491701234567");
-        when(orderRepository.findByCompanyIdAndExternalOrderId(COMPANY_ID, EXTERNAL_ORDER_ID))
-                .thenReturn(Optional.of(order));
+    void resend_failedRequestWithoutCustomerEmail_throwsMissingDigitalContactWithoutSideEffects() {
+        Order order = spy(order(null, "+491701234567"));
+        ConfirmationRequest previousRequest = pendingRequest(order, futureDeliverySlot());
+        previousRequest.markDeliveryFailed();
+        mockExisting(order, previousRequest);
 
         assertThatThrownBy(() -> service.resend(command(CommunicationChannel.EMAIL, 48)))
                 .isInstanceOf(MissingDigitalContactException.class);
 
-        verifyNoInteractions(confirmationRequestRepository, confirmationRequestStarter);
+        verify(order, never()).markOpen();
+        verifyNoInteractions(confirmationRequestStarter);
     }
 
     @ParameterizedTest
@@ -211,17 +213,19 @@ class ResendConfirmationRequestServiceTest {
             value = CommunicationChannel.class,
             names = {"SMS", "WHATSAPP"}
     )
-    void resend_phoneChannelWithoutPhone_throwsMissingDigitalContactBeforeRequestLookup(
+    void resend_failedRequestWithoutPhone_throwsMissingDigitalContactWithoutSideEffects(
             CommunicationChannel channel
     ) {
-        Order order = order("customer@example.com", " ");
-        when(orderRepository.findByCompanyIdAndExternalOrderId(COMPANY_ID, EXTERNAL_ORDER_ID))
-                .thenReturn(Optional.of(order));
+        Order order = spy(order("customer@example.com", " "));
+        ConfirmationRequest previousRequest = pendingRequest(order, futureDeliverySlot());
+        previousRequest.markDeliveryFailed();
+        mockExisting(order, previousRequest);
 
         assertThatThrownBy(() -> service.resend(command(channel, 48)))
                 .isInstanceOf(MissingDigitalContactException.class);
 
-        verifyNoInteractions(confirmationRequestRepository, confirmationRequestStarter);
+        verify(order, never()).markOpen();
+        verifyNoInteractions(confirmationRequestStarter);
     }
 
     private void assertResendRejectedWithoutSideEffects(
