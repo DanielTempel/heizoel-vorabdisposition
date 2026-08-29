@@ -23,6 +23,18 @@ a4paper
 \usepackage{float}
 
 % ------------------------------------------------
+% Gliederung
+% ------------------------------------------------
+
+% Überschriften bis zur Ebene 5.1.1 werden nummeriert.
+\setcounter{secnumdepth}{3}
+
+% Im Inhaltsverzeichnis werden nur section und subsection angezeigt.
+% Die Ebene 5.1.1 wird somit nummeriert, aber nicht im
+% Inhaltsverzeichnis dargestellt.
+\setcounter{tocdepth}{3}
+
+% ------------------------------------------------
 % Dokumentinformationen
 % ------------------------------------------------
 
@@ -45,43 +57,65 @@ in Kooperation mit MINOVA
 % =================================================
 
 \begin{titlepage}
-\centering
+\thispagestyle{empty}
 
-\vspace*{3cm}
+\begin{center}
 
-{\Huge\bfseries Projektdokumentation\par}
+{\Large
+Technische Hochschule Würzburg-Schweinfurt\\
+Fakultät Informatik und Wirtschaftsinformatik
+}
 
-\vspace{1cm}
+\vspace{2.8cm}
 
-{\LARGE Workflowbasierte Rückbestätigung von Lieferterminen\par}
+{\Large Projektdokumentation}
+
+\vspace{0.8cm}
+
+{\Huge\bfseries
+Workflowbasierte Rückbestätigung\\
+von Lieferterminen
+}
+
+\vspace{1.8cm}
+
+{\normalsize
+vorgelegt an der Technischen Hochschule Würzburg-Schweinfurt\\
+in der Fakultät Informatik und Wirtschaftsinformatik\\
+im Rahmen der Projektarbeit
+}
 
 \vspace{2cm}
 
-{\Large Projektarbeit\par}
-
-\vspace{1cm}
-
-\begin{tabular}{ll}
-Unternehmen: & MINOVA \\
-Hochschule: & THWS \\
-Projektzeitraum: & xx.xx.2026 -- xx.xx.2026 \\
-Team: & Name 1, Name 2, Name 3 \\
+\begin{tabular}{c}
+Name 1\\
+Name 2\\
+Name 3
 \end{tabular}
 
 \vfill
 
-Stand: \today
+\begin{tabular}{ll}
+Betreuerin: & Frau Prof.\ Dr.\ Saueressig \\[0.4cm]
+Technischer Betreuer: & Herr Prof.\ Dr.\ Braun \\[0.4cm]
+Abgabedatum: & 16.09.2026
+\end{tabular}
+
+\end{center}
 
 \end{titlepage}
 
 \tableofcontents
 \newpage
 
+
 % =================================================
-\section{Einleitung}
+% 1 EINLEITUNG
 % =================================================
 
-\subsection{Motivation}
+\section{Einleitung}
+
+\subsection{Motivation und Problemstellung}
 
 Ausgangspunkt des Projekts war die Beobachtung, dass die
 Rückbestätigung von Lieferterminen in weiten Teilen manuell
@@ -95,35 +129,18 @@ digitalen Prozess zu entwickeln, der sowohl die fachliche
 Kommunikation mit dem Kunden als auch die technische
 Weiterverarbeitung im System unterstützt.
 
-\subsection{Ziel der Projektdokumentation}
+\subsection{Zielsetzung}
 
-Diese Dokumentation beschreibt die Ausgangssituation,
-die Zielsetzung, die Umsetzung sowie die organisatorischen und
-methodischen Rahmenbedingungen des Projekts. Dazu zählen
-insbesondere Projektplan, Aufwand, zeitlicher Verlauf und die
-abschließende Reflexion der Zusammenarbeit und Umsetzung.
+\subsection{Methodische Vorgehensweise}
 
-\subsection{Projektbeteiligte}
-
-\begin{table}[H]
-\centering
-\begin{tabular}{ll}
-\toprule
-Name & Rolle \\
-\midrule
-Name 1 & Frontend und Benutzeroberfläche \\
-Name 2 & Backend und Datenhaltung \\
-Name 3 & Workflow und Prozessmodellierung \\
-Auftraggeber MINOVA & Fachlicher Ansprechpartner \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 % =================================================
-\section{Ausgangssituation (IST-Analyse)}
+% 2 AUSGANGSSITUATION
 % =================================================
 
-\subsection{Aktueller Prozess}
+\section{IST-Analyse}
+
+\subsection{Bestehender Avisierungsprozess}
 
 Im bisherigen Ablauf wurden Liefertermine durch die
 Disposition vorbereitet und anschließend auf direktem Weg an
@@ -138,16 +155,9 @@ dadurch nur eingeschränkt möglich. Insbesondere bei mehreren
 gleichzeitigen Lieferungen stieg der Koordinationsaufwand
 deutlich an.
 
-\subsection{Probleme des aktuellen Prozesses}
+\subsection{Bestehende Kommunikationskanäle}
 
-\begin{itemize}
-\item Hoher Kommunikationsaufwand
-\item Manuelle Terminabstimmung
-\item Fehlende Transparenz
-\item Medienbrüche
-\end{itemize}
-
-\subsection{Schwachstellenanalyse}
+\subsection{Schwachstellen und Optimierungspotenziale}
 
 Die wesentlichen Schwachstellen lagen in der fehlenden
 Standardisierung der Rückmeldungen und in den Medienbrüchen
@@ -159,31 +169,18 @@ Zusätzlich fehlte eine einheitliche Statussicht, sodass der
 aktuelle Bearbeitungsstand eines Liefertermins nicht jederzeit
 direkt nachvollzogen werden konnte.
 
-% =================================================
-\section{Projektziele}
-% =================================================
-
-\subsection{Fachliche Ziele}
-
-\begin{itemize}
-\item Automatisierte Kundenkommunikation
-\item Transparente Statusverwaltung
-\item Reduzierung manueller Arbeitsschritte
-\end{itemize}
-
-\subsection{Technische Ziele}
-
-\begin{itemize}
-\item Integration von Frontend und Backend
-\item Workflowsteuerung über Camunda
-\item Speicherung relevanter Statusdaten
-\end{itemize}
 
 % =================================================
+% 3 SOLL-KONZEPT
+% =================================================
+
 \section{SOLL-Konzept}
-% =================================================
 
-\subsection{Zielprozess}
+\subsection{Zielbild des Avisierungsprozesses}
+
+\subsection{SOLL-Prozess}
+
+\subsubsection{Prozessablauf}
 
 Im SOLL-Prozess wird die Kommunikation mit dem Kunden
 standardisiert ausgelöst und systemseitig begleitet. Nach
@@ -205,15 +202,15 @@ transparent darzustellen. Parallel dazu behält die Disposition
 über ein Dashboard den Überblick über offene, bestätigte oder
 problematische Vorgänge.
 
-\subsection{BPMN-Modell}
+\subsubsection{BPMN-Modell}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{assets/bpmn_soll.png}
-\caption{BPMN-SOLL-Prozess}
+\caption{BPMN-Modell des SOLL-Prozesses}
 \end{figure}
 
-\subsection{Anforderungen}
+\subsection{Funktionale Anforderungen}
 
 \begin{table}[H]
 \centering
@@ -230,9 +227,14 @@ A5 & Die Disposition erhält über ein Dashboard eine Übersicht aller relevante
 \end{tabular}
 \end{table}
 
+\subsection{Nichtfunktionale Anforderungen}
+
+
 % =================================================
+% 4 SYSTEMARCHITEKTUR
+% =================================================
+
 \section{Systemarchitektur}
-% =================================================
 
 \subsection{Gesamtarchitektur}
 
@@ -242,115 +244,189 @@ A5 & Die Disposition erhält über ein Dashboard eine Übersicht aller relevante
 \caption{Systemarchitektur}
 \end{figure}
 
-\subsection{Frontend}
+\subsection{Systemkomponenten}
 
-Das Frontend stellt die zentrale Oberfläche für die Sicht auf
-Lieferungen, Rückmeldungen und Statusinformationen bereit.
-Wesentliche Anforderungen waren eine übersichtliche Darstellung
-relevanter Daten sowie eine nachvollziehbare Benutzerführung
-für die Bearbeitung und Kontrolle der Vorgänge.
+Das Gesamtsystem besteht aus mehreren miteinander
+kommunizierenden Komponenten. Das Frontend stellt die
+Benutzeroberflächen für die Disposition und die Kunden bereit.
+Das Backend übernimmt die fachliche Verarbeitung, stellt
+Schnittstellen bereit und koordiniert die Kommunikation mit
+weiteren Systemkomponenten.
 
-\subsection{Backend}
+Die Workflow Engine unterstützt die Modellierung und Steuerung
+des Rückbestätigungsprozesses. Persistente Informationen wie
+Lieferdaten, Rückmeldungen und Statuswerte werden in einer
+Datenbank gespeichert. Zusätzlich werden externe Dienste für
+die verschiedenen Kommunikationskanäle angebunden.
 
-Das Backend übernimmt die fachliche Verarbeitung der Daten,
-stellt Schnittstellen für das Frontend bereit und koordiniert
-die Kommunikation mit Datenbank, Workflow Engine und
-E-Mail-Versand. Darüber hinaus bildet es die zentrale Stelle
-für Statuslogik und Validierung.
+\subsection{Schnittstellen und Interaktionen}
 
-\subsection{Workflow Engine}
+Die Systemkomponenten sind über definierte Schnittstellen
+miteinander verbunden. Lieferaufträge werden aus dem
+Dispositionskontext an das Backend übergeben und dort
+verarbeitet. Das Backend koordiniert die weitere
+Workflow-Steuerung, persistiert relevante Zustände und stellt
+die benötigten Daten für die Benutzeroberflächen bereit.
 
-Die Workflow Engine dient zur Modellierung und Steuerung des
-fachlichen Ablaufs. Entscheidungen und Prozessschritte werden
-dadurch nicht nur technisch ausgeführt, sondern auch
-transparent und nachvollziehbar dokumentiert.
+Für die Kommunikation mit dem Kunden werden externe
+Kommunikationsdienste angebunden. Kundenrückmeldungen werden
+wiederum vom Backend verarbeitet und stehen anschließend der
+Disposition über das Dashboard zur Verfügung.
 
-\subsection{Datenbank}
-
-In der Datenbank werden die für den Prozess relevanten
-Informationen persistent gespeichert. Dazu gehören insbesondere
-Lieferdaten, Rückmeldungen, Statuswerte und die Zuordnung
-zwischen den einzelnen Prozessobjekten.
-
-% =================================================
-\section{Datenmodell}
-% =================================================
-
-\subsection{ER-Diagramm}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{assets/erd.png}
-\caption{Datenmodell}
-\end{figure}
-
-\subsection{Wichtige Entitäten}
-
-\begin{table}[H]
-\centering
-\begin{tabular}{ll}
-\toprule
-Entität & Beschreibung \\
-\midrule
-Auftrag & Lieferauftrag \\
-Kunde & Kundendaten \\
-Zeitfenster & Lieferfenster \\
-Rückmeldung & Bestätigung/Ablehnung \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 % =================================================
-\section{Benutzeroberfläche}
+% 5 BACKEND
 % =================================================
 
-\subsection{Überblick}
+\section{Backend des Avisierungsservice -- Konzeption und Implementierung}
 
-Dieser Abschnitt beschreibt die Benutzeroberfläche des
-Systems aus Sicht der Anwender. Je nach Projekt können hier
-zentrale Ansichten, Bedienkonzepte, Navigationsstrukturen und
-Gestaltungsentscheidungen dokumentiert werden.
 
-Im vorliegenden Projekt umfasst die Benutzeroberfläche sowohl
-interne Ansichten für die Disposition als auch externe
-Ansichten für den Kunden. Die Oberfläche unterstützt damit
-unterschiedliche Nutzungssituationen: die Überwachung und
-Steuerung von Bestätigungsvorgängen im Dashboard, die Reaktion
-des Kunden über den zugesendeten Link sowie die optionale
-Anzeige einer Fahrerkartenansicht am Liefertag.
+% -------------------------------------------------
+% 5.1
+% -------------------------------------------------
 
-\subsection{Gestaltungsziele}
+\subsection{Architektur- und Domänenentwurf}
 
-\begin{itemize}
-\item \textbf{Platzhalter:} Übersichtlichkeit und klare visuelle Struktur
-\item \textbf{Platzhalter:} Einfache Navigation zwischen den Hauptfunktionen
-\item \textbf{Platzhalter:} Reduzierung von Fehlbedienungen
-\item \textbf{Platzhalter:} Konsistente Darstellung von Statusinformationen
-\end{itemize}
+\subsubsection{Architekturprinzipien, Verantwortungsgrenzen und Abhängigkeitsrichtung}
 
-\subsection{Navigationskonzept}
+\subsubsection{Domänen- und Zustandsmodell}
 
-Die Navigation orientiert sich an den jeweiligen
-Benutzerrollen. Die Disposition arbeitet primär innerhalb des
-Dashboards und wechselt von dort aus in Detailansichten eines
-konkreten Vorgangs. Kunden gelangen dagegen direkt über den
-zugesendeten Link auf die Bestätigungsseite und werden von
-dort aus durch den jeweiligen Anwendungsfall geführt. Für
-bestätigte Lieferungen kann am Liefertag zusätzlich eine
-Fahrerkartenansicht aufgerufen werden.
+\subsubsection{Persistenzmodell und Schemaentwicklung}
 
-\subsection{Dashboard}
 
-Das Dashboard bildet die zentrale Arbeitsoberfläche der
-Disposition. Hier werden relevante Vorgänge mit ihren
+% -------------------------------------------------
+% 5.2
+% -------------------------------------------------
+
+\subsection{Technische Umsetzung des Avisierungs- und Rückbestätigungsprozesses}
+
+\subsubsection{Übernahme von Avisierungsaufträgen, Validierung und Prozessstart}
+
+\subsubsection{Dauerhafte Workflow-Steuerung mit Camunda}
+
+\subsubsection{Kundenreaktion und Fristablauf}
+
+\subsubsection{Erneute Avisierung und Ablösung veralteter Anfragen}
+
+\subsubsection{Statusrückmeldung an DISPO}
+
+\subsubsection{Fehlerbehandlung, Wiederholungen, Nebenläufigkeit und Idempotenzgrenzen}
+
+
+% -------------------------------------------------
+% 5.3
+% -------------------------------------------------
+
+\subsection{Kanalunabhängige Kundenkommunikation}
+
+\subsubsection{Kommunikationsabstraktion und Nachrichtenerzeugung}
+
+\subsubsection{E-Mail-Versand und mandantenspezifische SMTP-Konfiguration}
+
+\subsubsection{SMS und WhatsApp über Twilio: Technologieauswahl und Integration}
+
+% Dieser Abschnitt wird von einem anderen Teammitglied bearbeitet.
+
+
+% -------------------------------------------------
+% 5.4
+% -------------------------------------------------
+
+\subsection{Mandantenfähigkeit und Sicherheitskonzept}
+
+\subsubsection{Mandantenkontext und Datenisolation}
+
+\subsubsection{Authentifizierung der DISPO-Schnittstelle}
+
+\subsubsection{Zugriffsschutz des Dashboards}
+
+\subsubsection{Tokenbasierter Kundenzugriff}
+
+\subsubsection{Schutz sensibler Konfigurationsdaten}
+
+
+% -------------------------------------------------
+% 5.5
+% -------------------------------------------------
+
+\subsection{Abfragemodell für die Disposition}
+
+\subsubsection{Aufbau des leseseitigen Abfragemodells}
+
+\subsubsection{Tourübersicht, dynamische Filterung, Gruppierung und Paginierung}
+
+\subsubsection{Auftragsdetails und Avisierungshistorie}
+
+
+% -------------------------------------------------
+% 5.6
+% -------------------------------------------------
+
+\subsection{Lieferverfolgung und Geocoding}
+
+\subsubsection{Trackingdaten und Fahrerposition}
+
+\subsubsection{Zielkoordinaten und Geocoding}
+
+\subsubsection{Bereitstellung über die Kundenschnittstelle}
+
+% Dieser Abschnitt wird von einem anderen Teammitglied bearbeitet.
+
+
+% -------------------------------------------------
+% 5.7
+% -------------------------------------------------
+
+\subsection{Technische Konfiguration und Integrationsumgebung}
+
+\subsubsection{Externe Konfiguration und Laufzeitprofile}
+
+\subsubsection{Lokale Infrastruktur und Simulation externer Systeme}
+
+
+% =================================================
+% 6 FRONTEND
+% =================================================
+
+\section{Frontend -- Konzeption und Implementierung}
+
+\subsection{Einordnung des Frontends in das Gesamtsystem}
+
+Das Frontend stellt die Benutzeroberflächen des Systems bereit
+und bildet damit die Schnittstelle zwischen den Anwendern und
+den im Backend verarbeiteten Informationen. Dabei werden
+unterschiedliche Nutzungskontexte berücksichtigt. Die
+Disposition arbeitet über das Avisierungsdashboard, während
+Kunden über einen personalisierten Link auf die für sie
+vorgesehenen Ansichten zugreifen.
+
+\subsection{Architektur und technische Umsetzung}
+
+\subsection{Avisierungsdashboard}
+
+Das Avisierungsdashboard bildet die zentrale Arbeitsoberfläche
+der Disposition. Hier werden relevante Vorgänge mit ihren
 Statusinformationen gebündelt dargestellt, sodass offene,
-bestätigte oder auffällige Fälle schnell erkannt und bei
-Bedarf weiterbearbeitet werden können.
+bestätigte oder auffällige Fälle schnell erkannt und bei Bedarf
+weiterbearbeitet werden können.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{assets/dashboard.png}
-\caption{Platzhalter: Dashboard bzw. Hauptübersicht}
+\caption{Platzhalter: Avisierungsdashboard}
+\end{figure}
+
+\subsection{Detailansicht}
+
+Die Detailansicht ergänzt das Avisierungsdashboard um eine
+vertiefte Sicht auf einen einzelnen Vorgang. Hier können
+beispielsweise Auftragsdaten, Kommunikationsinformationen,
+Rückmeldungen und Statusänderungen nachvollzogen werden.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{assets/detailansicht.png}
+\caption{Platzhalter: Detailansicht eines Vorgangs}
 \end{figure}
 
 \subsection{Bestätigungsseite für Kunden}
@@ -367,20 +443,7 @@ und erhält eine klar strukturierte Rückmeldemöglichkeit.
 \caption{Platzhalter: Bestätigungsseite für Kunden}
 \end{figure}
 
-\subsection{Detailansicht}
-
-Die Detailansicht ergänzt das Dashboard um eine vertiefte Sicht
-auf einen einzelnen Vorgang. Hier können beispielsweise
-Auftragsdaten, Kommunikationsverlauf, Rückmeldungen und
-Statusänderungen nachvollzogen werden.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{assets/detailansicht.png}
-\caption{Platzhalter: Detailansicht eines Vorgangs}
-\end{figure}
-
-\subsection{Fahrerkartenansicht}
+\subsection{Live-Tracking}
 
 Für bestätigte Lieferungen kann am Tag der Auslieferung eine
 Fahrerkartenansicht bereitgestellt werden. Diese Ansicht dient
@@ -394,26 +457,42 @@ unterstützen.
 \caption{Platzhalter: Fahrerkartenansicht am Liefertag}
 \end{figure}
 
-\subsection{Status- und Fehlermeldungen}
+\subsection{Statusdarstellung}
 
-\textbf{Platzhalter:} Beschreiben, wie Rückmeldungen an
-Benutzer erfolgen, z.\,B. Erfolgsmeldungen, Warnungen,
-Validierungsfehler oder technische Fehlermeldungen.
+Die Benutzerführung orientiert sich an den unterschiedlichen
+Nutzungssituationen. Die Disposition arbeitet primär innerhalb
+des Avisierungsdashboards und kann von dort aus einzelne
+Vorgänge detaillierter betrachten. Kunden gelangen dagegen
+direkt über den zugesendeten Link auf die jeweils relevante
+Ansicht.
+
+Statusinformationen und Rückmeldungen sollen so dargestellt
+werden, dass der aktuelle Zustand eines Vorgangs eindeutig
+erkennbar ist. Dazu gehören neben regulären Statusanzeigen auch
+Erfolgsmeldungen, Warnungen, Validierungsfehler und technische
+Fehlermeldungen.
+
 
 % =================================================
+% 7 TEST UND VALIDIERUNG
+% =================================================
+
 \section{Test und Validierung}
-% =================================================
 
 \subsection{Teststrategie}
 
 Die Validierung erfolgte schrittweise entlang der zentralen
 Anwendungsfälle. Zunächst wurden einzelne Komponenten isoliert
 überprüft, anschließend das Zusammenspiel von Frontend,
-Backend, Workflow Engine und E-Mail-Kommunikation getestet.
+Backend, Workflow Engine und Kommunikationskanälen getestet.
 
 Ein besonderer Fokus lag dabei auf den Übergängen zwischen den
 Systemkomponenten, da dort fachliche Fehler oder inkonsistente
 Status besonders wahrscheinlich sind.
+
+\subsection{Backend- und Integrationstests}
+
+\subsection{End-to-End-Tests}
 
 \subsection{Testfälle}
 
@@ -435,11 +514,16 @@ Erfolgreich \\
 \bottomrule
 \end{longtable}
 
+
 % =================================================
-\section{Projektplan}
+% 8 PROJEKTMANAGEMENT
 % =================================================
 
-\subsection{Projektphasen}
+\section{Projektmanagement und Projektreflexion}
+
+\subsection{Projektmanagement}
+
+\subsubsection{Projektphasen}
 
 Das Projekt wurde in klar abgegrenzte Phasen unterteilt, um
 Analyse, Konzeption, Umsetzung und Validierung strukturiert
@@ -463,7 +547,7 @@ Abschluss und Ergebnisaufbereitung & xx.xx - xx.xx & abgeschlossen \\
 \end{tabular}
 \end{table}
 
-\subsection{Projektplan}
+\subsubsection{Projektplan}
 
 Der Projektplan diente als gemeinsame Orientierung für
 inhaltliche Meilensteine, Abstimmungstermine und die
@@ -477,9 +561,7 @@ Schnittstellen und Benutzeroberfläche.
 \caption{Projektplan}
 \end{figure}
 
-% =================================================
-\section{Projektaufwand}
-% =================================================
+\subsubsection{Projektaufwand}
 
 Der dokumentierte Aufwand verteilt sich auf Analyse,
 Konzeption, Implementierung, Test und Abstimmung mit dem
@@ -503,72 +585,20 @@ xx.xx.2026 & Team & Integrationstest und Ergebnisabstimmung & 4 \\
 \bottomrule
 \end{longtable}
 
-\subsection{Aufwandsbewertung}
+\subsection{Projektreflexion}
 
-\textbf{Platzhalter:} In diesem Abschnitt kann bewertet
-werden, welche Arbeitspakete besonders aufwändig waren und
-welche Ursachen oder Erkenntnisse sich daraus ergeben haben.
-
-% =================================================
-\section{Verwendete Technologien}
-% =================================================
-
-\begin{table}[H]
-\centering
-\begin{tabular}{p{4cm}p{8cm}}
-\toprule
-Technologie & Verwendung \\
-\midrule
-React & Frontend \\
-Spring Boot & Backend \\
-Camunda & Workflow Engine \\
-PostgreSQL & Datenbank \\
-BPMN 2.0 & Prozessmodellierung \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-% =================================================
-\section{Ergebnisse}
-% =================================================
-
-Die Projektarbeit führte zu einem konsistenten Prototypen, der
-die wesentlichen Anforderungen des definierten SOLL-Prozesses
-abbildet.
-
-\begin{itemize}
-\item Funktionsfähiger Prototyp
-\item Frontend-Backend-Kommunikation
-\item E-Mail-Versand
-\item Statusverwaltung
-\item Workflowsteuerung
-\end{itemize}
-
-% =================================================
-\section{Reflexion}
-% =================================================
-
-\subsection{Positive Aspekte}
-
-Positiv hervorzuheben ist die klare fachliche Eingrenzung des
-Anwendungsfalls. Dadurch konnte früh ein gemeinsames
-Verständnis für Zielprozess, Datenflüsse und erwartete
-Ergebnisse aufgebaut werden. Ebenfalls hilfreich war die
-Aufteilung in technische Verantwortungsbereiche, wodurch
-Frontend, Backend und Workflowmodell parallel vorbereitet
-werden konnten.
-
-\subsection{Herausforderungen}
+\subsubsection{Herausforderungen}
 
 Herausfordernd war insbesondere die Abstimmung an den
 Schnittstellen zwischen fachlicher Prozessbeschreibung und
 technischer Umsetzung. Bereits kleine Unklarheiten bei
 Statusübergängen oder Rückmeldewegen hatten direkte
-Auswirkungen auf mehrere Systemkomponenten. Auch die
-Konsistenz zwischen Benutzerführung, Datenmodell und
+Auswirkungen auf mehrere Systemkomponenten.
+
+Auch die Konsistenz zwischen Benutzerführung, Datenmodell und
 Workflowlogik erforderte wiederholte Abstimmungen.
 
-\subsection{Lessons Learned}
+\subsubsection{Lessons Learned}
 
 Für vergleichbare Projekte empfiehlt es sich, Statusmodelle,
 Ereignisse und Verantwortlichkeiten frühzeitig gemeinsam zu
@@ -577,42 +607,51 @@ sich gezeigt, dass ein visuelles Prozessmodell in Kombination
 mit einer frühen technischen Teilimplementierung sehr hilfreich
 ist, um Missverständnisse schnell sichtbar zu machen.
 
+
 % =================================================
-\section{Fazit}
+% 9 ERGEBNISSE
 % =================================================
 
+\section{Projektrgebnisse}
+
+\subsection{Gesamtergebnis}
+
+Die Projektarbeit führte zu einem konsistenten Prototypen, der
+die wesentlichen Anforderungen des definierten SOLL-Prozesses
+abbildet.
+
+\begin{itemize}
+    \item Funktionsfähiger Prototyp
+    \item Frontend-Backend-Kommunikation
+    \item Automatisierte Kommunikation über verschiedene Kanäle
+    \item Digitale Rückbestätigung von Lieferterminen
+    \item Statusverwaltung
+    \item Workflow-Steuerung
+    \item Avisierungsdashboard für die Disposition
+    \item Bestätigungsseite für Kunden
+    \item Lieferverfolgung bzw. Fahrerkartenansicht
+\end{itemize}
+
+\subsection{Grenzen des Projektergebnisses}
+
+\subsection{Fazit und Ausblick}
 Das Projekt konnte sowohl aus technischer als auch aus
 organisatorischer Sicht erfolgreich abgeschlossen werden. Neben
 dem entwickelten Prototypen entstand eine belastbare Grundlage
 für die weitere fachliche und technische Ausarbeitung des
-Systems. Die Kombination aus Prozessmodellierung,
-Webanwendung und automatisierter Kommunikation erwies sich als
-geeigneter Ansatz für die Digitalisierung des betrachteten
-Anwendungsfalls.
+Systems.
+
+Die Kombination aus Prozessmodellierung, Webanwendung und
+automatisierter Kommunikation erwies sich als geeigneter Ansatz
+für die Digitalisierung des betrachteten Anwendungsfalls.
+
 
 % =================================================
-\section{Ausblick}
+% KI Nutzung
 % =================================================
 
-\begin{itemize}
-\item Kartenansicht für Fahrer
-\item Erweiterte Benachrichtigungen
-\item Weitere Automatisierungen
-\item Integration zusätzlicher Systeme
-\end{itemize}
+\section{Nutzung von Künstlicher Intelligenz}
 
-% =================================================
-\section{Anhang}
-% =================================================
-
-\subsection{Verwendete Dokumente}
-
-\begin{itemize}
-\item Lastenheft
-\item Pflichtenheft
-\item Projektplan
-\item Meetingprotokolle
-\item BPMN-Modelle
-\end{itemize}
+\section{Verwendete Hilfsmittel}
 
 \end{document}
