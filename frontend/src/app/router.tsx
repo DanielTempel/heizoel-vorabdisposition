@@ -4,6 +4,7 @@ import { ConfirmationPage } from '@/pages/confirmation/page'
 import { DashboardPage } from '@/pages/dashboard/page'
 import { LoginPage } from '@/pages/login/page'
 import { OrderDetailPage } from '@/pages/order-detail/page'
+import { SettingsPage } from '@/pages/settings/page'
 
 export function App() {
   return (
@@ -18,6 +19,7 @@ export function App() {
             path="orders/:externalOrderId"
             element={<OrderDetailPage />}
           />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

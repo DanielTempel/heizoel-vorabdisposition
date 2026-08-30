@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { RefreshCw } from 'lucide-react'
-import { useOutletContext } from 'react-router-dom'
+import { RefreshCw, Settings } from 'lucide-react'
+import { Link, useOutletContext } from 'react-router-dom'
 import { getTourNumbers, getTours } from '@/api/dashboard-api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -103,10 +103,16 @@ export function DashboardPage() {
 
   return (
     <>
-      <header>
+      <header className="flex items-center justify-between gap-4">
         <h1 className="mt-1 text-3xl font-semibold">
           Avisierungsdashboard
         </h1>
+        <Button asChild variant="outline">
+          <Link to="/dashboard/settings">
+            <Settings />
+            Einstellungen
+          </Link>
+        </Button>
       </header>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
