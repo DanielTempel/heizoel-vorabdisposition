@@ -109,12 +109,13 @@ export function ResendConfirmationCard({
     parsedDeadlineHours >= 1 &&
     parsedDeadlineHours <= 168
   const hasCurrentRequest = detail.currentRequest !== null
-  const isDeliveryPending = detail.currentRequest?.status === 'PENDING'
-  const controlsDisabled = isSubmitting || isDeliveryPending
+  const requestStatus = detail.currentRequest?.status
+  const isResendAllowed =
+    requestStatus === 'NO_RESPONSE' || requestStatus === 'FAILED'
   const selectedChannelAvailable = isChannelAvailable(channel, detail)
   const canSubmit =
     hasCurrentRequest &&
-    !isDeliveryPending &&
+    isResendAllowed &&
     selectedChannelAvailable &&
     isDeadlineValid &&
     !isSubmitting
@@ -171,7 +172,7 @@ export function ResendConfirmationCard({
               </p>
             </div>
 
-            <fieldset className="grid gap-2" disabled={controlsDisabled}>
+            <fieldset className="grid gap-2" disabled={isSubmitting}>
               <legend className="text-xs font-medium">
                 Kommunikationskanal
               </legend>
@@ -212,7 +213,7 @@ export function ResendConfirmationCard({
               <Input
                 aria-describedby={`${deadlineInputId}-description`}
                 aria-invalid={!isDeadlineValid}
-                disabled={controlsDisabled}
+                disabled={isSubmitting}
                 id={deadlineInputId}
                 max={168}
                 min={1}
@@ -228,14 +229,6 @@ export function ResendConfirmationCard({
                 1 bis 168 Stunden, spätestens bis zum Liefertermin.
               </p>
             </div>
-
-            {isDeliveryPending ? (
-              <Alert>
-                <AlertDescription>
-                  Der Versand läuft bereits.
-                </AlertDescription>
-              </Alert>
-            ) : null}
 
             {errorMessage === '' ? null : (
               <Alert variant="destructive">
