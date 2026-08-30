@@ -8,6 +8,7 @@ class SmsMockApplicationTests {
 
     @Test
     void contextLoads() {
+        // Test succeeds when the Spring application context starts.
     }
 
 }

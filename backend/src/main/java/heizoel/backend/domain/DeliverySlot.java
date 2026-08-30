@@ -74,4 +74,12 @@ public class DeliverySlot {
                 .toInstant();
     }
 
+    public void validateStartsAfter(Instant referenceTime) {
+        if (!startsAt().isAfter(referenceTime)) {
+            throw new InvalidDeliveryWindowException(
+                    "Delivery window must start in the future."
+            );
+        }
+    }
+
 }

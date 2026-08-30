@@ -78,7 +78,7 @@ public class SendConfirmationRequestService implements SendConfirmationRequestUs
         Instant now = Instant.now(clock);
 
         try {
-            request.validateCanBeSentAt(now);
+            request.getDeliverySlot().validateStartsAfter(now);
         } catch (InvalidDeliveryWindowException exception) {
             return SendConfirmationRequestResult.permanentFailure();
         }

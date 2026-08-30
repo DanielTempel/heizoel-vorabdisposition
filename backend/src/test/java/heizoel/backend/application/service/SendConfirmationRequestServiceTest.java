@@ -2,6 +2,7 @@ package heizoel.backend.application.service;
 
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
+import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.application.exception.EmailSettingsNotConfiguredException;
 import heizoel.backend.application.port.in.workflow.SendConfirmationRequestResult;
 import heizoel.backend.application.port.out.notification.NotificationDeliveryException;
@@ -25,13 +26,16 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -130,7 +134,7 @@ class SendConfirmationRequestServiceTest {
     void pastDeliveryWindowIsPermanentAndSkipsNotification() {
         Order order = order();
         DeliverySlot pastSlot = DeliverySlot.of(
-                LocalDate.of(2026, 8, 7),
+                LocalDate.of(2026, Month.AUGUST, 7),
                 LocalTime.of(9, 0),
                 LocalTime.of(9, 30)
         );
@@ -142,6 +146,32 @@ class SendConfirmationRequestServiceTest {
         assertThat(result.outcome()).isEqualTo(SendConfirmationRequestResult.Outcome.PERMANENT_FAILURE);
         assertThat(request.isPending()).isTrue();
         verify(notificationService, never()).sendConfirmationRequest(order, request);
+    }
+
+    @Test
+    void unknownRequestIsRejectedBeforeNotification() {
+        when(orderRepository.findByConfirmationRequestIdForUpdate(1L))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.send(1L))
+                .isInstanceOf(ConfirmationRequestNotFoundException.class)
+                .hasMessage("Confirmation request was not found.");
+
+        verifyNoInteractions(confirmationRequestRepository, notificationService);
+    }
+
+    @Test
+    void failedRequestIsRejectedWithoutNotification() {
+        Order order = order();
+        ConfirmationRequest request = pendingRequest(order, futureDeliverySlot());
+        request.markDeliveryFailed();
+        mockRequest(order, request);
+
+        assertThatThrownBy(() -> service.send(1L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Only a pending confirmation request can be sent.");
+
+        verifyNoInteractions(notificationService);
     }
 
     private void mockRequest(Order order, ConfirmationRequest request) {
@@ -163,7 +193,7 @@ class SendConfirmationRequestServiceTest {
 
     private DeliverySlot futureDeliverySlot() {
         return DeliverySlot.of(
-                LocalDate.of(2026, 8, 10),
+                LocalDate.of(2026, Month.AUGUST, 10),
                 LocalTime.of(10, 0),
                 LocalTime.of(12, 0)
         );

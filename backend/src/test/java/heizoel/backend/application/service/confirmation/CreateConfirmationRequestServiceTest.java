@@ -21,9 +21,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,9 +41,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CreateConfirmationRequestServiceTest {
 
-    private static final LocalDate DELIVERY_DATE = LocalDate.of(2099, 6, 12);
+    private static final LocalDate DELIVERY_DATE = LocalDate.of(2099, Month.JUNE, 12);
     private static final LocalTime DELIVERY_START = LocalTime.of(10, 0);
     private static final Instant SENT_AT = Instant.parse("2099-06-10T10:00:00Z");
+    private static final Clock CLOCK = Clock.fixed(SENT_AT, ZoneOffset.UTC);
 
     @Mock
     CompanyRepository companyRepository;
@@ -69,7 +73,8 @@ class CreateConfirmationRequestServiceTest {
                 orderRepository,
                 confirmationRequestRepository,
                 confirmationWorkflowService,
-                confirmationRequestStarter
+                confirmationRequestStarter,
+                CLOCK
         );
         when(companyRepository.findById(1L)).thenReturn(Optional.of(company));
         when(company.getId()).thenReturn(1L);

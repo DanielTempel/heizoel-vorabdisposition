@@ -151,14 +151,14 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", e.getMessage(), req.getRequestURI());
     }
 
-    @ExceptionHandler(ConfirmationRequestDeliveryInProgressException.class)
-    ResponseEntity<ErrorResponseDto> confirmationRequestDeliveryInProgress(
-            ConfirmationRequestDeliveryInProgressException e,
+    @ExceptionHandler(ConfirmationRequestResendNotAllowedException.class)
+    ResponseEntity<ErrorResponseDto> confirmationRequestResendNotAllowed(
+            ConfirmationRequestResendNotAllowedException e,
             HttpServletRequest req
     ) {
         return respond(
                 HttpStatus.CONFLICT,
-                "CONFIRMATION_REQUEST_DELIVERY_IN_PROGRESS",
+                "CONFIRMATION_REQUEST_RESEND_NOT_ALLOWED",
                 e.getMessage(),
                 req.getRequestURI()
         );

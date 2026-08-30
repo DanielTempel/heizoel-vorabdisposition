@@ -3,11 +3,10 @@ package heizoel.backend.application.service.confirmation;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
 import heizoel.backend.application.context.CompanyContext;
-import heizoel.backend.application.exception.ConfirmationRequestDeliveryInProgressException;
 import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
+import heizoel.backend.application.exception.ConfirmationRequestResendNotAllowedException;
 import heizoel.backend.application.exception.OrderNotFoundException;
 import heizoel.backend.application.port.in.confirmation.ResendConfirmationRequestCommand;
-import heizoel.backend.application.port.out.workflow.ConfirmationWorkflowService;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.ConfirmationStatus;
@@ -15,6 +14,7 @@ import heizoel.backend.domain.DeliverySlot;
 import heizoel.backend.domain.Order;
 import heizoel.backend.domain.Tour;
 import heizoel.backend.domain.company.Company;
+import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import heizoel.backend.domain.exception.MissingDigitalContactException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,14 +24,15 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -42,9 +43,10 @@ import static org.mockito.Mockito.when;
 class ResendConfirmationRequestServiceTest {
 
     private static final long COMPANY_ID = 1L;
-    private static final long PREVIOUS_REQUEST_ID = 7L;
     private static final String EXTERNAL_ORDER_ID = "ORDER-1";
     private static final Instant SENT_AT = Instant.parse("2099-06-10T10:00:00Z");
+    private static final Instant NOW = Instant.parse("2099-06-11T12:00:00Z");
+    private static final Clock CLOCK = Clock.fixed(NOW, ZoneOffset.UTC);
 
     @Mock
     OrderRepository orderRepository;
@@ -55,9 +57,6 @@ class ResendConfirmationRequestServiceTest {
     @Mock
     ConfirmationRequestStarter confirmationRequestStarter;
 
-    @Mock
-    ConfirmationWorkflowService confirmationWorkflowService;
-
     ResendConfirmationRequestService service;
 
     @BeforeEach
@@ -66,25 +65,22 @@ class ResendConfirmationRequestServiceTest {
                 orderRepository,
                 confirmationRequestRepository,
                 confirmationRequestStarter,
-                confirmationWorkflowService
+                CLOCK
         );
     }
 
     @Test
-    void resend_activeRequest_deactivatesOldRequestAndStartsNewOne() {
-        Order order = order("customer@example.com", "+491701234567");
-        DeliverySlot deliverySlot = deliverySlot();
-        ConfirmationRequest previousRequest = spy(sentRequest(order, deliverySlot));
-        when(previousRequest.getId()).thenReturn(PREVIOUS_REQUEST_ID);
+    void resend_failedRequest_startsNewRequest() {
+        Order order = spy(order("customer@example.com", "+491701234567"));
+        DeliverySlot deliverySlot = futureDeliverySlot();
+        ConfirmationRequest previousRequest = pendingRequest(order, deliverySlot);
+        previousRequest.markDeliveryFailed();
         mockExisting(order, previousRequest);
-        ResendConfirmationRequestCommand command = command(CommunicationChannel.SMS, 48);
 
-        service.resend(command);
+        service.resend(command(CommunicationChannel.SMS, 48));
 
-        assertThat(previousRequest.isActive()).isFalse();
+        verify(order).markOpen();
         assertThat(order.getConfirmationStatus()).isEqualTo(ConfirmationStatus.OPEN);
-        verify(confirmationWorkflowService)
-                .notifyConfirmationRequestSuperseded(PREVIOUS_REQUEST_ID);
         verify(confirmationRequestStarter).createAndStart(
                 order,
                 CommunicationChannel.SMS,
@@ -94,20 +90,17 @@ class ResendConfirmationRequestServiceTest {
     }
 
     @Test
-    void resend_inactiveRequest_startsNewRequestWithoutSupersededNotification() {
+    void resend_noResponseRequest_startsNewRequest() {
         Order order = order("customer@example.com", "+491701234567");
-        DeliverySlot deliverySlot = deliverySlot();
+        DeliverySlot deliverySlot = futureDeliverySlot();
         ConfirmationRequest previousRequest = sentRequest(order, deliverySlot);
         previousRequest.markInactive();
         order.markNoResponse();
         mockExisting(order, previousRequest);
-        ResendConfirmationRequestCommand command = command(CommunicationChannel.WHATSAPP, 36);
 
-        service.resend(command);
+        service.resend(command(CommunicationChannel.WHATSAPP, 36));
 
         assertThat(order.getConfirmationStatus()).isEqualTo(ConfirmationStatus.OPEN);
-        verify(confirmationWorkflowService, never())
-                .notifyConfirmationRequestSuperseded(anyLong());
         verify(confirmationRequestStarter).createAndStart(
                 order,
                 CommunicationChannel.WHATSAPP,
@@ -117,20 +110,63 @@ class ResendConfirmationRequestServiceTest {
     }
 
     @Test
-    void resend_pendingRequest_throwsDeliveryInProgress() {
+    void resend_pendingRequest_isRejectedWithoutSideEffects() {
         Order order = spy(order("customer@example.com", "+491701234567"));
+        ConfirmationRequest previousRequest = pendingRequest(order, futureDeliverySlot());
+
+        assertResendRejectedWithoutSideEffects(order, previousRequest);
+    }
+
+    @Test
+    void resend_activeSentRequest_isRejectedWithoutSideEffects() {
+        Order order = spy(order("customer@example.com", "+491701234567"));
+        ConfirmationRequest previousRequest = sentRequest(order, futureDeliverySlot());
+
+        assertResendRejectedWithoutSideEffects(order, previousRequest);
+    }
+
+    @ParameterizedTest
+    @EnumSource(
+            value = ConfirmationStatus.class,
+            names = {"CONFIRMED", "REJECTED"}
+    )
+    void resend_answeredRequest_takesPrecedenceOverMissingContact(
+            ConfirmationStatus status
+    ) {
+        Order order = spy(order(null, "+491701234567"));
+        ConfirmationRequest previousRequest = sentRequest(order, futureDeliverySlot());
+        previousRequest.markInactive();
+        if (status == ConfirmationStatus.CONFIRMED) {
+            order.markConfirmed();
+        } else {
+            order.markRejected();
+        }
+
+        assertResendRejectedWithoutSideEffects(order, previousRequest);
+    }
+
+    @Test
+    void resend_startedDeliveryWindow_takesPrecedenceOverMissingContact() {
+        Order order = spy(order(null, "+491701234567"));
+        ConfirmationRequest previousRequest = pendingRequest(
+                order,
+                DeliverySlot.of(
+                        LocalDate.of(2099, 6, 11),
+                        LocalTime.of(14, 0),
+                        LocalTime.of(16, 0)
+                )
+        );
+        previousRequest.markDeliveryFailed();
         ConfirmationStatus initialStatus = order.getConfirmationStatus();
-        ConfirmationRequest previousRequest = pendingRequest(order, deliverySlot());
         mockExisting(order, previousRequest);
 
         assertThatThrownBy(() -> service.resend(command(CommunicationChannel.EMAIL, 48)))
-                .isInstanceOf(ConfirmationRequestDeliveryInProgressException.class);
+                .isInstanceOf(InvalidDeliveryWindowException.class)
+                .hasMessage("Delivery window must start in the future.");
 
-        verifyNoInteractions(confirmationRequestStarter);
-        verify(confirmationWorkflowService, never())
-                .notifyConfirmationRequestSuperseded(anyLong());
         verify(order, never()).markOpen();
         assertThat(order.getConfirmationStatus()).isEqualTo(initialStatus);
+        verifyNoInteractions(confirmationRequestStarter);
     }
 
     @Test
@@ -141,16 +177,12 @@ class ResendConfirmationRequestServiceTest {
         assertThatThrownBy(() -> service.resend(command(CommunicationChannel.EMAIL, 48)))
                 .isInstanceOf(OrderNotFoundException.class);
 
-        verifyNoInteractions(
-                confirmationRequestRepository,
-                confirmationRequestStarter,
-                confirmationWorkflowService
-        );
+        verifyNoInteractions(confirmationRequestRepository, confirmationRequestStarter);
     }
 
     @Test
-    void resend_orderHasNoConfirmationRequest_throwsConfirmationRequestNotFound() {
-        Order order = order("customer@example.com", "+491701234567");
+    void resend_missingPreviousRequest_takesPrecedenceOverMissingContact() {
+        Order order = order(null, "+491701234567");
         when(orderRepository.findByCompanyIdAndExternalOrderId(COMPANY_ID, EXTERNAL_ORDER_ID))
                 .thenReturn(Optional.of(order));
         when(confirmationRequestRepository.findTopByOrderOrderByIdDesc(order))
@@ -159,21 +191,21 @@ class ResendConfirmationRequestServiceTest {
         assertThatThrownBy(() -> service.resend(command(CommunicationChannel.EMAIL, 48)))
                 .isInstanceOf(ConfirmationRequestNotFoundException.class);
 
-        verifyNoInteractions(confirmationRequestStarter, confirmationWorkflowService);
+        verifyNoInteractions(confirmationRequestStarter);
     }
 
     @Test
-    void resend_emailWithoutCustomerEmail_throwsMissingDigitalContact() {
-        Order order = order(null, "+491701234567");
-        when(orderRepository.findByCompanyIdAndExternalOrderId(COMPANY_ID, EXTERNAL_ORDER_ID))
-                .thenReturn(Optional.of(order));
+    void resend_failedRequestWithoutCustomerEmail_throwsMissingDigitalContactWithoutSideEffects() {
+        Order order = spy(order(null, "+491701234567"));
+        ConfirmationRequest previousRequest = pendingRequest(order, futureDeliverySlot());
+        previousRequest.markDeliveryFailed();
+        mockExisting(order, previousRequest);
 
         assertThatThrownBy(() -> service.resend(command(CommunicationChannel.EMAIL, 48)))
                 .isInstanceOf(MissingDigitalContactException.class);
 
-        verifyNoInteractions(confirmationRequestRepository, confirmationRequestStarter);
-        verify(confirmationWorkflowService, never())
-                .notifyConfirmationRequestSuperseded(anyLong());
+        verify(order, never()).markOpen();
+        verifyNoInteractions(confirmationRequestStarter);
     }
 
     @ParameterizedTest
@@ -181,19 +213,35 @@ class ResendConfirmationRequestServiceTest {
             value = CommunicationChannel.class,
             names = {"SMS", "WHATSAPP"}
     )
-    void resend_phoneChannelWithoutPhone_throwsMissingDigitalContact(
+    void resend_failedRequestWithoutPhone_throwsMissingDigitalContactWithoutSideEffects(
             CommunicationChannel channel
     ) {
-        Order order = order("customer@example.com", " ");
-        when(orderRepository.findByCompanyIdAndExternalOrderId(COMPANY_ID, EXTERNAL_ORDER_ID))
-                .thenReturn(Optional.of(order));
+        Order order = spy(order("customer@example.com", " "));
+        ConfirmationRequest previousRequest = pendingRequest(order, futureDeliverySlot());
+        previousRequest.markDeliveryFailed();
+        mockExisting(order, previousRequest);
 
         assertThatThrownBy(() -> service.resend(command(channel, 48)))
                 .isInstanceOf(MissingDigitalContactException.class);
 
-        verifyNoInteractions(confirmationRequestRepository, confirmationRequestStarter);
-        verify(confirmationWorkflowService, never())
-                .notifyConfirmationRequestSuperseded(anyLong());
+        verify(order, never()).markOpen();
+        verifyNoInteractions(confirmationRequestStarter);
+    }
+
+    private void assertResendRejectedWithoutSideEffects(
+            Order order,
+            ConfirmationRequest previousRequest
+    ) {
+        ConfirmationStatus initialStatus = order.getConfirmationStatus();
+        mockExisting(order, previousRequest);
+
+        assertThatThrownBy(() -> service.resend(command(CommunicationChannel.EMAIL, 48)))
+                .isInstanceOf(ConfirmationRequestResendNotAllowedException.class)
+                .hasMessage("Confirmation request cannot be resent in the current state.");
+
+        verify(order, never()).markOpen();
+        assertThat(order.getConfirmationStatus()).isEqualTo(initialStatus);
+        verifyNoInteractions(confirmationRequestStarter);
     }
 
     private void mockExisting(Order order, ConfirmationRequest request) {
@@ -220,7 +268,7 @@ class ResendConfirmationRequestServiceTest {
         return request;
     }
 
-    private DeliverySlot deliverySlot() {
+    private DeliverySlot futureDeliverySlot() {
         return DeliverySlot.of(
                 LocalDate.of(2099, 6, 12),
                 LocalTime.of(10, 0),

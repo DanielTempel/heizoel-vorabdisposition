@@ -1,4 +1,4 @@
-package heizoel.backend.adapter.out.token;
+package heizoel.backend.adapter.out.security;
 
 import heizoel.backend.application.port.out.token.TokenService;
 import org.springframework.stereotype.Service;

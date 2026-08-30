@@ -1,6 +1,5 @@
 package heizoel.backend.domain;
 
-import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -103,7 +102,7 @@ public class ConfirmationRequest {
     }
 
     public Instant calculateResponseDeadline(Instant sentAt) {
-        validateCanBeSentAt(sentAt);
+        deliverySlot.validateStartsAfter(sentAt);
 
         Instant requestedDeadline =
                 sentAt.plus(Duration.ofHours(responseDeadlineHours));
@@ -113,14 +112,6 @@ public class ConfirmationRequest {
         return requestedDeadline.isBefore(deliveryStartsAt)
                 ? requestedDeadline
                 : deliveryStartsAt;
-    }
-
-    public void validateCanBeSentAt(Instant now) {
-        if (!deliverySlot.startsAt().isAfter(now)) {
-            throw new InvalidDeliveryWindowException(
-                    "Delivery window must start in the future."
-            );
-        }
     }
 
     public void markInactive() {

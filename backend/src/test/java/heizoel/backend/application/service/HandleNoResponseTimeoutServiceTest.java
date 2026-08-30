@@ -2,6 +2,7 @@ package heizoel.backend.application.service;
 
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
+import heizoel.backend.application.exception.ConfirmationRequestNotFoundException;
 import heizoel.backend.application.service.workflow.HandleNoResponseTimeoutService;
 import heizoel.backend.domain.CommunicationChannel;
 import heizoel.backend.domain.ConfirmationRequest;
@@ -20,12 +21,14 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -90,6 +93,18 @@ class HandleNoResponseTimeoutServiceTest {
         assertThat(fixture.order().getConfirmationStatus()).isEqualTo(ConfirmationStatus.SENT);
     }
 
+    @Test
+    void unknownRequestIsRejectedWithoutRepositoryFollowUp() {
+        when(orderRepository.findByConfirmationRequestIdForUpdate(11L))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.handleTimeout(11L))
+                .isInstanceOf(ConfirmationRequestNotFoundException.class)
+                .hasMessage("Confirmation request was not found.");
+
+        verifyNoInteractions(confirmationRequestRepository);
+    }
+
     private void mockRequest(RequestFixture fixture) {
         when(orderRepository.findByConfirmationRequestIdForUpdate(11L))
                 .thenReturn(Optional.of(fixture.order()));
@@ -103,7 +118,7 @@ class HandleNoResponseTimeoutServiceTest {
                 "token",
                 CommunicationChannel.EMAIL,
                 DeliverySlot.of(
-                        LocalDate.of(2026, 8, 10),
+                        LocalDate.of(2026, Month.AUGUST, 10),
                         LocalTime.of(10, 0),
                         LocalTime.of(12, 0)
                 ),

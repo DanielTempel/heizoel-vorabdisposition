@@ -2,12 +2,24 @@ package heizoel.backend.domain;
 
 import heizoel.backend.domain.company.Company;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class OrderTest {
 
     private static final Tour ORIGINAL_TOUR = Tour.of("17", "WÜ-AB 123");
+
+    @Test
+    void newOrderStartsOpen() {
+        assertThat(order().getConfirmationStatus())
+                .isEqualTo(ConfirmationStatus.OPEN);
+    }
 
     @Test
     void shouldHaveSameDataWhenTourValuesAreEqual() {
@@ -148,7 +160,8 @@ class OrderTest {
 
     @Test
     void markOpenSetsConfirmationStatusToOpen() {
-        Order order = createOrder();
+        Order order = order();
+        order.markRejected();
 
         order.markOpen();
 
@@ -156,8 +169,26 @@ class OrderTest {
                 .isEqualTo(ConfirmationStatus.OPEN);
     }
 
-    private Order createOrder() {
-        return order();
+    @ParameterizedTest
+    @MethodSource("terminalStatusTransitions")
+    void statusTransitionSetsConfirmationStatus(
+            Consumer<Order> transition,
+            ConfirmationStatus expectedStatus
+    ) {
+        Order order = order();
+
+        transition.accept(order);
+
+        assertThat(order.getConfirmationStatus()).isEqualTo(expectedStatus);
+    }
+
+    private static Stream<Arguments> terminalStatusTransitions() {
+        return Stream.of(
+                Arguments.of((Consumer<Order>) Order::markSent, ConfirmationStatus.SENT),
+                Arguments.of((Consumer<Order>) Order::markConfirmed, ConfirmationStatus.CONFIRMED),
+                Arguments.of((Consumer<Order>) Order::markRejected, ConfirmationStatus.REJECTED),
+                Arguments.of((Consumer<Order>) Order::markNoResponse, ConfirmationStatus.NO_RESPONSE)
+        );
     }
 
     private Order order() {

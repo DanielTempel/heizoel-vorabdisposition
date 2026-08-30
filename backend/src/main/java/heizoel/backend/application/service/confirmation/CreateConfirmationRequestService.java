@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Optional;
 
 @Service
@@ -27,6 +29,7 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
     private final ConfirmationRequestRepository confirmationRequestRepository;
     private final ConfirmationWorkflowService confirmationWorkflowService;
     private final ConfirmationRequestStarter confirmationRequestStarter;
+    private final Clock clock;
 
     @Override
     @Transactional
@@ -40,6 +43,10 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
 
         OrderData orderData = OrderData.from(command);
         RequestData requestData = RequestData.from(command);
+
+        requestData.deliverySlot().validateStartsAfter(
+                Instant.now(clock)
+        );
 
         Optional<Order> existingOrder =
                 orderRepository

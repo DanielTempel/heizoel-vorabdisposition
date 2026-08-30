@@ -15,7 +15,6 @@ import java.util.Map;
 public class ConfirmationWorkflowServiceImpl implements ConfirmationWorkflowService {
 
     private static final String PROCESS_KEY = "confirmation-request-process";
-    private static final String VAR_CONFIRMATION_REQUEST_ID = "confirmationRequestId";
     private static final String VAR_DELIVERY_ATTEMPT = "deliveryAttempt";
     private static final String VAR_MAX_DELIVERY_ATTEMPTS = "maxDeliveryAttempts";
     private static final String VAR_ORDER_ID = "orderId";
@@ -34,12 +33,8 @@ public class ConfirmationWorkflowServiceImpl implements ConfirmationWorkflowServ
                 PROCESS_KEY,
                 confirmationRequestId.toString(),
                 Map.of(
-                        VAR_CONFIRMATION_REQUEST_ID,
-                        confirmationRequestId,
-
                         VAR_DELIVERY_ATTEMPT,
                         0,
-
                         VAR_MAX_DELIVERY_ATTEMPTS,
                         MAX_DELIVERY_ATTEMPTS
                 )

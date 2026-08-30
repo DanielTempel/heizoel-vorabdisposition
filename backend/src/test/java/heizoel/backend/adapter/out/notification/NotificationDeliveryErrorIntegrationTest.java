@@ -19,6 +19,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -36,7 +37,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
+@Sql(
+        scripts = "/db/test/configure-test-company.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS
+)
 class NotificationDeliveryErrorIntegrationTest {
+
+    private static final String TEST_API_KEY = "test-minova-api-key";
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
@@ -135,6 +142,7 @@ class NotificationDeliveryErrorIntegrationTest {
             String communicationChannel
     ) throws Exception {
         return mockMvc.perform(post("/api/dispo/confirmation-requests")
+                .header("X-API-Key", TEST_API_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {

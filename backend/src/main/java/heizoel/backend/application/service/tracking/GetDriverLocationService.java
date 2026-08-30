@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -20,6 +21,7 @@ public class GetDriverLocationService implements GetDriverLocationUseCase {
 
     private final ConfirmationRequestRepository confirmationRequestRepository;
     private final LocationTrackingService locationTrackingService;
+    private final Clock clock;
 
     @Override
     @Transactional(readOnly = true)
@@ -30,7 +32,7 @@ public class GetDriverLocationService implements GetDriverLocationUseCase {
                 ));
         DeliverySlot deliverySlot = confirmationRequest.getDeliverySlot();
 
-        if (!deliverySlot.getDate().isEqual(LocalDate.now())) {
+        if (!deliverySlot.getDate().isEqual(LocalDate.now(clock))) {
             return Optional.empty();
         }
 
