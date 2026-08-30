@@ -1,4 +1,4 @@
-import { ApiError } from './dashboard-api'
+import { ApiError, getCsrfToken } from './dashboard-api'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
@@ -17,9 +17,33 @@ export type EmailSettings = {
   updatedAt: string | null
 }
 
+export type UpdateEmailSettingsInput = {
+  smtpHost: string
+  smtpPort: number
+  securityMode: SmtpSecurityMode
+  authenticationEnabled: boolean
+  username: string | null
+  password: string | null
+  fromAddress: string
+  fromName: string
+}
+
 type BackendErrorResponse = {
   code?: string
   message?: string
+}
+
+async function createSettingsApiError(response: Response) {
+  const errorResponse = (await response
+    .json()
+    .catch(() => null)) as BackendErrorResponse | null
+
+  return new ApiError(
+    response.status,
+    errorResponse?.code ?? null,
+    errorResponse?.message ??
+      `Settings request failed with status ${response.status}.`,
+  )
 }
 
 export async function getEmailSettings(
@@ -32,17 +56,29 @@ export async function getEmailSettings(
   })
 
   if (!response.ok) {
-    const errorResponse = (await response
-      .json()
-      .catch(() => null)) as BackendErrorResponse | null
-
-    throw new ApiError(
-      response.status,
-      errorResponse?.code ?? null,
-      errorResponse?.message ??
-        `Settings request failed with status ${response.status}.`,
-    )
+    throw await createSettingsApiError(response)
   }
 
   return response.json() as Promise<EmailSettings>
+}
+
+export async function updateEmailSettings(
+  input: UpdateEmailSettingsInput,
+  signal?: AbortSignal,
+): Promise<void> {
+  const csrfToken = await getCsrfToken(signal)
+  const response = await fetch(`${apiBaseUrl}/api/dashboard/settings/email`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      [csrfToken.headerName]: csrfToken.token,
+    },
+    body: JSON.stringify(input),
+    credentials: 'include',
+    signal,
+  })
+
+  if (!response.ok) {
+    throw await createSettingsApiError(response)
+  }
 }

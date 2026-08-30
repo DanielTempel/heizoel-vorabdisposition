@@ -1,12 +1,8 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, CheckCircle2, CircleAlert } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ApiError } from '@/api/dashboard-api'
-import {
-  getEmailSettings,
-  type EmailSettings,
-  type SmtpSecurityMode,
-} from '@/api/settings-api'
+import { getEmailSettings, type EmailSettings } from '@/api/settings-api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -16,40 +12,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { EmailSettingsForm } from './components/email-settings-form'
 
 type PageStatus = 'loading' | 'ready' | 'error'
-
-const securityModeLabels: Record<SmtpSecurityMode, string> = {
-  STARTTLS: 'STARTTLS',
-  IMPLICIT_TLS: 'SSL/TLS',
-  NONE: 'Keine Verschlüsselung',
-}
-
-function SettingsField({
-  label,
-  value,
-}: {
-  label: string
-  value: string
-}) {
-  return (
-    <div>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 text-sm font-medium">{value}</dd>
-    </div>
-  )
-}
-
-function formatUpdatedAt(value: string | null) {
-  if (value === null) {
-    return '–'
-  }
-
-  return new Intl.DateTimeFormat('de-DE', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value))
-}
 
 function getErrorMessage(error: unknown) {
   if (error instanceof ApiError && error.status === 401) {
@@ -106,7 +71,6 @@ export function SettingsPage() {
       </div>
 
       <header>
-        <p className="text-sm text-muted-foreground">Administration</p>
         <h1 className="mt-1 text-2xl font-semibold" id="settings-title">
           Einstellungen
         </h1>
@@ -135,78 +99,16 @@ export function SettingsPage() {
       {status === 'ready' && settings ? (
         <Card className="max-w-4xl">
           <CardHeader>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <CardTitle>E-Mail-Versand</CardTitle>
-                <CardDescription className="mt-1">
-                  SMTP-Konfiguration für Avisierungsanfragen
-                </CardDescription>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs font-medium">
-                {settings.configured ? (
-                  <>
-                    <CheckCircle2 className="size-4 text-green-700" />
-                    Konfiguriert
-                  </>
-                ) : (
-                  <>
-                    <CircleAlert className="size-4 text-amber-700" />
-                    Nicht konfiguriert
-                  </>
-                )}
-              </div>
-            </div>
+            <CardTitle>E-Mail-Versand</CardTitle>
+            <CardDescription>
+              SMTP-Konfiguration für Avisierungsanfragen
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {settings.configured ? (
-              <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <SettingsField
-                  label="SMTP-Server"
-                  value={settings.smtpHost ?? '–'}
-                />
-                <SettingsField
-                  label="Port"
-                  value={settings.smtpPort?.toString() ?? '–'}
-                />
-                <SettingsField
-                  label="Verschlüsselung"
-                  value={
-                    settings.securityMode === null
-                      ? '–'
-                      : securityModeLabels[settings.securityMode]
-                  }
-                />
-                <SettingsField
-                  label="Authentifizierung"
-                  value={settings.authenticationEnabled ? 'Aktiv' : 'Inaktiv'}
-                />
-                <SettingsField
-                  label="Benutzername"
-                  value={settings.username ?? '–'}
-                />
-                <SettingsField
-                  label="Passwort"
-                  value={settings.passwordConfigured ? 'Hinterlegt' : 'Nicht hinterlegt'}
-                />
-                <SettingsField
-                  label="Absenderadresse"
-                  value={settings.fromAddress ?? '–'}
-                />
-                <SettingsField
-                  label="Absendername"
-                  value={settings.fromName ?? '–'}
-                />
-                <SettingsField
-                  label="Zuletzt geändert"
-                  value={formatUpdatedAt(settings.updatedAt)}
-                />
-              </dl>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Für dieses Unternehmen sind noch keine SMTP-Einstellungen
-                hinterlegt.
-              </p>
-            )}
+            <EmailSettingsForm
+              onSaved={setSettings}
+              settings={settings}
+            />
           </CardContent>
         </Card>
       ) : null}

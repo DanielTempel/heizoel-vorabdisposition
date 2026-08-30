@@ -17,7 +17,7 @@ type BackendErrorResponse = {
   message: string
 }
 
-type CsrfTokenResponse = {
+export type CsrfTokenResponse = {
   token: string
   headerName: string
 }
@@ -122,7 +122,7 @@ export async function getOrderDetail(
   return readJsonResponse<OrderDetail>(response)
 }
 
-async function getCsrfToken(signal?: AbortSignal) {
+export async function getCsrfToken(signal?: AbortSignal) {
   const response = await fetch(`${apiBaseUrl}/api/dashboard/csrf`, {
     cache: 'no-store',
     credentials: 'include',
