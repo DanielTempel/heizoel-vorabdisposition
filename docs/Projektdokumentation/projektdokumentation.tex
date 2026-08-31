@@ -169,6 +169,26 @@ Zusätzlich fehlte eine einheitliche Statussicht, sodass der
 aktuelle Bearbeitungsstand eines Liefertermins nicht jederzeit
 direkt nachvollzogen werden konnte.
 
+\subsection{Funktionale Anforderungen}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{2cm}p{10cm}}
+\toprule
+ID & Beschreibung \\
+\midrule
+A1 & Das System versendet einen Bestätigungslink über E-Mail, SMS oder WhatsApp. \\
+A2 & Der Kunde kann über eine Bestätigungsseite auf den vorgeschlagenen Liefertermin reagieren. \\
+A3 & Nach Eingang der Kundenrückmeldung wird der Status automatisch im System aktualisiert. \\
+A4 & Bei bestätigten Lieferungen kann am Liefertag eine Fahrerkartenansicht bereitgestellt werden. \\
+A5 & Die Disposition erhält über ein Dashboard eine Übersicht aller relevanten Vorgänge und Statuswerte. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Nichtfunktionale Anforderungen}
+
+
 
 % =================================================
 % 3 SOLL-KONZEPT
@@ -209,26 +229,6 @@ problematische Vorgänge.
 \includegraphics[width=\textwidth]{assets/bpmn_soll.png}
 \caption{BPMN-Modell des SOLL-Prozesses}
 \end{figure}
-
-\subsection{Funktionale Anforderungen}
-
-\begin{table}[H]
-\centering
-\begin{tabular}{p{2cm}p{10cm}}
-\toprule
-ID & Beschreibung \\
-\midrule
-A1 & Das System versendet einen Bestätigungslink über E-Mail, SMS oder WhatsApp. \\
-A2 & Der Kunde kann über eine Bestätigungsseite auf den vorgeschlagenen Liefertermin reagieren. \\
-A3 & Nach Eingang der Kundenrückmeldung wird der Status automatisch im System aktualisiert. \\
-A4 & Bei bestätigten Lieferungen kann am Liefertag eine Fahrerkartenansicht bereitgestellt werden. \\
-A5 & Die Disposition erhält über ein Dashboard eine Übersicht aller relevanten Vorgänge und Statuswerte. \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Nichtfunktionale Anforderungen}
-
 
 % =================================================
 % 4 SYSTEMARCHITEKTUR
@@ -390,88 +390,77 @@ Disposition über das Dashboard zur Verfügung.
 
 \section{Frontend -- Konzeption und Implementierung}
 
+
+% -------------------------------------------------
+% 6.1
+% -------------------------------------------------
+
 \subsection{Einordnung des Frontends in das Gesamtsystem}
 
-Das Frontend stellt die Benutzeroberflächen des Systems bereit
-und bildet damit die Schnittstelle zwischen den Anwendern und
-den im Backend verarbeiteten Informationen. Dabei werden
-unterschiedliche Nutzungskontexte berücksichtigt. Die
-Disposition arbeitet über das Avisierungsdashboard, während
-Kunden über einen personalisierten Link auf die für sie
-vorgesehenen Ansichten zugreifen.
 
-\subsection{Architektur und technische Umsetzung}
+% -------------------------------------------------
+% 6.2
+% -------------------------------------------------
+
+\subsection{Frontend-Architektur und technische Grundlagen}
+
+\subsubsection{Technologieauswahl}
+
+\subsubsection{Seiten-, Komponenten- und Routingstruktur}
+
+\subsubsection{API-Anbindung und Zustandsverwaltung}
+
+\subsubsection{Responsive Design und wiederverwendbare UI-Komponenten}
+
+
+% -------------------------------------------------
+% 6.3
+% -------------------------------------------------
 
 \subsection{Avisierungsdashboard}
 
-Das Avisierungsdashboard bildet die zentrale Arbeitsoberfläche
-der Disposition. Hier werden relevante Vorgänge mit ihren
-Statusinformationen gebündelt dargestellt, sodass offene,
-bestätigte oder auffällige Fälle schnell erkannt und bei Bedarf
-weiterbearbeitet werden können.
+\subsubsection{Geschützter Dashboard-Zugang}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{assets/dashboard.png}
-\caption{Platzhalter: Avisierungsdashboard}
-\end{figure}
+\subsubsection{Tourübersicht und Statusdarstellung}
 
-\subsection{Detailansicht}
+\subsubsection{Suche, Filterung und Paginierung}
 
-Die Detailansicht ergänzt das Avisierungsdashboard um eine
-vertiefte Sicht auf einen einzelnen Vorgang. Hier können
-beispielsweise Auftragsdaten, Kommunikationsinformationen,
-Rückmeldungen und Statusänderungen nachvollzogen werden.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{assets/detailansicht.png}
-\caption{Platzhalter: Detailansicht eines Vorgangs}
-\end{figure}
+% -------------------------------------------------
+% 6.4
+% -------------------------------------------------
+
+\subsection{Auftragsdetailansicht und erneute Avisierung}
+
+\subsubsection{Auftragsdaten und Avisierungshistorie}
+
+\subsubsection{Erneute Avisierung, Validierung und Fehlerrückmeldung}
+
+
+% -------------------------------------------------
+% 6.5
+% -------------------------------------------------
 
 \subsection{Bestätigungsseite für Kunden}
 
-Die Bestätigungsseite wird über einen personalisierten Link
-aufgerufen, der dem Kunden je nach Kommunikationskanal per
-E-Mail, SMS oder WhatsApp zugesendet wird. Auf dieser Seite
-kann der Kunde auf den vorgeschlagenen Liefertermin reagieren
-und erhält eine klar strukturierte Rückmeldemöglichkeit.
+\subsubsection{Tokenbasierter Zugriff und Lieferinformationen}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{assets/bestaetigungsseite.png}
-\caption{Platzhalter: Bestätigungsseite für Kunden}
-\end{figure}
+\subsubsection{Bestätigung, Ablehnung und Kundenkommentar}
+
+\subsubsection{Abgeschlossene, abgelaufene und fehlerhafte Anfragen}
+
+
+% -------------------------------------------------
+% 6.6
+% -------------------------------------------------
 
 \subsection{Live-Tracking}
 
-Für bestätigte Lieferungen kann am Tag der Auslieferung eine
-Fahrerkartenansicht bereitgestellt werden. Diese Ansicht dient
-dazu, den Lieferkontext für den Kunden transparenter zu machen
-und den Bezug zur bevorstehenden Lieferung visuell zu
-unterstützen.
+\subsubsection{Verfügbarkeit und Datenfluss}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{assets/fahrerkartenansicht.png}
-\caption{Platzhalter: Fahrerkartenansicht am Liefertag}
-\end{figure}
+\subsubsection{Karten- und Positionsdarstellung}
 
-\subsection{Statusdarstellung}
-
-Die Benutzerführung orientiert sich an den unterschiedlichen
-Nutzungssituationen. Die Disposition arbeitet primär innerhalb
-des Avisierungsdashboards und kann von dort aus einzelne
-Vorgänge detaillierter betrachten. Kunden gelangen dagegen
-direkt über den zugesendeten Link auf die jeweils relevante
-Ansicht.
-
-Statusinformationen und Rückmeldungen sollen so dargestellt
-werden, dass der aktuelle Zustand eines Vorgangs eindeutig
-erkennbar ist. Dazu gehören neben regulären Statusanzeigen auch
-Erfolgsmeldungen, Warnungen, Validierungsfehler und technische
-Fehlermeldungen.
-
+\subsubsection{Aktualisierung und Fehlerbehandlung}
 
 % =================================================
 % 7 TEST UND VALIDIERUNG
@@ -479,7 +468,7 @@ Fehlermeldungen.
 
 \section{Test und Validierung}
 
-\subsection{Teststrategie}
+\subsection{Teststrategie und Testumgebung}
 
 Die Validierung erfolgte schrittweise entlang der zentralen
 Anwendungsfälle. Zunächst wurden einzelne Komponenten isoliert
@@ -490,7 +479,23 @@ Ein besonderer Fokus lag dabei auf den Übergängen zwischen den
 Systemkomponenten, da dort fachliche Fehler oder inkonsistente
 Status besonders wahrscheinlich sind.
 
-\subsection{Backend- und Integrationstests}
+\subsubsection{Testziele, Testebenen und Auswahl der Prüfschwerpunkte}
+
+\subsubsection{Testwerkzeuge und reproduzierbare Testumgebung}
+
+\subsection{Validierung des Avisierungsservice}
+
+\subsubsection{Domänen- und Anwendungslogik}
+
+\subsubsection{REST-Verträge, Eingabevalidierung und Fehlerantworten}
+
+\subsubsection{Authentifizierung, Sitzungsverwaltung und Mandantenisolation}
+
+\subsubsection{Persistenz- und Abfragemodell}
+
+\subsubsection{Workflow-, Wiederholungs- und Nebenläufigkeitsszenarien}
+
+\subsubsection{Ausgehende Schnittstellen und Rückkanäle}
 
 \subsection{End-to-End-Tests}
 
