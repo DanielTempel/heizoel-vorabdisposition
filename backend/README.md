@@ -42,7 +42,6 @@ backend/
 ├── src/test/             unit and integration tests
 ├── docs/                 detailed backend documentation
 ├── dispo-mock/           local DISPO callback and tracking mock
-├── sms-mock/             local SMS provider mock
 ├── docker-compose.yml    local infrastructure
 ├── AGENTS.md             repository-specific agent rules
 └── pom.xml               build and dependency configuration
@@ -92,7 +91,6 @@ The backend is then available at `http://localhost:8080`.
 | Mailpit Web UI | `http://localhost:8025` | Inspect outgoing local e-mail |
 | pgAdmin | `http://localhost:5050` | Inspect PostgreSQL |
 | DISPO Mock | `http://localhost:8090` | Local status callback and tracking target |
-| SMS Mock | `http://localhost:8091` | Local SMS provider target |
 
 The Compose credentials and service definitions are authoritative in [`docker-compose.yml`](docker-compose.yml). The `dev` profile seeds company `1` with Mailpit e-mail settings and dashboard demo data through the Flyway development callback.
 

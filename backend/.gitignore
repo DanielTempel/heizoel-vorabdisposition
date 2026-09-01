@@ -32,3 +32,4 @@ build/
 ### VS Code ###
 .vscode/
 !/src/main/java/heizoel/backend/**/code.ps1
+.env

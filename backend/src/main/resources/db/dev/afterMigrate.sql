@@ -858,7 +858,7 @@ INSERT INTO company_email_settings (
 )
 SELECT
     c.id,
-    'localhost',
+    '${devSmtpHost}',
     1025,
     'NONE',
     FALSE,
@@ -869,4 +869,11 @@ SELECT
     CURRENT_TIMESTAMP
 FROM company c
 WHERE c.id = 1
-ON CONFLICT (company_id) DO NOTHING;
+ON CONFLICT (company_id) DO UPDATE
+    SET smtp_host = EXCLUDED.smtp_host,
+        smtp_port = EXCLUDED.smtp_port
+WHERE company_email_settings.smtp_host IN ('localhost', 'mailpit');
+
+UPDATE company
+SET callback_url = '${devDispoCallbackUrl}'
+WHERE id = 1;

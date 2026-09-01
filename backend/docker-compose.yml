@@ -1,4 +1,5 @@
 name: heizoel-vorabdisposition
+
 services:
   postgres:
     image: postgres:16
@@ -11,13 +12,18 @@ services:
       - "5432:5432"
     volumes:
       - heizoel_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U heizoel -d heizoel_backend"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   mailpit:
     image: axllent/mailpit:latest
     container_name: heizoel-mailpit
     ports:
-      - "1025:1025" # SMTP
-      - "8025:8025" # Web UI
+      - "1025:1025"
+      - "8025:8025"
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -28,7 +34,8 @@ services:
     ports:
       - "5050:80"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - heizoel_pgadmin_data:/var/lib/pgadmin
 
@@ -40,13 +47,41 @@ services:
     ports:
       - "8090:8090"
 
-  sms-mock:
+  backend:
     build:
-      context: ./sms-mock
+      context: .
       dockerfile: Dockerfile
-    container_name: heizoel-sms-mock
+    container_name: heizoel-backend
     ports:
-      - "8091:8091"
+      - "8080:8080"
+
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+
+      DB_URL: jdbc:postgresql://postgres:5432/heizoel_backend
+      DB_USERNAME: heizoel
+      DB_PASSWORD: heizoel
+
+      DISPO_TRACKING_URL: http://dispo-mock:8090/api/dispo/confirmation-status-updates/tracking/orders
+      DEV_DISPO_CALLBACK_URL: http://dispo-mock:8090/api/dispo/confirmation-status-updates
+
+      DEV_SMTP_HOST: mailpit
+
+      SECRET_ENCRYPTION_MASTER_KEY: ${SECRET_ENCRYPTION_MASTER_KEY:?SECRET_ENCRYPTION_MASTER_KEY must be set}
+
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_SMS_FROM: ${TWILIO_SMS_FROM:-}
+      TWILIO_WHATSAPP_FROM: ${TWILIO_WHATSAPP_FROM:-}
+      TWILIO_CONTENT_TEMPLATE_SID: ${TWILIO_CONTENT_TEMPLATE_SID:-}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+      dispo-mock:
+        condition: service_started
 
 volumes:
   heizoel_postgres_data:

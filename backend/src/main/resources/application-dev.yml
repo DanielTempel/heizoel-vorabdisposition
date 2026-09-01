@@ -1,21 +1,17 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/heizoel_backend
-    username: heizoel
-    password: heizoel
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/heizoel_backend}
+    username: ${DB_USERNAME:heizoel}
+    password: ${DB_PASSWORD:heizoel}
     driver-class-name: org.postgresql.Driver
 
   flyway:
     locations:
       - classpath:db/migration
       - classpath:db/dev
-
-
-server:
-  servlet:
-    session:
-      cookie:
-        secure: false
+    placeholders:
+      devSmtpHost: ${DEV_SMTP_HOST:localhost}
+      devDispoCallbackUrl: ${DEV_DISPO_CALLBACK_URL:http://localhost:8090/api/dispo/confirmation-status-updates}
 
   jpa:
     show-sql: true
@@ -23,10 +19,16 @@ server:
       hibernate:
         format_sql: true
 
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
+
 heizoel:
   confirmation:
-    frontend-url: http://localhost:3000
-    dispo-tracking-url: http://localhost:8090/api/dispo/confirmation-status-updates/tracking/orders
+    frontend-url: ${FRONTEND_URL:http://localhost:3000}
+    dispo-tracking-url: ${DISPO_TRACKING_URL:http://localhost:8090/api/dispo/confirmation-status-updates/tracking/orders}
 
   twilio:
     account-sid: ${TWILIO_ACCOUNT_SID:}
