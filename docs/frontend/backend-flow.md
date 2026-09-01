@@ -33,7 +33,7 @@ cd backend
 docker compose up -d
 ```
 
-Dadurch werden unter anderem PostgreSQL, Mailpit, DISPO-Mock und SMS-Mock gestartet.
+Dadurch werden unter anderem PostgreSQL, Mailpit und DISPO-Mock gestartet.
 
 Wichtige lokale URLs:
 
