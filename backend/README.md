@@ -58,34 +58,28 @@ The Maven Wrapper is included, so a separate Maven installation is not required.
 
 ## Local Development
 
-Start the infrastructure from the backend directory:
+Create a `.env` file in the backend directory before starting the local stack. Docker Compose reads this file automatically. At minimum, provide the encryption key:
+
+```dotenv
+SECRET_ENCRYPTION_MASTER_KEY=<Base64-encoded 32-byte key>
+```
+
+See [Configuration](docs/configuration.md#secret-encryption) for key generation and the optional Twilio variables used for SMS and WhatsApp delivery.
+
+Build and start the complete local stack, including the backend:
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 docker compose ps
 ```
 
-Before starting the backend, provide `SECRET_ENCRYPTION_MASTER_KEY` as a Base64-encoded 32-byte key. See [Configuration](docs/configuration.md#secret-encryption) for the key requirements.
-
-Start the backend with the `dev` profile:
-
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-On Windows:
-
-```powershell
-.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-The backend is then available at `http://localhost:8080`.
+Compose starts the backend with the `dev` profile. The application is then available at `http://localhost:8080`.
 
 ## Local Services
 
 | Service | URL / Port | Purpose |
 | --- | --- | --- |
-| Backend | `http://localhost:8080` | Spring Boot application, started separately |
+| Backend | `http://localhost:8080` | Spring Boot application, built and started by Compose |
 | PostgreSQL | `localhost:5432` | Application database |
 | Mailpit SMTP | `localhost:1025` | Local SMTP endpoint |
 | Mailpit Web UI | `http://localhost:8025` | Inspect outgoing local e-mail |
@@ -98,9 +92,9 @@ The Compose credentials and service definitions are authoritative in [`docker-co
 
 The application uses Spring profiles:
 
-- `application.yaml` contains shared configuration.
+- `application.yaml` contains shared configuration and the optional `.env` import.
 - `application-dev.yml` configures local development and development seed data.
-- `application-prod.yml` configures production-oriented external values and optional `.env` loading.
+- `application-prod.yml` configures production-oriented external values and quieter logging.
 
 Do not copy configuration blocks from documentation into these files without checking the current configuration classes and YAML. See [Configuration](docs/configuration.md) for property groups, environment variables, secrets, and company-specific settings.
 
@@ -141,7 +135,7 @@ For agent-specific repository rules, see [`AGENTS.md`](AGENTS.md).
 
 ## Prototype Scope / Limitations
 
-- Local DISPO and SMS integrations are represented by mocks.
-- Docker Compose does not currently include a local WhatsApp provider mock.
+- The local DISPO integration is represented by a mock.
+- SMS and WhatsApp delivery use Twilio and require the corresponding account, sender, and content-template configuration.
 - Development uses a fixed company context for company `1`; the production profile resolves companies from `X-API-Key`.
 - Geocoding uses the configured external provider when enabled and therefore may require network access.

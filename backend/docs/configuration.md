@@ -8,13 +8,15 @@ This document explains configuration responsibilities and property groups withou
 
 | File | Responsibility |
 | --- | --- |
-| `src/main/resources/application.yaml` | Shared application, JPA/Flyway, Camunda, provider, geocoding, encryption, and logging configuration. |
+| `src/main/resources/application.yaml` | Shared application, optional `.env` import, JPA/Flyway, Camunda, provider, geocoding, encryption, and logging configuration. |
 | `src/main/resources/application-dev.yml` | Local PostgreSQL, development Flyway callback, local provider endpoints, and verbose SQL logging. |
-| `src/main/resources/application-prod.yml` | Production-oriented datasource/provider values, optional `.env` import, and quieter logging. |
+| `src/main/resources/application-prod.yml` | Production-oriented datasource and integration values, secure session cookies, and quieter logging. |
 
 Start the local profile as described in the [README](../README.md#local-development). Standard Spring Boot precedence applies: command-line arguments, environment variables, and external configuration can override packaged YAML values.
 
-The `prod` profile optionally imports `.env` through `spring.config.import`. The `dev` profile does not add that import; provide required secrets to the process environment or another standard Spring configuration source when running locally.
+Shared configuration optionally imports `.env` through `spring.config.import`, so the file is available to a backend process started directly from the backend directory regardless of the active profile.
+
+Docker Compose also reads the git-ignored backend `.env` file for variable interpolation. It explicitly forwards `SECRET_ENCRYPTION_MASTER_KEY` and the Twilio variables to the backend container; other `.env` entries are not injected automatically. Database and local service addresses are defined directly in `docker-compose.yml`.
 
 ## Property Groups
 
@@ -61,7 +63,7 @@ The shared profile currently enables the configured external provider. Local wor
 
 ## Environment Variables
 
-`application-prod.yml` explicitly maps these environment variables:
+The active YAML files map these environment variables:
 
 | Variable | Target |
 | --- | --- |
@@ -69,8 +71,14 @@ The shared profile currently enables the configured external provider. Local wor
 | `DB_USERNAME` | Database username. |
 | `DB_PASSWORD` | Database password. |
 | `FRONTEND_URL` | Customer frontend base URL. |
-| `SMS_PROVIDER_URL` | SMS provider endpoint. |
-| `WHATSAPP_PROVIDER_URL` | WhatsApp provider endpoint. |
+| `DISPO_TRACKING_URL` | DISPO driver-location endpoint. |
+| `DEV_DISPO_CALLBACK_URL` | Development Flyway callback URL for the seeded company. |
+| `DEV_SMTP_HOST` | Development Flyway SMTP host for the seeded company. |
+| `TWILIO_ACCOUNT_SID` | Twilio account identifier. |
+| `TWILIO_AUTH_TOKEN` | Twilio authentication token. |
+| `TWILIO_SMS_FROM` | Twilio SMS sender number. |
+| `TWILIO_WHATSAPP_FROM` | Twilio WhatsApp sender. |
+| `TWILIO_CONTENT_TEMPLATE_SID` | Twilio content template used for SMS and WhatsApp messages. |
 
 `SECRET_ENCRYPTION_MASTER_KEY` is referenced by shared configuration and is required in every profile.
 
@@ -124,7 +132,7 @@ The `dev` Flyway callback seeds company `1` with unauthenticated Mailpit setting
 
 ## Local Infrastructure Configuration
 
-`docker-compose.yml` is authoritative for local images, ports, volumes, and development credentials. The development datasource connects to its PostgreSQL service through `localhost:5432` when the backend runs on the host.
+`docker-compose.yml` is authoritative for local images, ports, volumes, development credentials, and service dependencies. Compose builds and starts the backend on port `8080`. Inside the Compose network, the backend connects to PostgreSQL at `postgres:5432`, Mailpit at `mailpit:1025`, and DISPO Mock at `dispo-mock:8090`; the published host ports remain available for direct local access.
 
 The `dev` profile adds both `classpath:db/migration` and `classpath:db/dev` to Flyway. The development callback maintains demo dashboard data and local SMTP settings; it must not be treated as production seed or schema history.
 

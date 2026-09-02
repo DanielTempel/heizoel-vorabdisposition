@@ -1,6 +1,4 @@
 spring:
-  config:
-    import: optional:file:.env[.properties]
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/heizoel_backend}
     username: ${DB_USERNAME:heizoel}
@@ -22,7 +20,7 @@ server:
 heizoel:
   confirmation:
     frontend-url: ${FRONTEND_URL:http://localhost:3000}
-
+    dispo-tracking-url: ${DISPO_TRACKING_URL}
   twilio:
     account-sid: ${TWILIO_ACCOUNT_SID:}
     auth-token: ${TWILIO_AUTH_TOKEN:}
