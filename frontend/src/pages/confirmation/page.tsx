@@ -9,10 +9,10 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
 import {
-  confirmDelivery,
   getConfirmationPreview,
-  rejectDelivery,
+  submitCustomerResponse,
 } from '../../api/confirmation-api'
 import { getDriverLocation, getTrackingInfo } from '../../api/tracking-api'
 import { formatDate, formatTime } from '../../lib/format-delivery'
@@ -54,6 +54,7 @@ export function ConfirmationPage() {
   const [trackingInfo, setTrackingInfo] = useState<TrackingInfo | null>(null)
   const [driverLocation, setDriverLocation] = useState<DriverLocation | null>(null)
   const [answerType, setAnswerType] = useState<CustomerAnswerType | null>(null)
+  const [comment, setComment] = useState('')
   const [isTrackingRefreshing, setIsTrackingRefreshing] = useState(false)
 
   const token = getTokenFromPath()
@@ -84,11 +85,12 @@ export function ConfirmationPage() {
     setAnswerType(type)
 
     try {
-      if (type === 'confirm') {
-        await confirmDelivery(token, {})
-      } else {
-        await rejectDelivery(token, {})
-      }
+      const customerComment = comment.trim()
+
+      await submitCustomerResponse(token, {
+        responseType: type === 'confirm' ? 'CONFIRM' : 'REJECT',
+        ...(customerComment === '' ? {} : { customerComment }),
+      })
 
       const preview = await getConfirmationPreview(token)
       setConfirmation(preview)
@@ -243,6 +245,18 @@ export function ConfirmationPage() {
               ) : null}
             </div>
           </section>
+
+          <label className="grid gap-2 text-sm font-medium">
+            Nachricht an die Disposition (optional)
+            <Textarea
+              className="min-h-28 resize-y rounded-2xl p-4"
+              disabled={isSubmitting}
+              maxLength={2000}
+              onChange={(event) => setComment(event.target.value)}
+              placeholder="Nachricht hier schreiben…"
+              value={comment}
+            />
+          </label>
 
           <Alert className="border-red-300 bg-red-50 p-5 shadow-sm">
             <AlertDescription className="text-red-950">

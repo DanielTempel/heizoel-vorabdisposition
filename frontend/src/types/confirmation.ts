@@ -17,7 +17,19 @@ export type ConfirmationStatus =
   | 'REJECTED'
   | 'NO_RESPONSE'
 
+export type OrderConfirmationStatus = ConfirmationStatus | 'OPEN'
+
+export type ConfirmationRequestStatus =
+  | ConfirmationStatus
+  | 'PENDING'
+  | 'FAILED'
+
+export type ConfirmationDisplayStatus =
+  | OrderConfirmationStatus
+  | ConfirmationRequestStatus
+
 export type CustomerAnswerRequest = {
+  responseType: 'CONFIRM' | 'REJECT'
   customerComment?: string
 }
 

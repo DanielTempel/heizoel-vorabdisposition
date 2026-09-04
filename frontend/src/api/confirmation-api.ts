@@ -24,30 +24,12 @@ export async function getConfirmationPreview(
     .json() as Promise<CustomerConfirmationPreview>
 }
 
-export async function confirmDelivery(
+export async function submitCustomerResponse(
   token: string,
   request: CustomerAnswerRequest,
 ): Promise<void> {
   const response = await fetch(
-    `${apiBaseUrl}/api/customer/confirmations/${token}/confirm`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    },
-  )
-
-  await handleBackendResponse(response)
-}
-
-export async function rejectDelivery(
-  token: string,
-  request: CustomerAnswerRequest,
-): Promise<void> {
-  const response = await fetch(
-    `${apiBaseUrl}/api/customer/confirmations/${token}/reject`,
+    `${apiBaseUrl}/api/customer/confirmations/${token}/response`,
     {
       method: 'POST',
       headers: {

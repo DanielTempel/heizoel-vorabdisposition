@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { App } from './router'
 import './globals.css'
 
+const savedTheme = localStorage.getItem('dashboard-theme')
+document.documentElement.classList.toggle('dark', savedTheme === 'dark')
+
 async function enableMocking() {
   if (import.meta.env.VITE_CONFIRMATION_API_MODE !== 'mock') {
     return

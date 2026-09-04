@@ -1,81 +1,216 @@
 import { useEffect, useState } from 'react'
+import { Moon, RefreshCw, Settings, Sun } from 'lucide-react'
+import { Link, useOutletContext } from 'react-router-dom'
+import { getTourNumbers, getTours } from '@/api/dashboard-api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { getDashboardConfirmations } from '../../api/dashboard-api'
-import type { DashboardConfirmation } from '../../types/dashboard'
-import { DashboardTable } from './components/dashboard-table'
+import { Button } from '@/components/ui/button'
+import type { DashboardOutletContext } from '@/layouts/dashboard-layout'
+import type { DashboardFilters, ToursPage } from '@/types/dashboard'
+import { FilterPanel } from './components/filter-panel'
+import { TourItem } from './components/tour-item'
+import { TourPagination } from './components/tour-pagination'
 
 type PageStatus = 'loading' | 'ready' | 'error'
 
 export function DashboardPage() {
-  const [status, setStatus] = useState<PageStatus>('loading')
-  const [confirmations, setConfirmations] = useState<DashboardConfirmation[]>(
-    [],
+  const { navigationState, setNavigationState } = useOutletContext<DashboardOutletContext>()
+  const { page, draftFilters, appliedFilters } = navigationState
+  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
+    localStorage.getItem('dashboard-theme') === 'dark' ? 'dark' : 'light',
   )
+  const [reloadKey, setReloadKey] = useState(0)
+  const [status, setStatus] = useState<PageStatus>('loading')
+  const [toursPage, setToursPage] = useState<ToursPage | null>(null)
+  const [tourNumberOptions, setTourNumberOptions] = useState<string[]>([])
 
   useEffect(() => {
-    async function loadDashboard() {
-      try {
-        const nextConfirmations = await getDashboardConfirmations()
+    const controller = new AbortController()
 
-        setConfirmations(nextConfirmations)
-        setStatus('ready')
+    async function loadTourNumbers() {
+      try {
+        const nextTourNumbers = await getTourNumbers(controller.signal)
+
+        if (!controller.signal.aborted) {
+          setTourNumberOptions(nextTourNumbers)
+        }
       } catch {
-        setStatus('error')
+        // The overview remains usable if the optional filter cannot be loaded.
       }
     }
 
-    void loadDashboard()
+    void loadTourNumbers()
+
+    return () => controller.abort()
   }, [])
 
-  function openConfirmationDetails(orderId: string) {
-    window.history.pushState({}, '', `/dashboard/confirmation/${orderId}`)
-    window.dispatchEvent(new Event('locationchange'))
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function loadTours() {
+      try {
+        const nextToursPage = await getTours(
+          { ...appliedFilters, page },
+          controller.signal,
+        )
+
+        if (!controller.signal.aborted) {
+          setToursPage(nextToursPage)
+          setStatus('ready')
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setStatus('error')
+        }
+      }
+    }
+
+    void loadTours()
+
+    return () => controller.abort()
+  }, [appliedFilters, page, reloadKey])
+
+  function changePage(nextPage: number) {
+    setStatus('loading')
+    setNavigationState((currentState) => ({
+      ...currentState,
+      page: nextPage,
+    }))
   }
 
+  function reload() {
+    setStatus('loading')
+    setReloadKey((currentKey) => currentKey + 1)
+  }
+
+  function toggleTheme() {
+    const nextTheme = theme === 'light' ? 'dark' : 'light'
+
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark')
+    localStorage.setItem('dashboard-theme', nextTheme)
+    setTheme(nextTheme)
+  }
+
+  function applyFilters(filters: DashboardFilters) {
+    const nextFilters = {
+      ...filters,
+      search: filters.search.trim(),
+    }
+
+    setStatus('loading')
+    setNavigationState({
+      page: 0,
+      draftFilters: nextFilters,
+      appliedFilters: nextFilters,
+    })
+  }
+
+  const totalPages = toursPage?.totalPages ?? 0
+  const hasAppliedFilters =
+    appliedFilters.search !== '' ||
+    appliedFilters.tourNumbers.length > 0 ||
+    appliedFilters.statuses.length > 0 ||
+    appliedFilters.dateFrom !== '' ||
+    appliedFilters.dateTo !== ''
+
   return (
-    <main className="min-h-screen bg-background px-6 py-8 text-foreground">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <header>
-          <h1 className="mt-2 text-3xl font-semibold">
-            Dashboard
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            Übersicht der digitalen Rückmeldungen zu geplanten
-            Heizöl-Lieferterminen.
-          </p>
-        </header>
+    <>
+      <header className="flex items-center justify-between gap-4">
+        <h1 className="mt-1 text-3xl font-semibold">
+          Avisierungsdashboard
+        </h1>
+        <div className="flex items-center gap-2">
+          <Button
+            aria-label={
+              theme === 'light' ? 'Dunkelmodus aktivieren' : 'Hellmodus aktivieren'
+            }
+            onClick={toggleTheme}
+            size="icon-lg"
+            title={
+              theme === 'light' ? 'Dunkelmodus aktivieren' : 'Hellmodus aktivieren'
+            }
+            type="button"
+            variant="outline"
+          >
+            {theme === 'light' ? <Moon /> : <Sun />}
+          </Button>
+          <Button asChild size="icon-lg" variant="outline">
+            <Link
+              aria-label="Einstellungen öffnen"
+              title="Einstellungen öffnen"
+              to="/dashboard/settings"
+            >
+              <Settings />
+            </Link>
+          </Button>
+        </div>
+      </header>
 
-        <section className="grid gap-4">
-          <div className="overflow-hidden rounded-lg border bg-background">
-            {status === 'loading' ? (
-              <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-                Dashboard wird geladen...
-              </div>
-            ) : null}
-
-            {status === 'error' ? (
-              <Alert className="border-red-300 bg-red-50">
-                <AlertDescription className="text-red-950">
-                  Dashboard-Daten konnten nicht geladen werden.
-                </AlertDescription>
-              </Alert>
-            ) : null}
-
-            {status === 'ready' && confirmations.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                Keine Rückmeldeanfragen vorhanden.
-              </div>
-            ) : null}
-
-            {status === 'ready' && confirmations.length > 0 ? (
-              <DashboardTable
-                confirmations={confirmations}
-                onViewDetails={openConfirmationDetails}
-              />
-            ) : null}
-          </div>
-        </section>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <FilterPanel
+          filters={draftFilters}
+          onApply={applyFilters}
+          onChange={(filters) =>
+            setNavigationState((currentState) => ({
+              ...currentState,
+              draftFilters: filters,
+            }))
+          }
+          tourNumberOptions={tourNumberOptions}
+        />
+        <Button
+          disabled={status === 'loading'}
+          onClick={reload}
+          variant="outline"
+        >
+          <RefreshCw className={status === 'loading' ? 'animate-spin' : ''} />
+          Aktualisieren
+        </Button>
       </div>
-    </main>
+
+      {status === 'loading' ? (
+        <div className="rounded-lg border border-dashed bg-background p-10 text-center text-sm text-muted-foreground">
+          Touren werden geladen…
+        </div>
+      ) : null}
+
+      {status === 'error' ? (
+        <Alert className="border-red-300 bg-red-50">
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3 text-red-950">
+            <span>Die Touren konnten nicht geladen werden.</span>
+            <Button onClick={reload} size="sm" variant="outline">
+              Erneut versuchen
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {status === 'ready' && toursPage?.items.length === 0 ? (
+        <div className="rounded-lg border bg-background p-10 text-center text-sm text-muted-foreground">
+          {hasAppliedFilters
+            ? 'Keine Touren entsprechen den ausgewählten Filtern.'
+            : 'Keine Touren vorhanden.'}
+        </div>
+      ) : null}
+
+      {status === 'ready' && toursPage && toursPage.items.length > 0 ? (
+        <section aria-label="Touren" className="grid gap-3">
+          {toursPage.items.map((tour) => (
+            <TourItem
+              key={`${tour.tourNumber}-${tour.deliveryDate}`}
+              tour={tour}
+            />
+          ))}
+        </section>
+      ) : null}
+
+      {status === 'ready' && toursPage && totalPages > 0 ? (
+        <TourPagination
+          onPageChange={changePage}
+          page={page}
+          totalElements={toursPage.totalElements}
+          totalPages={totalPages}
+        />
+      ) : null}
+    </>
   )
 }
