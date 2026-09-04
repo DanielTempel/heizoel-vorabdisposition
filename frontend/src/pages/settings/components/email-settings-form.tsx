@@ -330,24 +330,26 @@ export function EmailSettingsForm({
         </FormField>
       </div>
 
-      {settings.updatedAt ? (
-        <p className="text-xs text-muted-foreground">
-          Zuletzt geändert: {formatUpdatedAt(settings.updatedAt)}
-        </p>
-      ) : null}
+      <div className="flex flex-wrap items-center gap-3 border-t pt-4">
+        {settings.updatedAt ? (
+          <p className="text-xs text-muted-foreground">
+            Zuletzt geändert: {formatUpdatedAt(settings.updatedAt)}
+          </p>
+        ) : null}
 
-      <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
-        <Button
-          disabled={isSaving}
-          onClick={resetForm}
-          type="button"
-          variant="outline"
-        >
-          Änderungen verwerfen
-        </Button>
-        <Button disabled={isSaving} type="submit">
-          {isSaving ? 'Wird gespeichert…' : 'Speichern'}
-        </Button>
+        <div className="ml-auto flex gap-2">
+          <Button
+            disabled={isSaving}
+            onClick={resetForm}
+            type="button"
+            variant="outline"
+          >
+            Änderungen verwerfen
+          </Button>
+          <Button disabled={isSaving} type="submit">
+            {isSaving ? 'Wird gespeichert…' : 'Speichern'}
+          </Button>
+        </div>
       </div>
 
       <SmtpDiagnostics
