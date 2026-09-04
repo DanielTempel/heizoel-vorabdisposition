@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { RefreshCw, Settings } from 'lucide-react'
+import { Moon, RefreshCw, Settings, Sun } from 'lucide-react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { getTourNumbers, getTours } from '@/api/dashboard-api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -15,6 +15,9 @@ type PageStatus = 'loading' | 'ready' | 'error'
 export function DashboardPage() {
   const { navigationState, setNavigationState } = useOutletContext<DashboardOutletContext>()
   const { page, draftFilters, appliedFilters } = navigationState
+  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
+    localStorage.getItem('dashboard-theme') === 'dark' ? 'dark' : 'light',
+  )
   const [reloadKey, setReloadKey] = useState(0)
   const [status, setStatus] = useState<PageStatus>('loading')
   const [toursPage, setToursPage] = useState<ToursPage | null>(null)
@@ -79,6 +82,14 @@ export function DashboardPage() {
     setReloadKey((currentKey) => currentKey + 1)
   }
 
+  function toggleTheme() {
+    const nextTheme = theme === 'light' ? 'dark' : 'light'
+
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark')
+    localStorage.setItem('dashboard-theme', nextTheme)
+    setTheme(nextTheme)
+  }
+
   function applyFilters(filters: DashboardFilters) {
     const nextFilters = {
       ...filters,
@@ -107,12 +118,31 @@ export function DashboardPage() {
         <h1 className="mt-1 text-3xl font-semibold">
           Avisierungsdashboard
         </h1>
-        <Button asChild variant="outline">
-          <Link to="/dashboard/settings">
-            <Settings />
-            Einstellungen
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            aria-label={
+              theme === 'light' ? 'Dunkelmodus aktivieren' : 'Hellmodus aktivieren'
+            }
+            onClick={toggleTheme}
+            size="icon-lg"
+            title={
+              theme === 'light' ? 'Dunkelmodus aktivieren' : 'Hellmodus aktivieren'
+            }
+            type="button"
+            variant="outline"
+          >
+            {theme === 'light' ? <Moon /> : <Sun />}
+          </Button>
+          <Button asChild size="icon-lg" variant="outline">
+            <Link
+              aria-label="Einstellungen öffnen"
+              title="Einstellungen öffnen"
+              to="/dashboard/settings"
+            >
+              <Settings />
+            </Link>
+          </Button>
+        </div>
       </header>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
