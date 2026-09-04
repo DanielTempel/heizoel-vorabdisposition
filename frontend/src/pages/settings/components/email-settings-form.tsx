@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, ChevronDown } from 'lucide-react'
 import { ApiError } from '@/api/dashboard-api'
 import {
   getEmailSettings,
@@ -10,6 +10,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SmtpDiagnostics } from './smtp-diagnostics'
 
 type EmailSettingsFormValues = {
   smtpHost: string
@@ -121,6 +122,13 @@ export function EmailSettingsForm({
   async function saveSettings(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
+    const smtpPort = Number(form.smtpPort)
+
+    if (!Number.isInteger(smtpPort) || smtpPort < 1 || smtpPort > 65535) {
+      setSaveError('Der SMTP-Port muss eine ganze Zahl zwischen 1 und 65535 sein.')
+      return
+    }
+
     if (
       form.authenticationEnabled &&
       form.password.trim() === '' &&
@@ -139,7 +147,7 @@ export function EmailSettingsForm({
     try {
       await updateEmailSettings({
         smtpHost: form.smtpHost.trim(),
-        smtpPort: Number(form.smtpPort),
+        smtpPort,
         securityMode: form.securityMode,
         authenticationEnabled: form.authenticationEnabled,
         username: form.authenticationEnabled ? form.username.trim() : null,
@@ -161,6 +169,9 @@ export function EmailSettingsForm({
       setIsSaving(false)
     }
   }
+
+  const isDirty =
+    JSON.stringify(form) !== JSON.stringify(createFormValues(settings))
 
   return (
     <form className="grid gap-6" onSubmit={saveSettings}>
@@ -195,34 +206,40 @@ export function EmailSettingsForm({
           <Input
             disabled={isSaving}
             id="smtp-port"
-            max={65535}
-            min={1}
+            inputMode="numeric"
+            maxLength={5}
             onChange={(event) => updateForm('smtpPort', event.target.value)}
+            pattern="[0-9]*"
             required
-            type="number"
             value={form.smtpPort}
           />
         </FormField>
 
         <FormField htmlFor="security-mode" label="Verschlüsselung">
-          <select
-            className="h-7 w-full rounded-md border border-input bg-input/20 px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:opacity-50 md:text-xs"
-            disabled={isSaving}
-            id="security-mode"
-            onChange={(event) =>
-              updateForm(
-                'securityMode',
-                event.target.value as SmtpSecurityMode,
-              )
-            }
-            value={form.securityMode}
-          >
-            {Object.entries(securityModeLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              className="h-7 w-full appearance-none rounded-md border border-input bg-input/20 py-0.5 pr-8 pl-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:opacity-50 md:text-xs"
+              disabled={isSaving}
+              id="security-mode"
+              onChange={(event) =>
+                updateForm(
+                  'securityMode',
+                  event.target.value as SmtpSecurityMode,
+                )
+              }
+              value={form.securityMode}
+            >
+              {Object.entries(securityModeLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-muted-foreground"
+            />
+          </div>
         </FormField>
 
         <div className="flex items-center gap-2 self-end pb-1">
@@ -244,42 +261,46 @@ export function EmailSettingsForm({
           </label>
         </div>
 
-        <FormField htmlFor="smtp-username" label="Benutzername">
-          <Input
-            disabled={isSaving || !form.authenticationEnabled}
-            id="smtp-username"
-            maxLength={320}
-            onChange={(event) => updateForm('username', event.target.value)}
-            required={form.authenticationEnabled}
-            value={form.username}
-          />
-        </FormField>
+        {form.authenticationEnabled ? (
+          <>
+            <FormField htmlFor="smtp-username" label="Benutzername">
+              <Input
+                disabled={isSaving}
+                id="smtp-username"
+                maxLength={320}
+                onChange={(event) => updateForm('username', event.target.value)}
+                required
+                value={form.username}
+              />
+            </FormField>
 
-        <FormField
-          description={
-            settings.passwordConfigured
-              ? 'Leer lassen, um das gespeicherte Passwort beizubehalten.'
-              : undefined
-          }
-          htmlFor="smtp-password"
-          label="Passwort"
-        >
-          <Input
-            autoComplete="new-password"
-            disabled={isSaving || !form.authenticationEnabled}
-            id="smtp-password"
-            maxLength={1000}
-            onChange={(event) => updateForm('password', event.target.value)}
-            placeholder={
-              settings.passwordConfigured ? 'Gespeichertes Passwort' : undefined
-            }
-            required={
-              form.authenticationEnabled && !settings.passwordConfigured
-            }
-            type="password"
-            value={form.password}
-          />
-        </FormField>
+            <FormField
+              description={
+                settings.passwordConfigured
+                  ? 'Leer lassen, um das gespeicherte Passwort beizubehalten.'
+                  : undefined
+              }
+              htmlFor="smtp-password"
+              label="Passwort"
+            >
+              <Input
+                autoComplete="new-password"
+                disabled={isSaving}
+                id="smtp-password"
+                maxLength={1000}
+                onChange={(event) => updateForm('password', event.target.value)}
+                placeholder={
+                  settings.passwordConfigured
+                    ? 'Gespeichertes Passwort'
+                    : undefined
+                }
+                required={!settings.passwordConfigured}
+                type="password"
+                value={form.password}
+              />
+            </FormField>
+          </>
+        ) : null}
 
         <FormField htmlFor="from-address" label="Absenderadresse">
           <Input
@@ -324,6 +345,13 @@ export function EmailSettingsForm({
           {isSaving ? 'Wird gespeichert…' : 'Speichern'}
         </Button>
       </div>
+
+      <SmtpDiagnostics
+        configured={settings.configured}
+        hasUnsavedChanges={isDirty}
+        isSaving={isSaving}
+        recipient={settings.fromAddress}
+      />
     </form>
   )
 }

@@ -82,3 +82,33 @@ export async function updateEmailSettings(
     throw await createSettingsApiError(response)
   }
 }
+
+async function runEmailSettingsAction(
+  action: 'test-connection' | 'test-message',
+  signal?: AbortSignal,
+): Promise<void> {
+  const csrfToken = await getCsrfToken(signal)
+  const response = await fetch(
+    `${apiBaseUrl}/api/dashboard/settings/email/${action}`,
+    {
+      method: 'POST',
+      headers: {
+        [csrfToken.headerName]: csrfToken.token,
+      },
+      credentials: 'include',
+      signal,
+    },
+  )
+
+  if (!response.ok) {
+    throw await createSettingsApiError(response)
+  }
+}
+
+export function testEmailConnection(signal?: AbortSignal): Promise<void> {
+  return runEmailSettingsAction('test-connection', signal)
+}
+
+export function sendTestEmail(signal?: AbortSignal): Promise<void> {
+  return runEmailSettingsAction('test-message', signal)
+}
