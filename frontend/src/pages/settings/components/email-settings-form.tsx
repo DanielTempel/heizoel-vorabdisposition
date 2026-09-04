@@ -230,7 +230,11 @@ export function EmailSettingsForm({
               value={form.securityMode}
             >
               {Object.entries(securityModeLabels).map(([value, label]) => (
-                <option key={value} value={value}>
+                <option
+                  className="bg-popover text-popover-foreground"
+                  key={value}
+                  value={value}
+                >
                   {label}
                 </option>
               ))}
