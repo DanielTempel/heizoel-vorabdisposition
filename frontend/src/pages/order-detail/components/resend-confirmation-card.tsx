@@ -29,33 +29,8 @@ const channelOptions: Array<{
   { value: 'WHATSAPP', label: 'WhatsApp' },
 ]
 
-function hasValue(value: string | null) {
-  return value !== null && value.trim() !== ''
-}
-
-function isChannelAvailable(
-  channel: CommunicationChannel,
-  detail: OrderDetail,
-) {
-  if (channel === 'EMAIL') {
-    return hasValue(detail.order.customerEmail)
-  }
-
-  return hasValue(detail.order.customerPhoneNumber)
-}
-
 function getInitialChannel(detail: OrderDetail): CommunicationChannel {
-  const currentChannel = detail.currentRequest?.communicationChannel
-
-  if (currentChannel && isChannelAvailable(currentChannel, detail)) {
-    return currentChannel
-  }
-
-  return (
-    channelOptions.find((option) =>
-      isChannelAvailable(option.value, detail),
-    )?.value ?? 'EMAIL'
-  )
+  return detail.currentRequest?.communicationChannel ?? 'EMAIL'
 }
 
 function formatDate(value: string) {
@@ -112,11 +87,9 @@ export function ResendConfirmationCard({
   const requestStatus = detail.currentRequest?.status
   const isResendAllowed =
     requestStatus === 'NO_RESPONSE' || requestStatus === 'FAILED'
-  const selectedChannelAvailable = isChannelAvailable(channel, detail)
   const canSubmit =
     hasCurrentRequest &&
     isResendAllowed &&
-    selectedChannelAvailable &&
     isDeadlineValid &&
     !isSubmitting
 
@@ -177,33 +150,18 @@ export function ResendConfirmationCard({
                 Kommunikationskanal
               </legend>
               <div className="grid grid-cols-3 gap-2">
-                {channelOptions.map((option) => {
-                  const available = isChannelAvailable(option.value, detail)
-
-                  return (
-                    <Button
-                      aria-pressed={channel === option.value}
-                      disabled={!available}
-                      key={option.value}
-                      onClick={() => setChannel(option.value)}
-                      type="button"
-                      variant={channel === option.value ? 'default' : 'outline'}
-                    >
-                      {option.label}
-                    </Button>
-                  )
-                })}
+                {channelOptions.map((option) => (
+                  <Button
+                    aria-pressed={channel === option.value}
+                    key={option.value}
+                    onClick={() => setChannel(option.value)}
+                    type="button"
+                    variant={channel === option.value ? 'default' : 'outline'}
+                  >
+                    {option.label}
+                  </Button>
+                ))}
               </div>
-              {!hasValue(detail.order.customerEmail) ? (
-                <p className="text-xs text-muted-foreground">
-                  Keine E-Mail-Adresse hinterlegt.
-                </p>
-              ) : null}
-              {!hasValue(detail.order.customerPhoneNumber) ? (
-                <p className="text-xs text-muted-foreground">
-                  Keine Telefonnummer hinterlegt.
-                </p>
-              ) : null}
             </fieldset>
 
             <div className="grid gap-1.5">
