@@ -66,20 +66,29 @@ SECRET_ENCRYPTION_MASTER_KEY=<Base64-encoded 32-byte key>
 
 See [Configuration](docs/configuration.md#secret-encryption) for key generation and the optional Twilio variables used for SMS and WhatsApp delivery.
 
-Build and start the complete local stack, including the backend:
+For the Dispo demo button, also set `DEV_API_KEY` in this `.env` to the existing
+API key of the company to present. Compose passes it to the frontend's Vite
+server at runtime; it does not create or change a company credential.
+
+Build and start the complete local stack, including the backend and frontend:
 
 ```bash
 docker compose up -d --build
 docker compose ps
 ```
 
-Compose starts the backend with the `dev` profile. The application is then available at `http://localhost:8080`.
+Compose starts the backend with the `dev` profile at `http://localhost:8080`.
+Open `http://localhost:3000/dispo` for the presentation and use the dashboard
+button after the backend has finished starting. A separate `npm run dev` is no
+longer needed. Stop any existing local frontend first to free port 3000.
+See the [frontend README](../frontend/README.md) for standalone frontend development.
 
 ## Local Services
 
 | Service | URL / Port | Purpose |
 | --- | --- | --- |
 | Backend | `http://localhost:8080` | Spring Boot application, built and started by Compose |
+| Frontend | `http://localhost:3000/dispo` | Dispo presentation and dashboard, served by Vite in Compose |
 | PostgreSQL | `localhost:5432` | Application database |
 | Mailpit SMTP | `localhost:1025` | Local SMTP endpoint |
 | Mailpit Web UI | `http://localhost:8025` | Inspect outgoing local e-mail |

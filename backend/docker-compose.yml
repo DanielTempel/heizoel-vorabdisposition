@@ -1,6 +1,21 @@
 name: heizoel-vorabdisposition
 
 services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: heizoel-frontend
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      DEV_API_KEY: ${DEV_API_KEY:-}
+      DISPO_BACKEND_URL: http://backend:8080
+      VITE_API_BASE_URL: http://localhost:8080
+    depends_on:
+      backend:
+        condition: service_started
+
   postgres:
     image: postgres:16
     container_name: heizoel-postgres

@@ -5,11 +5,14 @@ import { DashboardPage } from '@/pages/dashboard/page'
 import { LoginPage } from '@/pages/login/page'
 import { OrderDetailPage } from '@/pages/order-detail/page'
 import { SettingsPage } from '@/pages/settings/page'
+import { DispoPage } from '@/pages/dispo/page'
 
 export function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {import.meta.env.DEV && <Route path="/" element={<Navigate to="/dispo" replace />} />}
+        {import.meta.env.DEV && <Route path="/dispo" element={<DispoPage />} />}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/confirmation/:token" element={<ConfirmationPage />} />
 
