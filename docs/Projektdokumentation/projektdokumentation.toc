@@ -85,18 +85,25 @@
 \contentsline {subsubsection}{\numberline {7.2.5}Workflow-, Wiederholungs- und Nebenläufigkeitsszenarien}{11}{subsubsection.7.2.5}%
 \contentsline {subsubsection}{\numberline {7.2.6}Ausgehende Schnittstellen und Rückkanäle}{11}{subsubsection.7.2.6}%
 \contentsline {subsection}{\numberline {7.3}End-to-End-Tests}{11}{subsection.7.3}%
-\contentsline {subsection}{\numberline {7.4}Testfälle}{11}{subsection.7.4}%
-\contentsline {section}{\numberline {8}Projektmanagement und Projektreflexion}{11}{section.8}%
-\contentsline {subsection}{\numberline {8.1}Projektmanagement}{11}{subsection.8.1}%
-\contentsline {subsubsection}{\numberline {8.1.1}Projektphasen}{11}{subsubsection.8.1.1}%
-\contentsline {subsubsection}{\numberline {8.1.2}Projektplan}{12}{subsubsection.8.1.2}%
-\contentsline {subsubsection}{\numberline {8.1.3}Projektaufwand}{12}{subsubsection.8.1.3}%
-\contentsline {subsection}{\numberline {8.2}Projektreflexion}{13}{subsection.8.2}%
-\contentsline {subsubsection}{\numberline {8.2.1}Herausforderungen}{13}{subsubsection.8.2.1}%
-\contentsline {subsubsection}{\numberline {8.2.2}Lessons Learned}{13}{subsubsection.8.2.2}%
-\contentsline {section}{\numberline {9}Projektrgebnisse}{13}{section.9}%
-\contentsline {subsection}{\numberline {9.1}Gesamtergebnis}{13}{subsection.9.1}%
-\contentsline {subsection}{\numberline {9.2}Grenzen des Projektergebnisses}{14}{subsection.9.2}%
-\contentsline {subsection}{\numberline {9.3}Fazit und Ausblick}{14}{subsection.9.3}%
-\contentsline {section}{\numberline {10}Nutzung von Künstlicher Intelligenz}{14}{section.10}%
-\contentsline {section}{\numberline {11}Verwendete Hilfsmittel}{14}{section.11}%
+\contentsline {subsubsection}{\numberline {7.3.1}Einordnung der Szenariogruppen}{11}{subsubsection.7.3.1}%
+\contentsline {subsubsection}{\numberline {7.3.2}Versand und Bereitstellung der Anfrage}{12}{subsubsection.7.3.2}%
+\contentsline {subsubsection}{\numberline {7.3.3}Kundenzugriff und Anzeige der Lieferdaten}{12}{subsubsection.7.3.3}%
+\contentsline {subsubsection}{\numberline {7.3.4}Kundenreaktion und Statusänderung}{12}{subsubsection.7.3.4}%
+\contentsline {subsubsection}{\numberline {7.3.5}Tracking und lieferbezogene Transparenz}{13}{subsubsection.7.3.5}%
+\contentsline {subsubsection}{\numberline {7.3.6}Problemfälle und Fehlerbehandlung}{13}{subsubsection.7.3.6}%
+\contentsline {subsubsection}{\numberline {7.3.7}Disposition und erneute Avisierung}{13}{subsubsection.7.3.7}%
+\contentsline {subsubsection}{\numberline {7.3.8}Bewertung der End-to-End-Testabdeckung}{14}{subsubsection.7.3.8}%
+\contentsline {section}{\numberline {8}Projektmanagement und Projektreflexion}{14}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Projektmanagement}{14}{subsection.8.1}%
+\contentsline {subsubsection}{\numberline {8.1.1}Projektphasen}{14}{subsubsection.8.1.1}%
+\contentsline {subsubsection}{\numberline {8.1.2}Projektplan}{14}{subsubsection.8.1.2}%
+\contentsline {subsubsection}{\numberline {8.1.3}Projektaufwand}{15}{subsubsection.8.1.3}%
+\contentsline {subsection}{\numberline {8.2}Projektreflexion}{15}{subsection.8.2}%
+\contentsline {subsubsection}{\numberline {8.2.1}Herausforderungen}{15}{subsubsection.8.2.1}%
+\contentsline {subsubsection}{\numberline {8.2.2}Lessons Learned}{16}{subsubsection.8.2.2}%
+\contentsline {section}{\numberline {9}Projektrgebnisse}{16}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Gesamtergebnis}{16}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Grenzen des Projektergebnisses}{16}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Fazit und Ausblick}{16}{subsection.9.3}%
+\contentsline {section}{\numberline {10}Nutzung von Künstlicher Intelligenz}{16}{section.10}%
+\contentsline {section}{\numberline {11}Verwendete Hilfsmittel}{16}{section.11}%
