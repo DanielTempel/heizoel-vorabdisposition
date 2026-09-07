@@ -99,4 +99,86 @@ test.describe('Dashboard order detail', () => {
       )
     },
   )
+
+  test(
+    'does not allow resend for an ineligible confirmation status',
+    async ({ page }) => {
+      await page.goto(
+        '/dashboard/orders/DEMO-TODAY-001',
+      )
+
+      await expect(
+        page.locator(
+          'section[aria-labelledby="current-request-title"]',
+        ),
+      ).toContainText('Termin bestätigt')
+
+      await expect(
+        page.getByRole('button', {
+          name: 'Erneut senden',
+        }),
+      ).toBeDisabled()
+    },
+  )
+
+  test(
+    'allows selecting a communication channel for an eligible resend',
+    async ({ page }) => {
+      await page.goto(
+        '/dashboard/orders/DEMO-TOMORROW-004',
+      )
+
+      await expect(
+        page.locator(
+          'section[aria-labelledby="current-request-title"]',
+        ),
+      ).toContainText('Keine Rückmeldung')
+
+      const emailButton = page.getByRole('button', {
+        name: 'E-Mail',
+        exact: true,
+      })
+      const smsButton = page.getByRole('button', {
+        name: 'SMS',
+        exact: true,
+      })
+      const whatsappButton = page.getByRole('button', {
+        name: 'WhatsApp',
+        exact: true,
+      })
+      const resendButton = page.getByRole('button', {
+        name: 'Erneut senden',
+      })
+
+      await expect(emailButton).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      )
+      await expect(resendButton).toBeEnabled()
+
+      await smsButton.click()
+
+      await expect(smsButton).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      )
+      await expect(emailButton).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      )
+      await expect(resendButton).toBeEnabled()
+
+      await whatsappButton.click()
+
+      await expect(whatsappButton).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      )
+      await expect(smsButton).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      )
+      await expect(resendButton).toBeEnabled()
+    },
+  )
 })

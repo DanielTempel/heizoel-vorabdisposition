@@ -11,23 +11,59 @@ type ConfirmationRequestOptions = {
 function createFutureDeliveryWindow(
   deliveryDateOffsetDays: number,
 ) {
-  const start = new Date(Date.now() + 60 * 60 * 1_000)
-  start.setDate(
-    start.getDate() + deliveryDateOffsetDays,
-  )
-  start.setMinutes(0, 0, 0)
-
-  const end = new Date(start.getTime() + 60 * 60 * 1_000)
   const pad = (value: number) => String(value).padStart(2, '0')
-  const formatDate = (value: Date) =>
-    `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`
-  const formatTime = (value: Date) =>
-    `${pad(value.getHours())}:${pad(value.getMinutes())}`
+  const now = new Date()
+  const berlinParts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Europe/Berlin',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      hourCycle: 'h23',
+    })
+      .formatToParts(now)
+      .map((part) => [part.type, part.value]),
+  )
+  const currentHour = Number(berlinParts.hour)
+  let effectiveDateOffsetDays = deliveryDateOffsetDays
+  let deliveryWindowStart: string
+  let deliveryWindowEnd: string
+
+  if (deliveryDateOffsetDays > 0) {
+    deliveryWindowStart = '10:00'
+    deliveryWindowEnd = '11:00'
+  } else if (currentHour < 22) {
+    deliveryWindowStart = `${pad(currentHour + 1)}:00`
+    deliveryWindowEnd = `${pad(currentHour + 2)}:00`
+  } else if (currentHour === 22) {
+    deliveryWindowStart = '23:00'
+    deliveryWindowEnd = '23:59'
+  } else {
+    effectiveDateOffsetDays = 1
+    deliveryWindowStart = '00:30'
+    deliveryWindowEnd = '01:30'
+  }
+
+  const deliveryDate = new Date(
+    Date.UTC(
+      Number(berlinParts.year),
+      Number(berlinParts.month) - 1,
+      Number(berlinParts.day),
+    ),
+  )
+  deliveryDate.setUTCDate(
+    deliveryDate.getUTCDate() +
+      effectiveDateOffsetDays,
+  )
 
   return {
-    deliveryDate: formatDate(start),
-    deliveryWindowStart: formatTime(start),
-    deliveryWindowEnd: formatTime(end),
+    deliveryDate:
+      `${deliveryDate.getUTCFullYear()}-` +
+      `${pad(deliveryDate.getUTCMonth() + 1)}-` +
+      pad(deliveryDate.getUTCDate()),
+    deliveryWindowStart,
+    deliveryWindowEnd,
   }
 }
 

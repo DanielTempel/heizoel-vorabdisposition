@@ -152,4 +152,46 @@ test.describe('Dashboard overview', () => {
       ).toBeVisible()
     },
   )
+
+  test(
+    'navigates between dashboard result pages',
+    async ({ page }) => {
+      const secondPageLink = page.getByRole('link', {
+        name: 'Seite 2',
+      })
+
+      await expect(secondPageLink).toBeVisible()
+
+      const secondPageResponsePromise =
+        page.waitForResponse((response) => {
+          const url = new URL(response.url())
+
+          return (
+            url.pathname === '/api/dashboard/tours' &&
+            url.searchParams.get('page') === '1' &&
+            response.ok()
+          )
+        })
+
+      await secondPageLink.click()
+
+      const secondPageResponse =
+        await secondPageResponsePromise
+      const secondPage =
+        (await secondPageResponse.json()) as {
+          page: number
+          items: unknown[]
+        }
+
+      expect(secondPage.page).toBe(1)
+      expect(secondPage.items.length).toBeGreaterThan(0)
+      await expect(secondPageLink).toHaveAttribute(
+        'aria-current',
+        'page',
+      )
+      expect(
+        await getTourToggles(page).count(),
+      ).toBeGreaterThan(0)
+    },
+  )
 })
