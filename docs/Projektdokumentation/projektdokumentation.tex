@@ -499,26 +499,183 @@ Status besonders wahrscheinlich sind.
 
 \subsection{End-to-End-Tests}
 
-\subsection{Testfälle}
+Die End-to-End-Tests prüfen die für Kunden sichtbaren
+Kernabläufe über Frontend, Backend, E-Mail-Versand und DISPO-
+Rückmeldung hinweg. Sie werden mit Playwright im Chromium-Browser
+ausgeführt und befinden sich im Verzeichnis
+\texttt{frontend/e2e}.
 
-\begin{longtable}{p{5cm}p{4cm}p{3cm}}
-\toprule
-Testfall & Erwartetes Ergebnis & Status \\
-\midrule
-Bestätigung eines Lieferfensters &
-Status = Bestätigt &
-Erfolgreich \\
-\midrule
-Ablehnung eines Lieferfensters &
-Status = Abgelehnt &
-Erfolgreich \\
-\midrule
-Keine Rückmeldung &
-Hinweis erscheint &
-Erfolgreich \\
-\bottomrule
-\end{longtable}
+\subsubsection{Einordnung der Szenariogruppen}
 
+Die Teststruktur orientiert sich an fachlichen Benutzerabläufen
+und nicht an einzelnen Komponenten. Dadurch bleiben die Tests
+nah am tatsächlichen Nutzungsszenario und können leichter
+gewartet werden.
+
+Die Tests zur Kundenrückbestätigung befinden sich im Verzeichnis
+\texttt{frontend/e2e/confirmation}. Dort sind die Szenarien auf
+zwei Spec-Dateien verteilt:
+
+\begin{itemize}
+    \item \texttt{confirmation.spec.ts} enthält die zentralen
+    Kundenabläufe. Dazu gehören die Anzeige der Lieferdaten,
+    die Bestätigung und Ablehnung eines Termins, das erneute
+    Öffnen eines bereits verwendeten Links, ungültige Links,
+    Fehler beim Absenden einer Rückmeldung sowie die Information,
+    dass Tracking vor dem Liefertag noch nicht verfügbar ist.
+
+    \item \texttt{confirmation-email.spec.ts} prüft die
+    Bereitstellung der Bestätigungs-E-Mail. Dabei wird kontrolliert,
+    ob die E-Mail die relevanten Lieferinformationen und den
+    personalisierten Bestätigungslink enthält.
+\end{itemize}
+
+Die Tests zur Lieferverfolgung befinden sich im Verzeichnis
+\texttt{frontend/e2e/tracking}. Die Datei
+\texttt{tracking.spec.ts} deckt die Anzeige der Tracking-Karte,
+die Darstellung von Fahrzeug und Zieladresse sowie die
+Aktualisierung der Fahrerposition ab.
+
+Wiederverwendbare technische Abläufe befinden sich im Verzeichnis
+\texttt{frontend/e2e/helpers}. Diese Hilfsfunktionen reduzieren
+Duplikate, ohne den fachlichen Ablauf in den Spec-Dateien zu
+verbergen:
+
+\begin{itemize}
+    \item \texttt{confirmation-request.ts} erzeugt eindeutige
+    Testaufträge und stellt wiederverwendbare Lieferdaten bereit.
+
+    \item \texttt{confirmation-flow.ts} fasst die wiederkehrenden
+    Schritte zum Erzeugen einer Anfrage, zum Warten auf den
+    Bestätigungslink und zum Öffnen der Kundenseite zusammen.
+
+    \item \texttt{mailpit.ts} wartet auf die für einen Testkunden
+    bestimmte E-Mail und liest bei Bedarf deren Inhalt aus.
+
+    \item \texttt{dispo-mock.ts} prüft, ob die erwartete
+    Statusrückmeldung, beispielsweise \texttt{CONFIRMED} oder
+    \texttt{REJECTED}, beim DISPO-Mock eingegangen ist.
+
+    \item \texttt{confirmed-tracking-page.ts} bereitet einen
+    bestätigten Auftrag für Tracking-Szenarien vor.
+
+    \item \texttt{services.ts} prüft vor jedem Test die
+    Erreichbarkeit von Backend, Mailpit und DISPO-Mock.
+\end{itemize}
+
+Die Spec-Dateien beschreiben die fachlichen Abläufe aus Sicht
+der Kunden. Wiederverwendbare Hilfsfunktionen übernehmen
+technische Schritte, beispielsweise das Anlegen von Testdaten
+oder das Auslesen einer E-Mail.
+
+\subsubsection{Versand und Bereitstellung der Anfrage}
+
+Ein zentraler Testfall erzeugt eine Rückbestätigungsanfrage für
+einen eindeutigen Testauftrag. Anschließend wird geprüft, ob die
+zugehörige E-Mail in Mailpit eingeht. Der Inhalt der E-Mail muss
+die wesentlichen Lieferinformationen enthalten: Kundenname,
+Lieferadresse, Produkt, Menge, Lieferzeitfenster, Preis sowie
+den personalisierten Bestätigungslink.
+
+Damit wird der Übergang von der Übernahme eines Avisierungsauftrags
+bis zur für den Kunden erreichbaren Anfrage abgedeckt. Der Test
+prüft bewusst nicht die interne Generierung des E-Mail-Templates
+oder die technische SMTP-Konfiguration im Detail, sondern deren
+sichtbares Ergebnis.
+
+\subsubsection{Kundenzugriff und Anzeige der Lieferdaten}
+
+Nach dem Öffnen des Links wird geprüft, ob die Bestätigungsseite
+die für die Entscheidung erforderlichen Informationen anzeigt.
+Dazu gehören insbesondere Kundenname, Lieferadresse, Produkt,
+Bestellmenge, Preis sowie Beginn und Ende des Lieferzeitfensters.
+
+Zusätzlich wird ein ungültiger Link getestet. In diesem Fall darf
+keine Bestätigungsaktion möglich sein; stattdessen muss eine für
+den Kunden verständliche Fehlermeldung angezeigt werden. Für
+bereits verwendete Links wird der bereits erreichte Abschlussstatus
+angezeigt.
+
+\subsubsection{Kundenreaktion und Statusänderung}
+
+Die beiden fachlich wichtigsten Kundenreaktionen werden als
+separate E2E-Szenarien geprüft. Der Kunde kann einen Liefertermin
+bestätigen oder ablehnen. Nach der Aktion muss eine sichtbare
+Erfolgsmeldung erscheinen.
+
+Beim Bestätigen wird zusätzlich geprüft, ob der Status
+\texttt{CONFIRMED} an den DISPO-Mock übermittelt wird. Beim
+Ablehnen wird entsprechend die Rückmeldung \texttt{REJECTED}
+erwartet. Dadurch wird nicht nur die Anzeige im Frontend,
+sondern auch die relevante externe Systemwirkung der
+Kundenentscheidung überprüft.
+
+Für einen Fehler beim Absenden der Kundenreaktion existiert
+ebenfalls ein Testfall. Die Anwendung zeigt dabei eine konkrete
+Fehlermeldung an und lässt eine erneute Eingabe zu. Damit wird
+vermieden, dass ein technischer Übertragungsfehler fälschlich als
+ungültiger Bestätigungslink dargestellt wird.
+
+\subsubsection{Tracking und lieferbezogene Transparenz}
+
+Für bestätigte Lieferungen am Liefertag wird geprüft, ob die
+Live-Tracking-Ansicht verfügbar ist. Der Test erwartet eine
+sichtbare Karte, eine Fahrzeugposition und eine Zielmarkierung
+an der Lieferadresse. Außerdem wird geprüft, ob die Zieladresse
+als für den Kunden verständlicher Text angezeigt wird.
+
+Ein weiterer Test prüft die Aktualisierung der Fahrerposition über
+die Schaltfläche \glqq Aktualisieren\grqq. Nach der Aktualisierung
+bleiben Karte und Markierungen sichtbar; der angezeigte
+Lieferstatus wird aktualisiert.
+
+Für bestätigte Lieferungen vor dem Liefertag wird dagegen keine
+Karte erwartet. Die Anwendung informiert den Kunden stattdessen
+darüber, dass Tracking-Informationen erst am Liefertag verfügbar
+sind.
+
+\subsubsection{Problemfälle und Fehlerbehandlung}
+
+Die E2E-Tests decken derzeit ungültige Links, bereits verwendete
+Links sowie Fehler beim Absenden einer Kundenreaktion ab. Diese
+Fälle sind besonders relevant, da sie direkt in der Kundenansicht
+sichtbar werden und eine klare Benutzerführung erfordern.
+
+Ein eigener Test für tatsächlich abgelaufene Links ist derzeit
+noch nicht enthalten. Die Anwendung stellt diesen Zustand als
+abgelaufene Anfrage dar, jedoch fehlt in der Testumgebung eine
+kontrollierbare Zeitquelle oder ein geeigneter Test-Endpunkt, um
+einen zuvor gültigen Link reproduzierbar ablaufen zu lassen.
+Dieser Testfall sollte ergänzt werden, sobald eine solche
+Testmöglichkeit vorhanden ist.
+
+Auch ein sichtbarer Fehler beim Aktualisieren der Trackingdaten
+wird derzeit nicht getestet, da die Anwendung diesen Fehler
+bewusst ohne Benutzerhinweis behandelt und die bestehende Karte
+beibehält.
+
+\subsubsection{Disposition und erneute Avisierung}
+
+Für die Disposition ist im Backend ein geschützter Dashboard-Zugang
+mit Tourübersicht, Auftragsdetails und erneuter Avisierung
+vorgesehen. Die aktuelle Frontend-Implementierung verwendet
+jedoch noch nicht die tatsächlich vorhandenen Dashboard-Endpunkte
+und implementiert den erforderlichen Zugangscode- und
+Sitzungsaufbau nicht vollständig.
+
+Aus diesem Grund wurden für das Dashboard noch keine belastbaren
+Playwright-End-to-End-Tests als erfolgreich bewertete Testfälle
+aufgenommen. Tests würden derzeit lediglich Mock-Verhalten oder
+einen Ladefehler prüfen, nicht aber einen realen Dispatcher-Ablauf.
+
+Nach Abschluss der Frontend-Backend-Integration sollten mindestens
+folgende Dispatcher-Szenarien ergänzt werden: Zugang über einen
+Dashboard-Link, Anzeige von Touren und Aufträgen, Öffnen eines
+Auftrags mit Avisierungshistorie sowie erneutes Versenden einer
+Rückbestätigungsanfrage. Als besonders wichtiger
+systemübergreifender Test sollte anschließend geprüft werden,
+dass die erneute Avisierung einen neuen nutzbaren Kundenlink
+erzeugt.
 
 % =================================================
 % 8 PROJEKTMANAGEMENT
