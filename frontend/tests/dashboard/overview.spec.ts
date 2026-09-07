@@ -19,6 +19,36 @@ function getTourToggle(
     .filter({ hasText: tourNumber })
 }
 
+async function expectSingleOrderSearchResult(
+  page: Page,
+  searchTerm: string,
+) {
+  const searchInput = page.getByPlaceholder(
+    'Auftrag, Kunde oder Adresse',
+  )
+
+  await searchInput.fill(searchTerm)
+  await searchInput.press('Enter')
+
+  const tourToggle = getTourToggle(page, 'T-ALPHA')
+
+  await expect(tourToggle).toBeVisible()
+  await expect(getTourToggles(page)).toHaveCount(1)
+
+  await tourToggle.click()
+
+  await expect(
+    page.getByRole('row').filter({
+      hasText: 'DEMO-ALPHA-002',
+    }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('row').filter({
+      hasText: 'DEMO-ALPHA-001',
+    }),
+  ).toHaveCount(0)
+}
+
 test.describe('Dashboard overview', () => {
   test.beforeEach(async ({ page, request }) => {
     await openDashboard(page, request)
@@ -51,37 +81,23 @@ test.describe('Dashboard overview', () => {
     },
   )
 
-  test(
-    'filters orders by customer, order number, or address',
-    async ({ page }) => {
-      const searchInput = page.getByPlaceholder(
-        'Auftrag, Kunde oder Adresse',
-      )
+  test('filters orders by customer name', async ({ page }) => {
+    await expectSingleOrderSearchResult(
+      page,
+      'Spezialadresse Suche',
+    )
+  })
 
-      await searchInput.fill('Spezialadresse Suche')
-      await searchInput.press('Enter')
+  test('filters orders by order number', async ({ page }) => {
+    await expectSingleOrderSearchResult(
+      page,
+      'DEMO-ALPHA-002',
+    )
+  })
 
-      const tourToggle = getTourToggle(page, 'T-ALPHA')
-
-      await expect(tourToggle).toBeVisible()
-      await expect(
-        getTourToggles(page),
-      ).toHaveCount(1)
-
-      await tourToggle.click()
-
-      await expect(
-        page.getByRole('row').filter({
-          hasText: 'DEMO-ALPHA-002',
-        }),
-      ).toBeVisible()
-      await expect(
-        page.getByRole('row').filter({
-          hasText: 'DEMO-ALPHA-001',
-        }),
-      ).toHaveCount(0)
-    },
-  )
+  test('filters orders by delivery address', async ({ page }) => {
+    await expectSingleOrderSearchResult(page, 'Am Hafen 77')
+  })
 
   test(
     'filters tours by confirmation status and tour number',
