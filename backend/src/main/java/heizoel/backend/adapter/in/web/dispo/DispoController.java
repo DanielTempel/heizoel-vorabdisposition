@@ -10,6 +10,7 @@ import heizoel.backend.application.port.in.confirmation.CreateConfirmationReques
 import heizoel.backend.domain.ConfirmationStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/dispo")
 @RequiredArgsConstructor
+@Slf4j
 public class DispoController {
 
     private final CreateConfirmationRequestUseCase createConfirmationRequestUseCase;
@@ -28,6 +30,15 @@ public class DispoController {
             @AuthenticationPrincipal CompanyContext companyContext,
             @Valid @RequestBody DispoConfirmationRequestDto request
     ) {
+        log.info(
+                "Started createConfirmationRequest: companyId={}, externalOrderId={}, tourNumber={}, communicationChannel={}, deliveryDate={}, responseDeadlineHours={}",
+                companyContext.companyId(),
+                request.externalOrderId(),
+                request.tourNumber(),
+                request.communicationChannel(),
+                request.deliveryDate(),
+                request.responseDeadlineHours()
+        );
         CreateConfirmationRequestCommand command = new CreateConfirmationRequestCommand(
                 companyContext,
                 request.externalOrderId(),
@@ -60,6 +71,13 @@ public class DispoController {
                 result.confirmationStatus()
         );
 
+        log.info(
+                "Completed createConfirmationRequest: companyId={}, externalOrderId={}, confirmationStatus={}, status={}",
+                companyContext.companyId(),
+                result.externalOrderId(),
+                result.confirmationStatus(),
+                status.value()
+        );
         return ResponseEntity.status(status).body(response);
     }
 
@@ -67,9 +85,19 @@ public class DispoController {
     public String createDashboardAccess(
             @AuthenticationPrincipal CompanyContext companyContext
     ) {
-        return dashboardAccessService.createRedirectUrl(
+        log.info(
+                "Started createDashboardAccess: companyId={}",
                 companyContext.companyId()
         );
+        String redirectUrl = dashboardAccessService.createRedirectUrl(
+                companyContext.companyId()
+        );
+
+        log.info(
+                "Completed createDashboardAccess: companyId={}, status=200",
+                companyContext.companyId()
+        );
+        return redirectUrl;
     }
 
 

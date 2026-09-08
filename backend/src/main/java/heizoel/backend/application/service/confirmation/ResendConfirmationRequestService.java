@@ -14,12 +14,14 @@ import heizoel.backend.domain.ConfirmationStatus;
 import heizoel.backend.domain.Order;
 import heizoel.backend.domain.exception.MissingDigitalContactException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ResendConfirmationRequestService implements ResendConfirmationRequestUseCase {
@@ -39,20 +41,30 @@ public class ResendConfirmationRequestService implements ResendConfirmationReque
                         command.companyContext().companyId(),
                         command.externalOrderId()
                 )
-                .orElseThrow(() ->
-                        new OrderNotFoundException(
+                .orElseThrow(() -> {
+                    log.warn(
+                            "Rejecting confirmation resend: reason=ORDER_NOT_FOUND, companyId={}, externalOrderId={}",
+                            command.companyContext().companyId(),
+                            command.externalOrderId()
+                    );
+                    return new OrderNotFoundException(
                                 "Order was not found."
-                        )
-                );
+                    );
+                });
 
         ConfirmationRequest previousRequest =
                 confirmationRequestRepository
                         .findTopByOrderOrderByIdDesc(order)
-                        .orElseThrow(() ->
-                                new ConfirmationRequestNotFoundException(
+                        .orElseThrow(() -> {
+                            log.warn(
+                                    "Rejecting confirmation resend: reason=CONFIRMATION_REQUEST_NOT_FOUND, companyId={}, externalOrderId={}",
+                                    command.companyContext().companyId(),
+                                    command.externalOrderId()
+                            );
+                            return new ConfirmationRequestNotFoundException(
                                         "Confirmation request was not found."
-                                )
-                        );
+                            );
+                        });
 
         validateResendAllowed(order, previousRequest);
 
@@ -89,6 +101,13 @@ public class ResendConfirmationRequestService implements ResendConfirmationReque
                         && !previousRequest.isActive();
 
         if (!afterDeliveryFailure && !afterNoResponse) {
+            log.warn(
+                    "Rejecting confirmation resend: reason=RESEND_NOT_ALLOWED, externalOrderId={}, confirmationRequestId={}, confirmationStatus={}, requestActive={}",
+                    order.getExternalOrderId(),
+                    previousRequest.getId(),
+                    order.getConfirmationStatus(),
+                    previousRequest.isActive()
+            );
             throw new ConfirmationRequestResendNotAllowedException(
                     "Confirmation request cannot be resent in the current state."
             );
@@ -101,6 +120,11 @@ public class ResendConfirmationRequestService implements ResendConfirmationReque
     ) {
         if (communicationChannel == CommunicationChannel.EMAIL
                 && isBlank(order.getCustomerEmail())) {
+            log.warn(
+                    "Rejecting confirmation resend: reason=MISSING_CUSTOMER_EMAIL, externalOrderId={}, communicationChannel={}",
+                    order.getExternalOrderId(),
+                    communicationChannel
+            );
             throw new MissingDigitalContactException(
                     "Customer e-mail is required when communication channel is EMAIL."
             );
@@ -109,6 +133,11 @@ public class ResendConfirmationRequestService implements ResendConfirmationReque
         if ((communicationChannel == CommunicationChannel.SMS
                 || communicationChannel == CommunicationChannel.WHATSAPP)
                 && isBlank(order.getCustomerPhoneNumber())) {
+            log.warn(
+                    "Rejecting confirmation resend: reason=MISSING_CUSTOMER_PHONE, externalOrderId={}, communicationChannel={}",
+                    order.getExternalOrderId(),
+                    communicationChannel
+            );
             throw new MissingDigitalContactException(
                     "Customer phone number is required when communication channel is "
                             + communicationChannel + "."

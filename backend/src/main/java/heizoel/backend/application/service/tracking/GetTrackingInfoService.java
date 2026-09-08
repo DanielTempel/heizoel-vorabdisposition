@@ -9,6 +9,7 @@ import heizoel.backend.domain.DeliverySlot;
 import heizoel.backend.application.model.GeoCoordinate;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GetTrackingInfoService implements GetTrackingInfoUseCase {
@@ -28,9 +30,12 @@ public class GetTrackingInfoService implements GetTrackingInfoUseCase {
     @Transactional(readOnly = true)
     public TrackingInfoResult getTrackingInfo(String token) {
         ConfirmationRequest confirmationRequest = confirmationRequestRepository.findLatestByToken(token)
-                .orElseThrow(() -> new ConfirmationRequestNotFoundException(
-                        "Confirmation request was not found."
-                ));
+                .orElseThrow(() -> {
+                    log.warn("Rejecting tracking info lookup: reason=CONFIRMATION_REQUEST_NOT_FOUND");
+                    return new ConfirmationRequestNotFoundException(
+                            "Confirmation request was not found."
+                    );
+                });
         DeliverySlot deliverySlot = confirmationRequest.getDeliverySlot();
 
         boolean trackingAvailable = deliverySlot.getDate().isEqual(LocalDate.now(clock));

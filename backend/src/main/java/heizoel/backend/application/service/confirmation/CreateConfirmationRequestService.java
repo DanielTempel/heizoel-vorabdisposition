@@ -13,6 +13,7 @@ import heizoel.backend.application.exception.CompanyNotFoundException;
 import heizoel.backend.domain.exception.MissingDigitalContactException;
 import heizoel.backend.adapter.out.persistence.CompanyRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CreateConfirmationRequestService implements CreateConfirmationRequestUseCase {
@@ -39,7 +41,14 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
 
         Company company = companyRepository
                 .findById(command.companyContext().companyId())
-                .orElseThrow(() -> new CompanyNotFoundException("Company was not found."));
+                .orElseThrow(() -> {
+                    log.warn(
+                            "Rejecting confirmation request creation: reason=COMPANY_NOT_FOUND, companyId={}, externalOrderId={}",
+                            command.companyContext().companyId(),
+                            command.externalOrderId()
+                    );
+                    return new CompanyNotFoundException("Company was not found.");
+                });
 
         OrderData orderData = OrderData.from(command);
         RequestData requestData = RequestData.from(command);
@@ -222,6 +231,12 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
     private void validateCommunicationChannel(CreateConfirmationRequestCommand command) {
         if (command.communicationChannel() == CommunicationChannel.EMAIL
                 && isBlank(command.customerEmail())) {
+            log.warn(
+                    "Rejecting confirmation request creation: reason=MISSING_CUSTOMER_EMAIL, companyId={}, externalOrderId={}, communicationChannel={}",
+                    command.companyContext().companyId(),
+                    command.externalOrderId(),
+                    command.communicationChannel()
+            );
             throw new MissingDigitalContactException(
                     "Customer e-mail is required when communication channel is EMAIL."
             );
@@ -230,6 +245,12 @@ public class CreateConfirmationRequestService implements CreateConfirmationReque
         if ((command.communicationChannel() == CommunicationChannel.SMS
                 || command.communicationChannel() == CommunicationChannel.WHATSAPP)
                 && isBlank(command.customerPhoneNumber())) {
+            log.warn(
+                    "Rejecting confirmation request creation: reason=MISSING_CUSTOMER_PHONE, companyId={}, externalOrderId={}, communicationChannel={}",
+                    command.companyContext().companyId(),
+                    command.externalOrderId(),
+                    command.communicationChannel()
+            );
             throw new MissingDigitalContactException(
                     "Customer phone number is required when communication channel is "
                             + command.communicationChannel() + "."

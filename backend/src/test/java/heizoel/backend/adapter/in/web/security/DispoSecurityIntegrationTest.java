@@ -163,24 +163,29 @@ class DispoSecurityIntegrationTest {
     }
 
     @Test
-    void rejectsEmailSettingsRequestWithoutApiKey() throws Exception {
-        mockMvc.perform(get("/api/dispo/settings/email"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("MISSING_API_KEY"));
+    void rejectsEmailSettingsRequestWithoutDashboardSession()
+            throws Exception {
+        mockMvc.perform(get("/api/dashboard/settings/email"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void rejectsEmailSettingsRequestWithInvalidApiKey() throws Exception {
-        mockMvc.perform(get("/api/dispo/settings/email")
-                        .header("X-API-Key", "wrong-key"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("INVALID_API_KEY"));
-    }
-
-    @Test
-    void acceptsEmailSettingsRequestWithValidApiKey() throws Exception {
-        mockMvc.perform(get("/api/dispo/settings/email")
+    void rejectsEmailSettingsRequestWithApiKeyInsteadOfDashboardSession()
+            throws Exception {
+        mockMvc.perform(get("/api/dashboard/settings/email")
                         .header("X-API-Key", TEST_API_KEY))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void acceptsEmailSettingsRequestWithAuthenticatedDashboardSession()
+            throws Exception {
+        MockHttpSession session = authenticatedDashboardSession(
+                TEST_API_KEY
+        );
+
+        mockMvc.perform(get("/api/dashboard/settings/email")
+                        .session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.configured").value(false));
     }
@@ -299,20 +304,34 @@ class DispoSecurityIntegrationTest {
     @Test
     void emailSettingsAreIsolatedByAuthenticatedCompany()
             throws Exception {
-        updateEmailSettings(TEST_API_KEY, "smtp.company-a.test")
+        MockHttpSession companyASession = authenticatedDashboardSession(
+                TEST_API_KEY
+        );
+        MockHttpSession companyBSession = authenticatedDashboardSession(
+                SECOND_TEST_API_KEY
+        );
+        CsrfData companyACsrf = fetchCsrfToken(companyASession);
+        CsrfData companyBCsrf = fetchCsrfToken(companyBSession);
+
+        updateEmailSettings(
+                companyASession,
+                companyACsrf,
+                "smtp.company-a.test"
+        )
                 .andExpect(status().isNoContent());
         updateEmailSettings(
-                SECOND_TEST_API_KEY,
+                companyBSession,
+                companyBCsrf,
                 "smtp.company-b.test"
         ).andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/dispo/settings/email")
-                        .header("X-API-Key", TEST_API_KEY))
+        mockMvc.perform(get("/api/dashboard/settings/email")
+                        .session(companyASession))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.smtpHost")
                         .value("smtp.company-a.test"));
-        mockMvc.perform(get("/api/dispo/settings/email")
-                        .header("X-API-Key", SECOND_TEST_API_KEY))
+        mockMvc.perform(get("/api/dashboard/settings/email")
+                        .session(companyBSession))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.smtpHost")
                         .value("smtp.company-b.test"));
@@ -423,9 +442,14 @@ class DispoSecurityIntegrationTest {
     }
 
     private org.springframework.test.web.servlet.ResultActions
-    updateEmailSettings(String apiKey, String smtpHost) throws Exception {
-        return mockMvc.perform(put("/api/dispo/settings/email")
-                .header("X-API-Key", apiKey)
+    updateEmailSettings(
+            MockHttpSession session,
+            CsrfData csrf,
+            String smtpHost
+    ) throws Exception {
+        return mockMvc.perform(put("/api/dashboard/settings/email")
+                .session(session)
+                .header(csrf.headerName(), csrf.token())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {

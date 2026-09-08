@@ -36,8 +36,3 @@ heizoel:
     sms-from: ${TWILIO_SMS_FROM:}
     whatsapp-from: ${TWILIO_WHATSAPP_FROM:}
     content-template-sid: ${TWILIO_CONTENT_TEMPLATE_SID:}
-
-logging:
-  level:
-    org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace

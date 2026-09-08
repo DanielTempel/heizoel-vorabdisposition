@@ -562,6 +562,17 @@ class TourOverviewQueryAdapterIntegrationTest {
     }
 
     @Test
+    void returnsTourNumberOnlyOnceAcrossDifferentDeliveryDates() {
+        Company company = testData.createCompany("Unique tour across dates");
+        createOrderWithRequest(company, "ORDER-A1", "A-17", TODAY, ConfirmationStatus.SENT);
+        createOrderWithRequest(company, "ORDER-A2", "A-17", TODAY.plusDays(1), ConfirmationStatus.CONFIRMED);
+
+        List<String> result = findTourNumbers(company, null, TODAY, null);
+
+        assertThat(result).containsExactly("A-17");
+    }
+
+    @Test
     void returnsTourNumbersContainingOpenOrders() {
         Company company = testData.createCompany("Open tour number");
         Order openOrder = testData.createOrder(

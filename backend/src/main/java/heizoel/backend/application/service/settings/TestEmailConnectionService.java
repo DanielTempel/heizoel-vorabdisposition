@@ -29,11 +29,15 @@ public class TestEmailConnectionService implements TestEmailConnectionUseCase {
         CompanyEmailSettings settings =
                 companyEmailSettingsRepository
                         .findByCompanyId(companyId)
-                        .orElseThrow(() ->
-                                new EmailSettingsNotConfiguredException(
+                        .orElseThrow(() -> {
+                            log.warn(
+                                    "Rejecting SMTP connection test: reason=EMAIL_SETTINGS_NOT_CONFIGURED, companyId={}",
+                                    companyId
+                            );
+                            return new EmailSettingsNotConfiguredException(
                                         "E-mail settings are not configured."
-                                )
-                        );
+                            );
+                        });
 
         JavaMailSenderImpl mailSender =
                 companyMailSenderFactory.create(
@@ -45,7 +49,7 @@ public class TestEmailConnectionService implements TestEmailConnectionUseCase {
             mailSender.testConnection();
         } catch (MessagingException exception) {
             log.warn(
-                    "SMTP connection test failed for companyId={}",
+                    "SMTP connection test failed: reason=SMTP_CONNECTION_FAILED, companyId={}",
                     companyId,
                     exception
             );

@@ -146,28 +146,18 @@ public class TourOverviewQueryAdapter implements TourOverviewQueryPort {
             );
         }
 
-        List<Tuple> rows = queryFactory
-                .select(
-                        order.tour.tourNumber,
-                        confirmationRequest.deliverySlot.date
-                )
+        return queryFactory
+                .select(order.tour.tourNumber)
                 .from(order)
                 .join(confirmationRequest)
                 .on(confirmationRequest.order.eq(order))
                 .where(where)
-                .groupBy(
-                        order.tour.tourNumber,
-                        confirmationRequest.deliverySlot.date
-                )
+                .groupBy(order.tour.tourNumber)
                 .orderBy(
-                        confirmationRequest.deliverySlot.date.asc(),
+                        confirmationRequest.deliverySlot.date.min().asc(),
                         order.tour.tourNumber.asc()
                 )
                 .fetch();
-
-        return rows.stream()
-                .map(row -> row.get(order.tour.tourNumber))
-                .toList();
     }
 
 

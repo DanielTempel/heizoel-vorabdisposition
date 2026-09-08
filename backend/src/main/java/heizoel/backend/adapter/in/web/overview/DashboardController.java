@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,6 +33,7 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
+@Slf4j
 public class DashboardController {
 
     private final GetTourOverviewUseCase getTourOverviewUseCase;
@@ -58,6 +60,16 @@ public class DashboardController {
 
             @RequestParam(defaultValue = "0") int page
     ) {
+        log.info(
+                "Started getTours: companyId={}, tourNumbers={}, statuses={}, searchPresent={}, dateFrom={}, dateTo={}, page={}",
+                companyContext.companyId(),
+                tourNumbers,
+                statuses,
+                search != null,
+                dateFrom,
+                dateTo,
+                page
+        );
         TourOverviewPage result = getTourOverviewUseCase.getTours(
                 new GetTourOverviewQuery(
                         companyContext,
@@ -69,8 +81,18 @@ public class DashboardController {
                         page
                 )
         );
+        ToursPageResponseDto response = ToursPageResponseDto.from(result);
 
-        return ToursPageResponseDto.from(result);
+        log.info(
+                "Completed getTours: companyId={}, itemCount={}, page={}, size={}, totalElements={}, totalPages={}, status=200",
+                companyContext.companyId(),
+                response.items().size(),
+                response.page(),
+                response.size(),
+                response.totalElements(),
+                response.totalPages()
+        );
+        return response;
     }
 
     @GetMapping("/tour-numbers")
@@ -86,7 +108,14 @@ public class DashboardController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate dateTo
     ) {
-        return getTourNumbersUseCase.getTourNumbers(
+        log.info(
+                "Started getTourNumbers: companyId={}, searchPresent={}, dateFrom={}, dateTo={}",
+                companyContext.companyId(),
+                search != null,
+                dateFrom,
+                dateTo
+        );
+        List<String> result = getTourNumbersUseCase.getTourNumbers(
                 new GetTourNumbersQuery(
                         companyContext,
                         search,
@@ -94,6 +123,13 @@ public class DashboardController {
                         dateTo
                 )
         );
+
+        log.info(
+                "Completed getTourNumbers: companyId={}, itemCount={}, status=200",
+                companyContext.companyId(),
+                result.size()
+        );
+        return result;
     }
 
     @GetMapping("/orders/{externalOrderId}")
@@ -101,14 +137,28 @@ public class DashboardController {
             @AuthenticationPrincipal CompanyContext companyContext,
             @PathVariable String externalOrderId
     ) {
+        log.info(
+                "Started getOrderDetail: companyId={}, externalOrderId={}",
+                companyContext.companyId(),
+                externalOrderId
+        );
         ConfirmationDetail detail = getConfirmationDetailUseCase.getOrderDetail(
                         new GetConfirmationDetailQuery(
                                 companyContext,
                                 externalOrderId
                         )
                 );
+        DashboardOrderDetailResponseDto response = DashboardOrderDetailResponseDto.from(detail);
 
-        return DashboardOrderDetailResponseDto.from(detail);
+        log.info(
+                "Completed getOrderDetail: companyId={}, externalOrderId={}, confirmationStatus={}, currentRequestPresent={}, previousRequestCount={}, status=200",
+                companyContext.companyId(),
+                detail.order().externalOrderId(),
+                detail.order().confirmationStatus(),
+                detail.currentRequest() != null,
+                detail.previousRequests().size()
+        );
+        return response;
     }
 
     @PostMapping("/orders/{externalOrderId}/resend")
@@ -118,6 +168,13 @@ public class DashboardController {
             @PathVariable String externalOrderId,
             @Valid @RequestBody ResendConfirmationRequestRequestDto request
     ) {
+        log.info(
+                "Started resendConfirmationRequest: companyId={}, externalOrderId={}, communicationChannel={}, responseDeadlineHours={}",
+                companyContext.companyId(),
+                externalOrderId,
+                request.communicationChannel(),
+                request.responseDeadlineHours()
+        );
         ResendConfirmationRequestResult result =
                 resendConfirmationRequestUseCase.resend(
                         new ResendConfirmationRequestCommand(
@@ -128,10 +185,18 @@ public class DashboardController {
                         )
                 );
 
-        return new ResendConfirmationRequestResponseDto(
+        ResendConfirmationRequestResponseDto response = new ResendConfirmationRequestResponseDto(
                 result.externalOrderId(),
                 result.confirmationStatus()
         );
+
+        log.info(
+                "Completed resendConfirmationRequest: companyId={}, externalOrderId={}, confirmationStatus={}, status=202",
+                companyContext.companyId(),
+                result.externalOrderId(),
+                result.confirmationStatus()
+        );
+        return response;
     }
 
     @PostMapping(
@@ -144,6 +209,7 @@ public class DashboardController {
             HttpServletRequest request,
             HttpServletResponse response
     ) {
+        log.info("Started exchangeDashboardAccess");
         CompanyContext companyContext = dashboardAccessService.consume(code);
 
         dashboardAuthenticationService.authenticate(
@@ -151,10 +217,16 @@ public class DashboardController {
                 request,
                 response
         );
+        log.info(
+                "Completed exchangeDashboardAccess: companyId={}, status=204",
+                companyContext.companyId()
+        );
     }
 
     @GetMapping("/csrf")
     public CsrfToken csrf(CsrfToken csrfToken) {
+        log.info("Started csrf");
+        log.info("Completed csrf: status=200");
         return csrfToken;
     }
 

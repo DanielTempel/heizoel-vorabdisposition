@@ -7,9 +7,11 @@ import heizoel.backend.application.exception.ConfirmationRequestNotFoundExceptio
 import heizoel.backend.domain.*;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GetConfirmationPreviewService implements GetConfirmationPreviewUseCase {
@@ -21,9 +23,12 @@ public class GetConfirmationPreviewService implements GetConfirmationPreviewUseC
     @Transactional(readOnly = true)
     public GetConfirmationPreviewResult getConfirmationPreview(String token) {
         ConfirmationRequest confirmationRequest = confirmationRequestRepository.findLatestByToken(token)
-                .orElseThrow(() -> new ConfirmationRequestNotFoundException(
-                        "Confirmation request was not found."
-                ));
+                .orElseThrow(() -> {
+                    log.warn("Rejecting confirmation preview lookup: reason=CONFIRMATION_REQUEST_NOT_FOUND");
+                    return new ConfirmationRequestNotFoundException(
+                            "Confirmation request was not found."
+                    );
+                });
         Order order = confirmationRequest.getOrder();
         DeliverySlot deliverySlot = confirmationRequest.getDeliverySlot();
 

@@ -8,6 +8,7 @@ import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.DeliverySlot;
 import heizoel.backend.adapter.out.persistence.ConfirmationRequestRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GetDriverLocationService implements GetDriverLocationUseCase {
@@ -27,9 +29,12 @@ public class GetDriverLocationService implements GetDriverLocationUseCase {
     @Transactional(readOnly = true)
     public Optional<DriverLocationResult> getDriverLocation(String token) {
         ConfirmationRequest confirmationRequest = confirmationRequestRepository.findLatestByToken(token)
-                .orElseThrow(() -> new ConfirmationRequestNotFoundException(
-                        "Confirmation request was not found."
-                ));
+                .orElseThrow(() -> {
+                    log.warn("Rejecting driver location lookup: reason=CONFIRMATION_REQUEST_NOT_FOUND");
+                    return new ConfirmationRequestNotFoundException(
+                            "Confirmation request was not found."
+                    );
+                });
         DeliverySlot deliverySlot = confirmationRequest.getDeliverySlot();
 
         if (!deliverySlot.getDate().isEqual(LocalDate.now(clock))) {

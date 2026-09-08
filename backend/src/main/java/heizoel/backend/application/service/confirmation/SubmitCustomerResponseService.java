@@ -40,36 +40,59 @@ public class SubmitCustomerResponseService implements SubmitCustomerResponseUseC
 
         Order order = orderRepository
                 .findByConfirmationRequestTokenForUpdate(command.token())
-                .orElseThrow(() ->
-                        new ConfirmationRequestNotFoundException(
+                .orElseThrow(() -> {
+                    log.warn("Rejecting customer response: reason=CONFIRMATION_REQUEST_NOT_FOUND_DURING_ORDER_LOCK");
+                    return new ConfirmationRequestNotFoundException(
                                 "Confirmation request was not found."
-                        )
-                );
+                    );
+                });
 
         ConfirmationRequest request =
                 confirmationRequestRepository
                         .findLatestByToken(command.token())
-                        .orElseThrow(() ->
-                                new ConfirmationRequestNotFoundException(
+                        .orElseThrow(() -> {
+                            log.warn(
+                                    "Rejecting customer response: reason=CONFIRMATION_REQUEST_NOT_FOUND, externalOrderId={}",
+                                    order.getExternalOrderId()
+                            );
+                            return new ConfirmationRequestNotFoundException(
                                         "Confirmation request was not found."
-                                )
-                        );
+                            );
+                        });
 
         Instant receivedAt = Instant.now(clock);
 
         if (!request.isActive()) {
+            log.warn(
+                    "Rejecting customer response: reason=CONFIRMATION_REQUEST_INACTIVE, externalOrderId={}, confirmationRequestId={}, responseType={}",
+                    order.getExternalOrderId(),
+                    request.getId(),
+                    command.responseType()
+            );
             throw new ConfirmationRequestInactiveException(
                     "This confirmation request is no longer active."
             );
         }
 
         if (request.isExpiredAt(receivedAt)) {
+            log.warn(
+                    "Rejecting customer response: reason=CONFIRMATION_REQUEST_EXPIRED, externalOrderId={}, confirmationRequestId={}, responseType={}",
+                    order.getExternalOrderId(),
+                    request.getId(),
+                    command.responseType()
+            );
             throw new ConfirmationRequestExpiredException(
                     "This confirmation request has expired."
             );
         }
 
         if (customerResponseRepository.existsByConfirmationRequest(request)) {
+            log.warn(
+                    "Rejecting customer response: reason=CUSTOMER_RESPONSE_ALREADY_EXISTS, externalOrderId={}, confirmationRequestId={}, responseType={}",
+                    order.getExternalOrderId(),
+                    request.getId(),
+                    command.responseType()
+            );
             throw new CustomerResponseAlreadyExistsException(
                     "A customer response already exists for this confirmation request."
             );

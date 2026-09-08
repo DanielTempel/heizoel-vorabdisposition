@@ -13,12 +13,14 @@ import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.Order;
 import heizoel.backend.domain.exception.InvalidDeliveryWindowException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SendConfirmationRequestService implements SendConfirmationRequestUseCase {
@@ -38,20 +40,28 @@ public class SendConfirmationRequestService implements SendConfirmationRequestUs
                 .findByConfirmationRequestIdForUpdate(
                         confirmationRequestId
                 )
-                .orElseThrow(() ->
-                        new ConfirmationRequestNotFoundException(
+                .orElseThrow(() -> {
+                    log.warn(
+                            "Rejecting confirmation delivery: reason=CONFIRMATION_REQUEST_NOT_FOUND_DURING_ORDER_LOCK, confirmationRequestId={}",
+                            confirmationRequestId
+                    );
+                    return new ConfirmationRequestNotFoundException(
                                 "Confirmation request was not found."
-                        )
-                );
+                    );
+                });
 
         ConfirmationRequest request =
                 confirmationRequestRepository
                         .findById(confirmationRequestId)
-                        .orElseThrow(() ->
-                                new ConfirmationRequestNotFoundException(
+                        .orElseThrow(() -> {
+                            log.warn(
+                                    "Rejecting confirmation delivery: reason=CONFIRMATION_REQUEST_NOT_FOUND, confirmationRequestId={}",
+                                    confirmationRequestId
+                            );
+                            return new ConfirmationRequestNotFoundException(
                                         "Confirmation request was not found."
-                                )
-                        );
+                            );
+                        });
 
 
         /*
@@ -66,6 +76,10 @@ public class SendConfirmationRequestService implements SendConfirmationRequestUs
         }
 
         if (!request.isPending()) {
+            log.error(
+                    "Cannot deliver confirmation request: reason=CONFIRMATION_REQUEST_NOT_PENDING, confirmationRequestId={}",
+                    confirmationRequestId
+            );
             throw new IllegalStateException(
                     "Only a pending confirmation request can be sent."
             );

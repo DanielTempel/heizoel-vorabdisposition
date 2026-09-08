@@ -76,7 +76,7 @@ class EmailSettingsControllerTest {
                 ));
 
         mockMvc.perform(
-                        get("/api/dispo/settings/email")
+                        get("/api/dashboard/settings/email")
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.configured").value(true))
@@ -100,7 +100,7 @@ class EmailSettingsControllerTest {
                         GetEmailSettingsResult.notConfigured()
                 );
 
-        mockMvc.perform(get("/api/dispo/settings/email"))
+        mockMvc.perform(get("/api/dashboard/settings/email"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.configured").value(false))
                 .andExpect(jsonPath("$.smtpHost").isEmpty())
@@ -111,7 +111,7 @@ class EmailSettingsControllerTest {
     @Test
     void updatesEmailSettings() throws Exception {
         mockMvc.perform(
-                        put("/api/dispo/settings/email")
+                        put("/api/dashboard/settings/email")
                                 .contentType("application/json")
                                 .content("""
                                     {
@@ -147,7 +147,7 @@ class EmailSettingsControllerTest {
     @Test
     void rejectsInvalidSmtpPort() throws Exception {
         mockMvc.perform(
-                        put("/api/dispo/settings/email")
+                        put("/api/dashboard/settings/email")
                                 .contentType("application/json")
                                 .content("""
                                     {
@@ -169,7 +169,7 @@ class EmailSettingsControllerTest {
     void testsEmailConnection() throws Exception {
         mockMvc.perform(
                         post(
-                                "/api/dispo/settings/email/test-connection"
+                                "/api/dashboard/settings/email/test-connection"
                         )
                 )
                 .andExpect(status().isNoContent());
@@ -182,7 +182,7 @@ class EmailSettingsControllerTest {
     void sendsTestEmail() throws Exception {
         mockMvc.perform(
                         post(
-                                "/api/dispo/settings/email/test-message"
+                                "/api/dashboard/settings/email/test-message"
                         )
                 )
                 .andExpect(status().isNoContent());
@@ -199,7 +199,7 @@ class EmailSettingsControllerTest {
                         "Email settings are not configured."
                 ));
 
-        mockMvc.perform(get("/api/dispo/settings/email"))
+        mockMvc.perform(get("/api/dashboard/settings/email"))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code")
                         .value("EMAIL_SETTINGS_NOT_CONFIGURED"))
@@ -216,7 +216,7 @@ class EmailSettingsControllerTest {
                 .testEmailConnection(COMPANY_CONTEXT);
 
         mockMvc.perform(post(
-                        "/api/dispo/settings/email/test-connection"
+                        "/api/dashboard/settings/email/test-connection"
                 ))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.code")
@@ -234,7 +234,7 @@ class EmailSettingsControllerTest {
                 .sendTestEmail(COMPANY_CONTEXT);
 
         mockMvc.perform(post(
-                        "/api/dispo/settings/email/test-message"
+                        "/api/dashboard/settings/email/test-message"
                 ))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.code")

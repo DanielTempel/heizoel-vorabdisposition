@@ -11,9 +11,11 @@ import heizoel.backend.application.port.out.security.SecretEncryptionService;
 import heizoel.backend.domain.company.Company;
 import heizoel.backend.domain.company.CompanyEmailSettings;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UpdateEmailSettingsService implements UpdateEmailSettingsUseCase {
@@ -33,9 +35,15 @@ public class UpdateEmailSettingsService implements UpdateEmailSettingsUseCase {
 
         Company company = companyRepository
                 .findById(companyId)
-                .orElseThrow(() -> new CompanyNotFoundException(
-                        "Company was not found."
-                ));
+                .orElseThrow(() -> {
+                    log.warn(
+                            "Rejecting e-mail settings update: reason=COMPANY_NOT_FOUND, companyId={}",
+                            companyId
+                    );
+                    return new CompanyNotFoundException(
+                            "Company was not found."
+                    );
+                });
 
         CompanyEmailSettings existingSettings =
                 companyEmailSettingsRepository
@@ -94,6 +102,10 @@ public class UpdateEmailSettingsService implements UpdateEmailSettingsUseCase {
         }
 
         if (!hasText(command.username())) {
+            log.warn(
+                    "Rejecting e-mail settings update: reason=SMTP_USERNAME_REQUIRED, companyId={}",
+                    command.companyContext().companyId()
+            );
             throw new InvalidEmailSettingsException(
                     "SMTP username is required when authentication is enabled."
             );
@@ -105,6 +117,10 @@ public class UpdateEmailSettingsService implements UpdateEmailSettingsUseCase {
                         && existingSettings.hasConfiguredPassword();
 
         if (!passwordAvailable) {
+            log.warn(
+                    "Rejecting e-mail settings update: reason=SMTP_PASSWORD_REQUIRED, companyId={}",
+                    command.companyContext().companyId()
+            );
             throw new InvalidEmailSettingsException(
                     "SMTP password is required when authentication is enabled."
             );
@@ -128,6 +144,10 @@ public class UpdateEmailSettingsService implements UpdateEmailSettingsUseCase {
         }
 
         if (existingSettings == null || !existingSettings.hasConfiguredPassword()) {
+            log.warn(
+                    "Rejecting e-mail settings update: reason=SMTP_PASSWORD_REQUIRED, companyId={}",
+                    companyId
+            );
             throw new InvalidEmailSettingsException(
                     "SMTP password is required when authentication is enabled."
             );

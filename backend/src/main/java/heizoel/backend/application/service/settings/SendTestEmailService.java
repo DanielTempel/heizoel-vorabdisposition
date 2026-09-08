@@ -43,11 +43,15 @@ public class SendTestEmailService implements SendTestEmailUseCase {
         CompanyEmailSettings settings =
                 companyEmailSettingsRepository
                         .findByCompanyId(companyId)
-                        .orElseThrow(() ->
-                                new EmailSettingsNotConfiguredException(
+                        .orElseThrow(() -> {
+                            log.warn(
+                                    "Rejecting test e-mail delivery: reason=EMAIL_SETTINGS_NOT_CONFIGURED, companyId={}",
+                                    companyId
+                            );
+                            return new EmailSettingsNotConfiguredException(
                                         "E-mail settings are not configured."
-                                )
-                        );
+                            );
+                        });
 
         JavaMailSenderImpl mailSender =
                 companyMailSenderFactory.create(
@@ -82,7 +86,7 @@ public class SendTestEmailService implements SendTestEmailUseCase {
                 | MailException exception
         ) {
             log.warn(
-                    "Test e-mail delivery failed for companyId={}",
+                    "Test e-mail delivery failed: reason=SMTP_DELIVERY_FAILED, companyId={}",
                     companyId,
                     exception
             );

@@ -10,9 +10,11 @@ import heizoel.backend.domain.ConfirmationRequest;
 import heizoel.backend.domain.Order;
 import heizoel.backend.adapter.out.persistence.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SendDispoStatusCallbackService implements SendDispoStatusCallbackUseCase {
@@ -26,16 +28,30 @@ public class SendDispoStatusCallbackService implements SendDispoStatusCallbackUs
     public void sendDispoStatusCallback(SendDispoStatusCallbackCommand command) {
 
         Order order = orderRepository.findById(command.orderId())
-                .orElseThrow(() -> new OrderNotFoundException(
-                        "Order was not found."
-                ));
+                .orElseThrow(() -> {
+                    log.warn(
+                            "Rejecting DISPO status callback: reason=ORDER_NOT_FOUND, orderId={}, confirmationRequestId={}",
+                            command.orderId(),
+                            command.confirmationRequestId()
+                    );
+                    return new OrderNotFoundException(
+                            "Order was not found."
+                    );
+                });
 
         ConfirmationRequest latestRequest =
                 confirmationRequestRepository
                         .findTopByOrderOrderByIdDesc(order)
-                        .orElseThrow(() -> new IllegalStateException(
-                                "No confirmation request found for order."
-                        ));
+                        .orElseThrow(() -> {
+                            log.error(
+                                    "Cannot send DISPO status callback: reason=CONFIRMATION_REQUEST_NOT_FOUND, orderId={}, confirmationRequestId={}",
+                                    command.orderId(),
+                                    command.confirmationRequestId()
+                            );
+                            return new IllegalStateException(
+                                    "No confirmation request found for order."
+                            );
+                        });
 
         if (!latestRequest.getId()
                 .equals(command.confirmationRequestId())) {

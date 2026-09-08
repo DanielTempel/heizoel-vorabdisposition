@@ -10,6 +10,7 @@ import heizoel.backend.application.port.out.persistence.TourOverviewFilter;
 import heizoel.backend.application.port.out.persistence.TourOverviewQueryPort;
 import heizoel.backend.domain.ConfirmationStatus;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GetTourOverviewService implements GetTourOverviewUseCase {
@@ -37,7 +39,11 @@ public class GetTourOverviewService implements GetTourOverviewUseCase {
                 : LocalDate.now(clock);
 
         LocalDate dateTo = query.dateTo();
-        validateDateRange(dateFrom, dateTo);
+        validateDateRange(
+                query.companyContext().companyId(),
+                dateFrom,
+                dateTo
+        );
 
         Set<ConfirmationStatus> statuses =
                 query.statuses() == null
@@ -78,10 +84,17 @@ public class GetTourOverviewService implements GetTourOverviewUseCase {
     }
 
     private void validateDateRange(
+            Long companyId,
             LocalDate dateFrom,
             LocalDate dateTo
     ) {
         if (dateTo != null && dateFrom.isAfter(dateTo)) {
+            log.warn(
+                    "Rejecting tour overview query: reason=INVALID_DATE_RANGE, companyId={}, dateFrom={}, dateTo={}",
+                    companyId,
+                    dateFrom,
+                    dateTo
+            );
             throw new InvalidFilterException(
                     "Date from must not be after date to."
             );
