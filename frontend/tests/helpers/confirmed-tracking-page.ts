@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { expect, type APIRequestContext, type Page } from '@playwright/test'
 import { createConfirmationRequest } from './confirmation-request'
 import { waitForConfirmationLink } from './mailpit'
@@ -18,7 +19,7 @@ export async function openConfirmedTrackingPage(
   request: APIRequestContext,
   scenarioName: string,
 ) {
-  const uniqueId = Date.now()
+  const uniqueId = randomUUID()
   const externalOrderId = `${scenarioName}-${uniqueId}`
   const customerEmail = `${scenarioName.toLowerCase()}-${uniqueId}@example.com`
 

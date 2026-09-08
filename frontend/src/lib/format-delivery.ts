@@ -1,5 +1,9 @@
 export function formatDate(value: string) {
-  return new Intl.DateTimeFormat('de-DE').format(new Date(value))
+  return new Intl.DateTimeFormat('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(value))
 }
 
 export function formatTime(value: string) {
