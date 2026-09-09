@@ -1,0 +1,7 @@
+\babel@toc {ngerman}{}\relax 
+\contentsline {section}{\numberline {4}Systemarchitektur}{2}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Systemkontext und Systemgrenzen}{2}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Systemkomponenten und Verantwortlichkeiten}{3}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Schnittstellen und Zusammenspiel der Komponenten}{5}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Schnittstellenübersicht und Kommunikationsrichtungen}{5}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}Technisches Zusammenspiel im Avisierungs- und Rückbestätigungsprozess}{5}{subsubsection.4.3.2}%

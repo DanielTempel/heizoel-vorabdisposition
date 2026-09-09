@@ -1,0 +1,31 @@
+\babel@toc {ngerman}{}\relax 
+\contentsline {section}{\numberline {5}Backend des Avisierungsservice -- Konzeption und Implementierung}{2}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Architektur- und Domänenentwurf}{2}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}Architekturprinzipien, Verantwortungsgrenzen und Abhängigkeitsrichtung}{2}{subsubsection.5.1.1}%
+\contentsline {subsubsection}{\numberline {5.1.2}Domänen- und Zustandsmodell}{3}{subsubsection.5.1.2}%
+\contentsline {subsubsection}{\numberline {5.1.3}Persistenzmodell und Schemaentwicklung}{4}{subsubsection.5.1.3}%
+\contentsline {subsection}{\numberline {5.2}Technische Umsetzung des Avisierungs- und Rückbestätigungsprozesses}{5}{subsection.5.2}%
+\contentsline {subsubsection}{\numberline {5.2.1}Übernahme von Avisierungsaufträgen, Validierung und Prozessstart}{5}{subsubsection.5.2.1}%
+\contentsline {subsubsection}{\numberline {5.2.2}Dauerhafte Workflow-Steuerung mit Camunda}{7}{subsubsection.5.2.2}%
+\contentsline {subsubsection}{\numberline {5.2.3}Kundenreaktion und Fristablauf}{8}{subsubsection.5.2.3}%
+\contentsline {subsubsection}{\numberline {5.2.4}Erneute Avisierung und Ablösung veralteter Anfragen}{9}{subsubsection.5.2.4}%
+\contentsline {subsubsection}{\numberline {5.2.5}Statusrückmeldung an DISPO}{10}{subsubsection.5.2.5}%
+\contentsline {subsubsection}{\numberline {5.2.6}Fehlerbehandlung, Wiederholungen, Nebenläufigkeit und Idempotenzgrenzen}{11}{subsubsection.5.2.6}%
+\contentsline {subsection}{\numberline {5.3}Kanalunabhängige Kundenkommunikation}{13}{subsection.5.3}%
+\contentsline {subsubsection}{\numberline {5.3.1}Kommunikationsabstraktion und Kanalauswahl}{13}{subsubsection.5.3.1}%
+\contentsline {subsubsection}{\numberline {5.3.2}E-Mail-Versand und mandantenspezifische SMTP-Konfiguration}{14}{subsubsection.5.3.2}%
+\contentsline {subsubsection}{\numberline {5.3.3}SMS und WhatsApp über Twilio: Technologieauswahl und Integration}{17}{subsubsection.5.3.3}%
+\contentsline {subsection}{\numberline {5.4}Mandantenfähigkeit und Sicherheitskonzept}{17}{subsection.5.4}%
+\contentsline {subsubsection}{\numberline {5.4.1}Mandantenkontext und Datenisolation}{18}{subsubsection.5.4.1}%
+\contentsline {subsubsection}{\numberline {5.4.2}Authentifizierung der DISPO-Schnittstelle}{19}{subsubsection.5.4.2}%
+\contentsline {subsubsection}{\numberline {5.4.3}Zugriffsschutz des Dashboards}{20}{subsubsection.5.4.3}%
+\contentsline {subsubsection}{\numberline {5.4.4}Tokenbasierter Kundenzugriff}{23}{subsubsection.5.4.4}%
+\contentsline {subsubsection}{\numberline {5.4.5}Schutz sensibler Konfigurationsdaten}{24}{subsubsection.5.4.5}%
+\contentsline {subsection}{\numberline {5.5}Abfragemodell für die Disposition}{25}{subsection.5.5}%
+\contentsline {subsubsection}{\numberline {5.5.1}Tourübersicht, dynamische Filterung, Gruppierung und Paginierung}{26}{subsubsection.5.5.1}%
+\contentsline {subsubsection}{\numberline {5.5.2}Auftragsdetails und Avisierungshistorie}{27}{subsubsection.5.5.2}%
+\contentsline {subsection}{\numberline {5.6}Lieferverfolgung und Geocoding}{28}{subsection.5.6}%
+\contentsline {subsubsection}{\numberline {5.6.1}Trackingdaten und Fahrerposition}{28}{subsubsection.5.6.1}%
+\contentsline {subsubsection}{\numberline {5.6.2}Zielkoordinaten und Geocoding}{28}{subsubsection.5.6.2}%
+\contentsline {subsubsection}{\numberline {5.6.3}Bereitstellung über die Kundenschnittstelle}{28}{subsubsection.5.6.3}%
+\contentsline {subsection}{\numberline {5.7}Technische Konfiguration und lokale Integrationsumgebung}{28}{subsection.5.7}%
