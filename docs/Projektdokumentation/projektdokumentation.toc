@@ -92,7 +92,6 @@
 \contentsline {subsubsection}{\numberline {7.3.5}Tracking und lieferbezogene Transparenz}{13}{subsubsection.7.3.5}%
 \contentsline {subsubsection}{\numberline {7.3.6}Problemfälle und Fehlerbehandlung}{13}{subsubsection.7.3.6}%
 \contentsline {subsubsection}{\numberline {7.3.7}Disposition und erneute Avisierung}{13}{subsubsection.7.3.7}%
-\contentsline {subsubsection}{\numberline {7.3.8}Bewertung der End-to-End-Testabdeckung}{14}{subsubsection.7.3.8}%
 \contentsline {section}{\numberline {8}Projektmanagement und Projektreflexion}{14}{section.8}%
 \contentsline {subsection}{\numberline {8.1}Projektmanagement}{14}{subsection.8.1}%
 \contentsline {subsubsection}{\numberline {8.1.1}Projektphasen}{14}{subsubsection.8.1.1}%
