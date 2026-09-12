@@ -2,10 +2,11 @@
 \providecommand \babel@aux [2]{\global \let \babel@toc \@gobbletwo }
 \@nameuse{bbl@beforestart}
 \catcode `"\active 
+\abx@aux@refcontext{nyt/global//global/global/global}
 \providecommand\hyper@newdestlabel[2]{}
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
-\babel@aux{german}{}
+\babel@aux{ngerman}{}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Einleitung}{4}{section.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Motivation und Problemstellung}{4}{subsection.1.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Zielsetzung}{4}{subsection.1.2}\protected@file@percent }
@@ -22,106 +23,176 @@
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Prozessablauf}{5}{subsubsection.3.2.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}BPMN-Modell}{6}{subsubsection.3.2.2}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces BPMN-Modell des SOLL-Prozesses}}{6}{figure.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4}Systemarchitektur}{7}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Gesamtarchitektur}{7}{subsection.4.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Systemarchitektur}}{7}{figure.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Systemkomponenten}{7}{subsection.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Schnittstellen und Interaktionen}{8}{subsection.4.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}Backend des Avisierungsservice -- Konzeption und Implementierung}{10}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Architektur- und Domänenentwurf}{10}{subsection.5.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.1.1}Architekturprinzipien, Verantwortungsgrenzen und Abhängigkeitsrichtung}{10}{subsubsection.5.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.1.2}Domänen- und Zustandsmodell}{10}{subsubsection.5.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.1.3}Persistenzmodell und Schemaentwicklung}{10}{subsubsection.5.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Technische Umsetzung des Avisierungs- und Rückbestätigungsprozesses}{10}{subsection.5.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.1}Übernahme von Avisierungsaufträgen, Validierung und Prozessstart}{10}{subsubsection.5.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.2}Dauerhafte Workflow-Steuerung mit Camunda}{10}{subsubsection.5.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.3}Kundenreaktion und Fristablauf}{10}{subsubsection.5.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.4}Erneute Avisierung und Ablösung veralteter Anfragen}{10}{subsubsection.5.2.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.5}Statusrückmeldung an DISPO}{10}{subsubsection.5.2.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.6}Fehlerbehandlung, Wiederholungen, Nebenläufigkeit und Idempotenzgrenzen}{10}{subsubsection.5.2.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Kanalunabhängige Kundenkommunikation}{10}{subsection.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.1}Kommunikationsabstraktion und Nachrichtenerzeugung}{10}{subsubsection.5.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.2}E-Mail-Versand und mandantenspezifische SMTP-Konfiguration}{10}{subsubsection.5.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.3}SMS und WhatsApp über Twilio: Technologieauswahl und Integration}{10}{subsubsection.5.3.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Mandantenfähigkeit und Sicherheitskonzept}{10}{subsection.5.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.1}Mandantenkontext und Datenisolation}{10}{subsubsection.5.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.2}Authentifizierung der DISPO-Schnittstelle}{10}{subsubsection.5.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.3}Zugriffsschutz des Dashboards}{10}{subsubsection.5.4.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.4}Tokenbasierter Kundenzugriff}{10}{subsubsection.5.4.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.5}Schutz sensibler Konfigurationsdaten}{10}{subsubsection.5.4.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Abfragemodell für die Disposition}{10}{subsection.5.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.5.1}Aufbau des leseseitigen Abfragemodells}{10}{subsubsection.5.5.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.5.2}Tourübersicht, dynamische Filterung, Gruppierung und Paginierung}{10}{subsubsection.5.5.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.5.3}Auftragsdetails und Avisierungshistorie}{10}{subsubsection.5.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Lieferverfolgung und Geocoding}{10}{subsection.5.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.1}Trackingdaten und Fahrerposition}{10}{subsubsection.5.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.2}Zielkoordinaten und Geocoding}{10}{subsubsection.5.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.3}Bereitstellung über die Kundenschnittstelle}{10}{subsubsection.5.6.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}Technische Konfiguration und Integrationsumgebung}{10}{subsection.5.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.7.1}Externe Konfiguration und Laufzeitprofile}{10}{subsubsection.5.7.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.7.2}Lokale Infrastruktur und Simulation externer Systeme}{10}{subsubsection.5.7.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Frontend -- Konzeption und Implementierung}{10}{section.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Einordnung des Frontends in das Gesamtsystem}{10}{subsection.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Frontend-Architektur und technische Grundlagen}{10}{subsection.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.1}Technologieauswahl}{10}{subsubsection.6.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.2}Seiten-, Komponenten- und Routingstruktur}{10}{subsubsection.6.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.3}API-Anbindung und Zustandsverwaltung}{10}{subsubsection.6.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.4}Responsive Design und wiederverwendbare UI-Komponenten}{10}{subsubsection.6.2.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Avisierungsdashboard}{10}{subsection.6.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.3.1}Geschützter Dashboard-Zugang}{10}{subsubsection.6.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.3.2}Tourübersicht und Statusdarstellung}{10}{subsubsection.6.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.3.3}Suche, Filterung und Paginierung}{10}{subsubsection.6.3.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Auftragsdetailansicht und erneute Avisierung}{10}{subsection.6.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.1}Auftragsdaten und Avisierungshistorie}{10}{subsubsection.6.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.2}Erneute Avisierung, Validierung und Fehlerrückmeldung}{10}{subsubsection.6.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Bestätigungsseite für Kunden}{10}{subsection.6.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.1}Tokenbasierter Zugriff und Lieferinformationen}{10}{subsubsection.6.5.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.2}Bestätigung, Ablehnung und Kundenkommentar}{10}{subsubsection.6.5.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.3}Abgeschlossene, abgelaufene und fehlerhafte Anfragen}{10}{subsubsection.6.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.6}Live-Tracking}{10}{subsection.6.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.6.1}Verfügbarkeit und Datenfluss}{10}{subsubsection.6.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.6.2}Karten- und Positionsdarstellung}{10}{subsubsection.6.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.6.3}Aktualisierung und Fehlerbehandlung}{10}{subsubsection.6.6.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7}Test und Validierung}{10}{section.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Teststrategie und Testumgebung}{10}{subsection.7.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.1.1}Testziele, Testebenen und Auswahl der Prüfschwerpunkte}{11}{subsubsection.7.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.1.2}Testwerkzeuge und reproduzierbare Testumgebung}{11}{subsubsection.7.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Validierung des Avisierungsservice}{11}{subsection.7.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.1}Domänen- und Anwendungslogik}{11}{subsubsection.7.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.2}REST-Verträge, Eingabevalidierung und Fehlerantworten}{11}{subsubsection.7.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.3}Authentifizierung, Sitzungsverwaltung und Mandantenisolation}{11}{subsubsection.7.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.4}Persistenz- und Abfragemodell}{11}{subsubsection.7.2.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.5}Workflow-, Wiederholungs- und Nebenläufigkeitsszenarien}{11}{subsubsection.7.2.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.6}Ausgehende Schnittstellen und Rückkanäle}{11}{subsubsection.7.2.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}End-to-End-Tests}{11}{subsection.7.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.1}Einordnung der Szenariogruppen}{11}{subsubsection.7.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.2}Testumgebung und technische Struktur}{11}{subsubsection.7.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.3}Versand und Bereitstellung der Anfrage}{12}{subsubsection.7.3.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.4}Kundenzugriff und Anzeige der Lieferdaten}{13}{subsubsection.7.3.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.5}Kundenreaktion und DISPO-Rückmeldung}{13}{subsubsection.7.3.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.6}Dashboard-Zugang}{13}{subsubsection.7.3.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.7}Tourenübersicht, Suche und Filterung}{13}{subsubsection.7.3.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.8}Auftragsdetails und erneute Avisierung}{14}{subsubsection.7.3.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.9}E-Mail- und SMTP-Einstellungen}{14}{subsubsection.7.3.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.10}Lieferverfolgung und Tracking-Verfügbarkeit}{15}{subsubsection.7.3.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {8}Projektmanagement und Projektreflexion}{15}{section.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Projektmanagement}{15}{subsection.8.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.1.1}Projektphasen}{15}{subsubsection.8.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.1.2}Projektplan}{15}{subsubsection.8.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Systemarchitektur}{6}{section.4}\protected@file@percent }
+\newlabel{sec:systemarchitektur}{{4}{6}{Systemarchitektur}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Systemkontext und Systemgrenzen}{7}{subsection.4.1}\protected@file@percent }
+\newlabel{sec:systemkontext-systemgrenzen}{{4.1}{7}{Systemkontext und Systemgrenzen}{subsection.4.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Systemkontext der digitalen Lieferavisierung}}{7}{figure.2}\protected@file@percent }
+\newlabel{fig:systemkontext-lieferavisierung}{{2}{7}{Systemkontext der digitalen Lieferavisierung}{figure.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Systemkomponenten und Verantwortlichkeiten}{8}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:systemkomponenten-verantwortlichkeiten}{{4.2}{8}{Systemkomponenten und Verantwortlichkeiten}{subsection.4.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Architekturübersicht der digitalen Lieferavisierung}}{8}{figure.3}\protected@file@percent }
+\newlabel{fig:architekturuebersicht-lieferavisierung}{{3}{8}{Architekturübersicht der digitalen Lieferavisierung}{figure.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Schnittstellen und Zusammenspiel der Komponenten}{9}{subsection.4.3}\protected@file@percent }
+\newlabel{sec:schnittstellen-zusammenspiel}{{4.3}{9}{Schnittstellen und Zusammenspiel der Komponenten}{subsection.4.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Wesentliche Schnittstellen der digitalen Lieferavisierung}}{10}{figure.4}\protected@file@percent }
+\newlabel{fig:schnittstellenuebersicht-lieferavisierung}{{4}{10}{Wesentliche Schnittstellen der digitalen Lieferavisierung}{figure.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Avisierungsservice -- Konzeption und Implementierung}{10}{section.5}\protected@file@percent }
+\abx@aux@cite{0}{cockburn2005hexagonal}
+\abx@aux@segm{0}{0}{cockburn2005hexagonal}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Technischer Interaktionsablauf eines Avisierungsprozesses}}{11}{figure.5}\protected@file@percent }
+\newlabel{fig:interaktionsablauf-rueckbestaetigung}{{5}{11}{Technischer Interaktionsablauf eines Avisierungsprozesses}{figure.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Architektur-, Domänen- und Persistenzentwurf}{11}{subsection.5.1}\protected@file@percent }
+\newlabel{sec:architektur-domaenenentwurf}{{5.1}{11}{Architektur-, Domänen- und Persistenzentwurf}{subsection.5.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.1.1}Architekturprinzipien, Verantwortungsgrenzen und Abhängigkeitsrichtung}{11}{subsubsection.5.1.1}\protected@file@percent }
+\newlabel{sec:architekturprinzipien}{{5.1.1}{11}{Architekturprinzipien, Verantwortungsgrenzen und Abhängigkeitsrichtung}{subsubsection.5.1.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.1.2}Domänen- und Zustandsmodell}{12}{subsubsection.5.1.2}\protected@file@percent }
+\newlabel{sec:domaenenmodell}{{5.1.2}{12}{Domänen- und Zustandsmodell}{subsubsection.5.1.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.1.3}Persistenzmodell und Schemaentwicklung}{13}{subsubsection.5.1.3}\protected@file@percent }
+\newlabel{sec:persistenzmodell}{{5.1.3}{13}{Persistenzmodell und Schemaentwicklung}{subsubsection.5.1.3}{}}
+\abx@aux@cite{0}{redgate2024versionedMigrations}
+\abx@aux@segm{0}{0}{redgate2024versionedMigrations}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Technische Umsetzung des Avisierungsprozesses}{14}{subsection.5.2}\protected@file@percent }
+\newlabel{sec:prozessumsetzung}{{5.2}{14}{Technische Umsetzung des Avisierungsprozesses}{subsection.5.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.1}Übernahme von Avisierungsaufträgen, Validierung und Prozessstart}{14}{subsubsection.5.2.1}\protected@file@percent }
+\newlabel{sec:auftragsuebernahme}{{5.2.1}{14}{Übernahme von Avisierungsaufträgen, Validierung und Prozessstart}{subsubsection.5.2.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.2}Dauerhafte Workflow-Steuerung mit Camunda}{16}{subsubsection.5.2.2}\protected@file@percent }
+\newlabel{sec:workflow-steuerung}{{5.2.2}{16}{Dauerhafte Workflow-Steuerung mit Camunda}{subsubsection.5.2.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.3}Kundenreaktion und Fristablauf}{17}{subsubsection.5.2.3}\protected@file@percent }
+\newlabel{sec:kundenreaktion-fristablauf}{{5.2.3}{17}{Kundenreaktion und Fristablauf}{subsubsection.5.2.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.4}Erneute Avisierung und Ablösung veralteter Anfragen}{18}{subsubsection.5.2.4}\protected@file@percent }
+\newlabel{sec:erneute-avisierung}{{5.2.4}{18}{Erneute Avisierung und Ablösung veralteter Anfragen}{subsubsection.5.2.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.5}Statusrückmeldung an DISPO}{19}{subsubsection.5.2.5}\protected@file@percent }
+\newlabel{sec:statusrueckmeldung-dispo}{{5.2.5}{19}{Statusrückmeldung an DISPO}{subsubsection.5.2.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.6}Fehlerbehandlung, Wiederholungen, Nebenläufigkeit und Idempotenzgrenzen}{19}{subsubsection.5.2.6}\protected@file@percent }
+\newlabel{sec:fehlerbehandlung}{{5.2.6}{19}{Fehlerbehandlung, Wiederholungen, Nebenläufigkeit und Idempotenzgrenzen}{subsubsection.5.2.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Behandlung unterschiedlicher Fehlerarten}}{20}{table.1}\protected@file@percent }
+\newlabel{tab:fehlerbehandlung}{{1}{20}{Behandlung unterschiedlicher Fehlerarten}{table.1}{}}
+\abx@aux@cite{0}{gamma1994designPatterns}
+\abx@aux@segm{0}{0}{gamma1994designPatterns}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Kanalunabhängige Kundenkommunikation}{21}{subsection.5.3}\protected@file@percent }
+\newlabel{sec:kundenkommunikation}{{5.3}{21}{Kanalunabhängige Kundenkommunikation}{subsection.5.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.1}Kommunikationsabstraktion und Kanalauswahl}{21}{subsubsection.5.3.1}\protected@file@percent }
+\newlabel{sec:kommunikationsabstraktion}{{5.3.1}{21}{Kommunikationsabstraktion und Kanalauswahl}{subsubsection.5.3.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Laufzeitbezogene Kanalauswahl nach dem Strategy Pattern}}{22}{figure.6}\protected@file@percent }
+\newlabel{fig:kanalauswahl-strategy}{{6}{22}{Laufzeitbezogene Kanalauswahl nach dem Strategy Pattern}{figure.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.2}E-Mail-Versand und mandantenspezifische SMTP-Konfiguration}{23}{subsubsection.5.3.2}\protected@file@percent }
+\newlabel{sec:emailversand}{{5.3.2}{23}{E-Mail-Versand und mandantenspezifische SMTP-Konfiguration}{subsubsection.5.3.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Beispiel einer durch den Avisierungsservice erzeugten Rückbestätigungs-E-Mail}}{24}{figure.7}\protected@file@percent }
+\newlabel{fig:rueckbestaetigungs-email}{{7}{24}{Beispiel einer durch den Avisierungsservice erzeugten Rückbestätigungs-E-Mail}{figure.7}{}}
+\abx@aux@cite{0}{aws2021partitioningModels}
+\abx@aux@segm{0}{0}{aws2021partitioningModels}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.3}SMS und WhatsApp über Twilio: Technologieauswahl und Integration}{25}{subsubsection.5.3.3}\protected@file@percent }
+\newlabel{sec:sms-whatsapp}{{5.3.3}{25}{SMS und WhatsApp über Twilio: Technologieauswahl und Integration}{subsubsection.5.3.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Mandantenfähigkeit und Sicherheitskonzept}{25}{subsection.5.4}\protected@file@percent }
+\newlabel{sec:sicherheitskonzept}{{5.4}{25}{Mandantenfähigkeit und Sicherheitskonzept}{subsection.5.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.1}Mandantenkontext und Datenisolation}{25}{subsubsection.5.4.1}\protected@file@percent }
+\newlabel{sec:mandantenkontext}{{5.4.1}{25}{Mandantenkontext und Datenisolation}{subsubsection.5.4.1}{}}
+\abx@aux@cite{0}{aws2022tenantIsolation}
+\abx@aux@segm{0}{0}{aws2022tenantIsolation}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Schutzbereiche des Mandanten- und Sicherheitskonzepts}}{26}{table.2}\protected@file@percent }
+\newlabel{tab:schutzbereiche}{{2}{26}{Schutzbereiche des Mandanten- und Sicherheitskonzepts}{table.2}{}}
+\abx@aux@cite{0}{owaspSecretsManagement}
+\abx@aux@segm{0}{0}{owaspSecretsManagement}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.2}Authentifizierung der DISPO-Schnittstelle}{27}{subsubsection.5.4.2}\protected@file@percent }
+\newlabel{sec:dispo-authentifizierung}{{5.4.2}{27}{Authentifizierung der DISPO-Schnittstelle}{subsubsection.5.4.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.3}Zugriffsschutz des Avisierungsdashboards}{28}{subsubsection.5.4.3}\protected@file@percent }
+\newlabel{sec:dashboard-zugriff}{{5.4.3}{28}{Zugriffsschutz des Avisierungsdashboards}{subsubsection.5.4.3}{}}
+\abx@aux@cite{0}{owaspCsrfPrevention}
+\abx@aux@segm{0}{0}{owaspCsrfPrevention}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Übergang vom authentifizierten DISPO-Kontext zur Dashboard-Sitzung}}{29}{figure.8}\protected@file@percent }
+\newlabel{fig:dashboard-sitzung}{{8}{29}{Übergang vom authentifizierten DISPO-Kontext zur Dashboard-Sitzung}{figure.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.4}Tokenbasierter Kundenzugriff}{30}{subsubsection.5.4.4}\protected@file@percent }
+\newlabel{sec:kundenzugriff-token}{{5.4.4}{30}{Tokenbasierter Kundenzugriff}{subsubsection.5.4.4}{}}
+\abx@aux@cite{0}{owaspInformationExposureUrls}
+\abx@aux@segm{0}{0}{owaspInformationExposureUrls}
+\abx@aux@cite{0}{dworkin2007gcm}
+\abx@aux@segm{0}{0}{dworkin2007gcm}
+\abx@aux@cite{0}{nist2023aes}
+\abx@aux@segm{0}{0}{nist2023aes}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.5}Schutz sensibler Konfigurationsdaten}{31}{subsubsection.5.4.5}\protected@file@percent }
+\newlabel{sec:konfigurationsschutz}{{5.4.5}{31}{Schutz sensibler Konfigurationsdaten}{subsubsection.5.4.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Abfragemodell für das Avisierungsdashboard}{32}{subsection.5.5}\protected@file@percent }
+\newlabel{sec:abfragemodell}{{5.5}{32}{Abfragemodell für das Avisierungsdashboard}{subsection.5.5}{}}
+\abx@aux@cite{0}{querydslUnifiedQueries}
+\abx@aux@segm{0}{0}{querydslUnifiedQueries}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.5.1}Tourübersicht, dynamische Filterung, Gruppierung und Paginierung}{33}{subsubsection.5.5.1}\protected@file@percent }
+\newlabel{sec:touruebersicht}{{5.5.1}{33}{Tourübersicht, dynamische Filterung, Gruppierung und Paginierung}{subsubsection.5.5.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.5.2}Auftragsdetails und Avisierungshistorie}{34}{subsubsection.5.5.2}\protected@file@percent }
+\newlabel{sec:auftragsdetails-avisierungshistorie}{{5.5.2}{34}{Auftragsdetails und Avisierungshistorie}{subsubsection.5.5.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Darstellungsstatus einzelner Rückbestätigungsanfragen}}{34}{table.3}\protected@file@percent }
+\newlabel{tab:anfrage-darstellungsstatus}{{3}{34}{Darstellungsstatus einzelner Rückbestätigungsanfragen}{table.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Lieferverfolgung und Geocoding}{35}{subsection.5.6}\protected@file@percent }
+\newlabel{sec:lieferverfolgung}{{5.6}{35}{Lieferverfolgung und Geocoding}{subsection.5.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.1}Daten zur Lieferverfolgung und Fahrerposition}{35}{subsubsection.5.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.2}Zielkoordinaten und Geocoding}{35}{subsubsection.5.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.3}Bereitstellung für die Bestätigungsseite}{35}{subsubsection.5.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}Technische Konfiguration und lokale Integrationsumgebung}{35}{subsection.5.7}\protected@file@percent }
+\newlabel{sec:technische-konfiguration}{{5.7}{35}{Technische Konfiguration und lokale Integrationsumgebung}{subsection.5.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Frontend -- Konzeption und Implementierung}{36}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Einordnung des Frontends in das Gesamtsystem}{36}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Frontend-Architektur und technische Grundlagen}{36}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.1}Technologieauswahl}{36}{subsubsection.6.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.2}Seiten-, Komponenten- und Routingstruktur}{36}{subsubsection.6.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.3}API-Anbindung und Zustandsverwaltung}{36}{subsubsection.6.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.4}Responsive Design und wiederverwendbare UI-Komponenten}{36}{subsubsection.6.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Avisierungsdashboard}{36}{subsection.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.3.1}Geschützter Dashboard-Zugang}{36}{subsubsection.6.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.3.2}Tourübersicht und Statusdarstellung}{36}{subsubsection.6.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.3.3}Suche, Filterung und Paginierung}{36}{subsubsection.6.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Auftragsdetailansicht und erneute Avisierung}{36}{subsection.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.1}Auftragsdaten und Avisierungshistorie}{36}{subsubsection.6.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.2}Erneute Avisierung, Validierung und Fehlerrückmeldung}{36}{subsubsection.6.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Bestätigungsseite für Kunden}{36}{subsection.6.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.1}Tokenbasierter Zugriff und Lieferinformationen}{36}{subsubsection.6.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.2}Bestätigung, Ablehnung und Kundenkommentar}{36}{subsubsection.6.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.3}Abgeschlossene, abgelaufene und fehlerhafte Anfragen}{36}{subsubsection.6.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6}Live-Tracking}{36}{subsection.6.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.6.1}Verfügbarkeit und Datenfluss}{36}{subsubsection.6.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.6.2}Karten- und Positionsdarstellung}{36}{subsubsection.6.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.6.3}Aktualisierung und Fehlerbehandlung}{36}{subsubsection.6.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Test und Validierung}{36}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Teststrategie und Testumgebung}{36}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.1.1}Testziele, Testebenen und Auswahl der Prüfschwerpunkte}{37}{subsubsection.7.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.1.2}Testwerkzeuge und reproduzierbare Testumgebung}{37}{subsubsection.7.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Validierung des Avisierungsservice}{37}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.1}Domänen- und Anwendungslogik}{37}{subsubsection.7.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.2}REST-Verträge, Eingabevalidierung und Fehlerantworten}{37}{subsubsection.7.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.3}Authentifizierung, Sitzungsverwaltung und Mandantenisolation}{37}{subsubsection.7.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.4}Persistenz- und Abfragemodell}{37}{subsubsection.7.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.5}Workflow-, Wiederholungs- und Nebenläufigkeitsszenarien}{37}{subsubsection.7.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.6}Ausgehende Schnittstellen und Rückkanäle}{37}{subsubsection.7.2.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}End-to-End-Tests}{37}{subsection.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.1}Einordnung der Szenariogruppen}{37}{subsubsection.7.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.2}Testumgebung und technische Struktur}{37}{subsubsection.7.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.3}Versand und Bereitstellung der Anfrage}{38}{subsubsection.7.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.4}Kundenzugriff und Anzeige der Lieferdaten}{38}{subsubsection.7.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.5}Kundenreaktion und DISPO-Rückmeldung}{39}{subsubsection.7.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.6}Dashboard-Zugang}{39}{subsubsection.7.3.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.7}Tourenübersicht, Suche und Filterung}{39}{subsubsection.7.3.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.8}Auftragsdetails und erneute Avisierung}{40}{subsubsection.7.3.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.9}E-Mail- und SMTP-Einstellungen}{40}{subsubsection.7.3.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.10}Lieferverfolgung und Tracking-Verfügbarkeit}{40}{subsubsection.7.3.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Projektmanagement und Projektreflexion}{41}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Projektmanagement}{41}{subsection.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.1.1}Projektphasen}{41}{subsubsection.8.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.1.2}Projektplan}{41}{subsubsection.8.1.2}\protected@file@percent }
 \gdef \LT@i {\LT@entry 
     {1}{68.9055pt}\LT@entry 
     {1}{97.35826pt}\LT@entry 
     {1}{154.26378pt}\LT@entry 
     {1}{68.9055pt}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Projektplan}}{16}{figure.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.1.3}Projektaufwand}{16}{subsubsection.8.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Projektreflexion}{16}{subsection.8.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.2.1}Herausforderungen}{16}{subsubsection.8.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.2.2}Lessons Learned}{17}{subsubsection.8.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {9}Projektrgebnisse}{17}{section.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Gesamtergebnis}{17}{subsection.9.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Grenzen des Projektergebnisses}{17}{subsection.9.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Fazit und Ausblick}{17}{subsection.9.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {10}Nutzung von Künstlicher Intelligenz}{17}{section.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {11}Verwendete Hilfsmittel}{17}{section.11}\protected@file@percent }
-\gdef \@abspage@last{18}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Projektplan}}{42}{figure.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.1.3}Projektaufwand}{42}{subsubsection.8.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Projektreflexion}{42}{subsection.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.2.1}Herausforderungen}{42}{subsubsection.8.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.2.2}Lessons Learned}{43}{subsubsection.8.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Projektrgebnisse}{43}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Gesamtergebnis}{43}{subsection.9.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Grenzen des Projektergebnisses}{43}{subsection.9.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Fazit und Ausblick}{43}{subsection.9.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10}Nutzung von Künstlicher Intelligenz}{43}{section.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {11}Verwendete Hilfsmittel}{43}{section.11}\protected@file@percent }
+\abx@aux@read@bbl@mdfivesum{nobblfile}
+\abx@aux@read@bblrerun
+\gdef \@abspage@last{44}
