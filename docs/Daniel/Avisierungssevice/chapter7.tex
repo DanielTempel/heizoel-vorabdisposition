@@ -1,0 +1,595 @@
+\documentclass[
+  12pt,
+  a4paper,
+  oneside
+]{article}
+
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+  \setmainfont{lmroman12-regular.otf}[
+    BoldFont=lmroman12-bold.otf,
+    ItalicFont=lmroman12-italic.otf
+  ]
+  \setmonofont{lmmono12-regular.otf}
+\fi
+\usepackage[ngerman]{babel}
+\usepackage{microtype}
+
+\usepackage[
+  left=2.5cm,
+  right=2.5cm,
+  top=2.5cm,
+  bottom=2.5cm
+]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{amsmath}
+
+\usepackage{csquotes}
+\usepackage[
+  backend=biber,
+  style=authoryear,
+  sorting=nyt,
+  giveninits=true,
+  maxcitenames=2,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{literatur.bib}
+
+\usepackage{graphicx}
+\usepackage[
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue,
+  citecolor=black
+]{hyperref}
+
+\hypersetup{
+  pdftitle={Test und Validierung},
+  pdfauthor={Daniel Tempel}
+}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+% Unsichtbarer Platzhalter, damit noch leere Gliederungspunkte im PDF erscheinen.
+\newcommand{\contentplaceholder}{\mbox{}\par}
+
+% Erlaubt bei langen technischen Bezeichnern einen Zeilenumbruch nach dem Inhalt.
+\newcommand{\inlinecode}[1]{\texttt{#1}\allowbreak}
+
+\begin{document}
+
+\tableofcontents
+\clearpage
+
+% Die Nummerierung beginnt bei Kapitel 7.
+\setcounter{section}{6}
+
+\section{Test und Validierung}
+\label{sec:test-validierung}
+
+Nachdem in den vorangegangenen Kapiteln die Systemarchitektur sowie die
+Konzeption und Implementierung des Avisierungsservice und des Webfrontends
+beschrieben wurden, wird im Folgenden die entwickelte Lösung systematisch
+validiert. Ziel ist es zu überprüfen, ob die zentralen fachlichen und
+technischen Anforderungen im implementierten System wie vorgesehen umgesetzt
+sind und insbesondere auch relevante Fehler- und Randfälle berücksichtigt
+werden.
+
+Die Validierung wird entsprechend der zuvor beschriebenen Systemstruktur
+getrennt betrachtet. Abschnitt~\ref{sec:validierung-avisierungsservice-backend}
+untersucht den Avisierungsservice anhand automatisierter Tests auf
+unterschiedlichen Ebenen, während
+Abschnitt~\ref{sec:validierung-frontend} die Validierung des Webfrontends
+behandelt. Abschließend werden die erzielten Testergebnisse eingeordnet und die
+Grenzen der daraus ableitbaren Aussagen dargestellt.
+
+\subsection{Validierung des Avisierungsservice}
+\label{sec:validierung-avisierungsservice-backend}
+
+Die Validierung des Avisierungsservice überprüft ausgewählte fachliche und
+technische Eigenschaften der in Kapitel 5 beschriebenen Lösung. Dabei steht
+nicht die Prüfung einzelner Klassen im Vordergrund, sondern die Frage, ob
+zentrale Anforderungen und Entwurfsentscheidungen unter geeigneten
+Prüfbedingungen bestätigt werden können.
+
+Dazu werden unterschiedliche Testebenen eingesetzt. Fachliche Regeln können
+weitgehend isoliert geprüft werden, während beispielsweise Mandantentrennung,
+Datenbankabfragen oder die Ausführung des BPMN-Prozesses das Zusammenspiel
+mehrerer Komponenten erfordern.
+
+\subsubsection{Teststrategie und Testumgebung}
+\label{sec:teststrategie-anforderungsbezug-testumgebung}
+
+Die Auswahl des Prüfaufbaus richtet sich danach, welche Eigenschaft untersucht
+werden soll. Dabei werden nur diejenigen technischen Komponenten einbezogen,
+die für die Aussagekraft des jeweiligen Tests erforderlich sind.
+
+\begin{table}[htbp]
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \renewcommand{\arraystretch}{1.15}
+  \caption{Prüfbereiche und zugehöriger Prüfaufbau}
+  \label{tab:backend-pruefbereiche}
+  \begin{tabularx}{\textwidth}{@{}
+    >{\raggedright\arraybackslash}p{0.16\textwidth}
+    >{\raggedright\arraybackslash}p{0.25\textwidth}
+    >{\raggedright\arraybackslash}p{0.31\textwidth}
+    >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Bereich}
+      & \textbf{Repräsentative Prüffälle}
+      & \textbf{Erwartetes Verhalten}
+      & \textbf{Prüfaufbau} \\
+    \midrule
+    Domänen- und Anwendungslogik
+      & abgelaufene Anfrage; identischer Avisierungsauftrag; unzulässiger
+        Zustandswechsel
+      & Fachregeln werden eingehalten und ungültige Zustandsänderungen verhindert
+      & Tests der Domänen- und Anwendungslogik mit kontrollierten Abhängigkeiten \\
+    REST-Verträge
+      & fehlende Pflichtangaben; ungültige Eingaben; fachlich zurückgewiesene Anfragen
+      & definierte HTTP-Statuscodes und Fehlerantworten
+      & MVC-Tests mit \texttt{MockMvc} \\
+    Zugriffsschutz und Mandantentrennung
+      & ungültiger API-Key; Zugriff auf fremde Daten; geschützter Zugriff auf das
+        Avisierungsdashboard
+      & unzulässige Zugriffe werden verhindert und Mandantengrenzen eingehalten
+      & Spring-Boot-Integrationstests mit Security und Persistenz \\
+    Persistenz und Abfragen
+      & aktuelle und historische Anfragen; Filterung nach Tour, Status und Zeitraum
+      & Daten werden korrekt gespeichert, ausgewählt, gruppiert und gefiltert
+      & PostgreSQL-, JPA- und QueryDSL-Integrationstests \\
+    Workflow und Nebenläufigkeit
+      & Versand; Fristablauf; Wiederholungen; parallele Aktionen; veraltete Anfrage
+      & Prozesspfade werden korrekt ausgeführt und Zustände bleiben konsistent
+      & Camunda- und Concurrency-Integrationstests \\
+    Ausgehende Kommunikation
+      & Benachrichtigungsversand; DISPO-Callback; Fehler externer Abhängigkeiten
+      & ausgehende Aufrufe und Fehlerverarbeitung entsprechen der vorgesehenen
+        Logik des Avisierungsservice
+      & Adapter- und Integrationstests mit kontrollierten Antworten \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Für isolierte Prüfungen werden nicht relevante Abhängigkeiten durch Test
+Doubles ersetzt. REST-Verträge werden mit \texttt{MockMvc} geprüft.
+Sicherheitsrelevante Szenarien verwenden einen erweiterten
+Spring-Boot-Testkontext mit aktivierter Security-Konfiguration und Persistenz.
+
+Datenbankbezogene Prüfungen werden mit PostgreSQL über Testcontainers
+durchgeführt. Das Schema wird mit den Flyway-Migrationen aufgebaut, sodass
+JPA-Mappings, Persistenzverhalten und QueryDSL-Abfragen gegen dieselbe
+Datenbanktechnologie wie im Avisierungsservice geprüft werden.
+
+Für die Workflow-Validierung wird die ausführbare BPMN-Prozessdefinition in den
+Testkontext eingebunden. Die automatische Camunda-Jobausführung ist deaktiviert,
+sodass Jobs und zeitabhängige Abläufe gezielt und reproduzierbar ausgeführt
+werden können. Externe Benachrichtigungs- und DISPO-Komponenten werden dabei
+durch Test Doubles ersetzt, da der interne Workflow und nicht die Verfügbarkeit
+externer Systeme geprüft wird.
+
+Die automatisierten Tests des Avisierungsservice werden im Rahmen des
+Maven-Builds ausgeführt. Zusätzlich sind sie in eine GitHub-Actions-Pipeline
+eingebunden. Bei Änderungen unter \texttt{backend/**} oder an der zugehörigen
+CI-Workflow-Datei wird für Pushes und Pull Requests gegen den Hauptbranch ein
+Maven-\texttt{verify}-Lauf unter Java~17 ausgeführt. Dadurch wird die
+Testausführung unabhängig von der lokalen Entwicklungsumgebung reproduzierbar
+in den Integrationsprozess eingebunden. Die folgenden Abschnitte betrachten die
+einzelnen Prüfbereiche anhand ausgewählter Szenarien genauer.
+
+\subsubsection{Domänen- und Anwendungslogik}
+\label{sec:test-domaenen-anwendungslogik}
+
+Die Tests der Domänen- und Anwendungslogik prüfen ausgewählte fachliche
+Invarianten und Entscheidungsregeln des Avisierungsservice. Im Mittelpunkt
+stehen zeitliche Grenzbedingungen, Zustandsänderungen sowie die
+Wiederverwendung, Aktualisierung oder Ersetzung bestehender
+Rückbestätigungsanfragen.
+
+Zeitabhängige Regeln werden gezielt an ihren Grenzen geprüft. Ein Lieferfenster
+muss bei der Übernahme noch in der Zukunft liegen, und eine Kundenreaktion ist
+nur vor Ablauf der Antwortfrist zulässig. Betrachtet werden daher Zeitpunkte
+unmittelbar vor sowie beim Erreichen der jeweiligen Grenze.
+
+Bei Rückbestätigungsanfragen werden insbesondere unzulässige Zustandsänderungen
+geprüft. Eine bereits als \texttt{SENT} markierte Anfrage darf weder erneut in
+diesen Zustand überführt noch nachträglich als Zustellfehler gekennzeichnet
+werden. Änderungen der Auftragsdaten verändern außerdem nicht automatisch den
+fachlichen Bestätigungsstatus.
+
+Für erneut übermittelte Avisierungsaufträge wird geprüft, ob bestehende Anfragen
+weiterverwendet, aktualisiert oder ersetzt werden. Eine noch nicht versendete
+Anfrage kann bei geänderten Daten aktualisiert werden. Bei einer aktiven
+\texttt{SENT}-Anfrage wird dagegen die bestehende Anfrage deaktiviert, ihre
+Ablösung gemeldet und eine Neuerzeugung mit den aktualisierten Daten veranlasst.
+Unveränderte laufende oder bereits bestätigte beziehungsweise abgelehnte
+Aufträge werden wiederverwendet, während nach Versandfehler oder
+\texttt{NO\_RESPONSE} auch bei unveränderten Daten eine neue Anfrage entstehen
+kann.
+
+Bei Kundenreaktionen werden neben Bestätigung und Ablehnung auch ungültige Fälle
+betrachtet. Antworten auf inaktive, abgelaufene, veraltete oder bereits
+beantwortete Anfragen werden zurückgewiesen. Für die Duplikatkontrolle wird eine
+bereits vorhandene Kundenreaktion simuliert. Dabei bleiben Auftragsstatus und
+Aktivitätszustand unverändert; weder die Speichermethode des Repositorys noch
+der Workflow-Port werden erneut aufgerufen.
+
+Der Fristablauf darf den Auftrag nur dann auf \texttt{NO\_RESPONSE} setzen, wenn
+die Anfrage noch aktiv und die Antwortfrist erreicht ist. Bei einem vorzeitigen
+Timeout oder einer bereits inaktiven Anfrage erfolgt keine Statusänderung.
+
+Auch die manuelle erneute Avisierung wird anhand ihrer fachlichen
+Voraussetzungen geprüft. Sie ist nach Versandfehler oder \texttt{NO\_RESPONSE}
+zulässig, nicht jedoch bei noch ausstehenden, aktiven oder bereits beantworteten
+Anfragen. Zusätzlich wird geprüft, dass ein unzulässiger Zustand oder ein
+bereits begonnenes Lieferfenster vor nachgelagerten Bedingungen erkannt wird.
+Wird die erneute Avisierung aufgrund eines unzulässigen Zustands zurückgewiesen,
+bleiben der bestehende Auftragsstatus und die vorhandenen
+Rückbestätigungsanfragen unverändert.
+
+Der folgende Abschnitt betrachtet die Eingabevalidierung sowie die Abbildung
+fachlicher Ergebnisse und Fehler auf den REST-Vertrag.
+
+\subsubsection{REST-Verträge, Eingabevalidierung und Fehlerantworten}
+\label{sec:test-rest-vertraege-fehlerantworten}
+
+Die Prüfung der REST-Schnittstellen untersucht, ob HTTP-Anfragen korrekt
+verarbeitet und Ergebnisse der Anwendungsschicht konsistent in HTTP-Antworten
+überführt werden. Dafür werden sowohl isolierte MVC-Tests mit ersetzten
+Anwendungsfällen als auch Spring-Boot-Integrationstests eingesetzt. Während
+MVC-Tests vor allem Parameterbindung, Validierung und Controller-Mapping prüfen,
+beziehen Integrationstests zusätzlich ausgewählte Teile der Anwendungslogik und
+Persistenz ein.
+
+Für gültige Abfragen des Avisierungsdashboards wird geprüft, ob Statusfilter,
+Tournummern und Datumsgrenzen korrekt in das Abfrageobjekt übernommen werden.
+Ungültige Parameter wie ein unbekannter Statuswert oder ein nicht ISO-konformes
+Datum führen zu \texttt{400 Bad Request}, ohne dass der Anwendungsfall
+aufgerufen wird.
+
+Zusätzlich wird die DTO-Validierung betrachtet. Fehlt beispielsweise in einem
+syntaktisch gültigen JSON-Request das Pflichtfeld \texttt{responseType}, wird
+dieser mit \texttt{400 Bad Request} und \texttt{VALIDATION\_ERROR}
+zurückgewiesen. Fachlich ungültige Daten werden dagegen durch die
+Anwendungslogik geprüft. Ein Lieferfenster in der Vergangenheit führt ebenfalls
+zu \texttt{400 Bad Request}; anschließend sind weder Auftrag noch
+Rückbestätigungsanfrage gespeichert.
+
+Davon zu unterscheiden ist die Abbildung bereits festgestellter fachlicher
+Fehler. Im MVC-Test für einen ungültigen Zeitraum einer Abfrage des
+Avisierungsdashboards wird der ersetzte Anwendungsfall so konfiguriert, dass er
+eine \texttt{InvalidFilterException} auslöst. Geprüft wird deren Abbildung auf
+\texttt{400 Bad Request} mit dem Fehlercode \texttt{VALIDATION\_ERROR}.
+
+Auch erfolgreiche sowie fachlich zurückgewiesene Anfragen werden auf HTTP-Ebene
+geprüft. Ein übernommener DISPO-Auftrag mit Status \texttt{OPEN} liefert
+\texttt{202 Accepted}. Der Status bestätigt lediglich die Annahme zur weiteren
+Verarbeitung, nicht den Abschluss des Avisierungsprozesses. Eine gültige
+Kundenreaktion führt zu \texttt{204 No Content}, eine abgelaufene Anfrage zu
+\texttt{410 Gone} und eine inaktive beziehungsweise bereits verarbeitete
+Anfrage zu \texttt{409 Conflict}.
+
+Für die Detailansicht des Avisierungsdashboards wird außerdem geprüft, ob
+Auftragsdaten, aktuelle Rückbestätigungsanfrage, Historie und Kundenreaktion in
+der vorgesehenen JSON-Struktur ausgegeben werden. Fehlerantworten enthalten einen
+maschinenlesbaren Fehlercode, eine Beschreibung, HTTP-Status, Pfad und
+Zeitstempel. Für einen nicht vorhandenen Auftrag werden alle fünf Felder
+geprüft; weitere Szenarien kontrollieren insbesondere die Zuordnung von Status
+und Fehlercode. Die gemeinsame Struktur wird durch den
+\texttt{GlobalExceptionHandler} erzeugt.
+
+Auch die E-Mail-Einstellungen prüfen weitere Vertragseigenschaften. Fehlt eine
+SMTP-Konfiguration, wird \texttt{200 OK} mit \texttt{configured=false}
+zurückgegeben. Passwort und verschlüsselte Repräsentation dürfen nicht
+Bestandteil der Antwort sein. Werden die ersetzten Anwendungsfälle für
+Verbindungstest oder Testnachricht mit den vorgesehenen Ausnahmen konfiguriert,
+wird deren Abbildung auf \texttt{502 Bad Gateway} geprüft.
+
+In den MVC-Slice-Tests sind Anwendungsfälle ersetzt und Security-Filter
+deaktiviert. Integrationstests beziehen ausgewählte Anwendungs- und
+Persistenzkomponenten ein, ersetzen jedoch ebenfalls bestimmte Abhängigkeiten
+durch Test Doubles. Abschnitt~\ref{sec:test-zugriffsschutz-mandantenisolation}
+betrachtet daher ergänzend Zugriffsschutz, Sitzungsverwaltung und
+Mandantenisolation. Die übergreifenden Aussagegrenzen werden in
+Abschnitt~\ref{sec:test-ergebnisse-aussagegrenzen} zusammengefasst.
+
+\subsubsection{Zugriffsschutz, Sitzungsverwaltung und Mandantenisolation}
+\label{sec:test-zugriffsschutz-mandantenisolation}
+
+Während Abschnitt~\ref{sec:test-rest-vertraege-fehlerantworten} die Verarbeitung
+von HTTP-Anfragen und deren Abbildung auf den REST-Vertrag untersucht,
+betrachtet dieser Abschnitt die Durchsetzung von Zugriffsregeln und
+Mandantengrenzen. Hierfür werden Integrationstests mit aktiver
+Sicherheitskonfiguration und PostgreSQL eingesetzt.
+
+Für die DISPO-Schnittstelle wird geprüft, dass fehlende oder ungültige
+Zugangsdaten zurückgewiesen und gültige Zugangsdaten dem richtigen Unternehmen
+zugeordnet werden. Gleichzeitig wird sichergestellt, dass die für die
+System-zu-System-Kommunikation verwendeten Zugangsdaten keinen direkten Zugriff
+auf geschützte Funktionen des Avisierungsdashboards ermöglichen.
+
+Der Zugriff auf das Avisierungsdashboard wird über einen zeitlich begrenzten
+Zugangscode in eine authentifizierte Sitzung überführt. Die Tests prüfen, dass
+ein gültiger Code erfolgreich verwendet werden kann, während eine erneute
+Verwendung oder ein bereits abgelaufener Code zurückgewiesen wird.
+
+Für geschützte Operationen des Avisierungsdashboards wird zusätzlich der
+CSRF-Schutz überprüft. Ändernde Anfragen ohne gültigen CSRF-Nachweis werden
+abgewiesen, bevor die zugehörige Anwendungslogik ausgeführt wird. Bei gültiger
+Authentifizierung und gültigem CSRF-Nachweis wird die vorgesehene Operation
+zugelassen.
+
+Der Kundenzugriff erfolgt unabhängig von den Authentifizierungsmechanismen für
+DISPO und das Avisierungsdashboard über einen individuellen Zugriffstoken. Die
+Tests prüfen, dass gültige Tokens die zugehörigen Bestätigungsdaten bereitstellen,
+unbekannte oder durch eine neuere Anfrage abgelöste Tokens dagegen keinen Zugriff
+mehr ermöglichen.
+
+Ein weiterer Schwerpunkt liegt auf der Mandantenisolation. Hierzu werden Daten
+mehrerer Unternehmen parallel angelegt und anschließend geprüft, dass Lese- und
+Änderungsoperationen jeweils auf die Daten des authentifizierten Unternehmens
+beschränkt bleiben. Fremde Aufträge können nicht verändert werden. Dieselbe
+Trennung wird zusätzlich für unternehmensspezifische E-Mail-Konfigurationen
+überprüft.
+
+Neben der Zugriffskontrolle werden ausgewählte kryptographische
+Schutzmechanismen und die Token-Erzeugung isoliert geprüft. Für die
+Verschlüsselung sensibler SMTP-Konfigurationsdaten werden erfolgreiche Ver- und
+Entschlüsselung, die Verwendung unterschiedlicher Initialisierungsvektoren sowie
+die Bindung des Chiffrats an den jeweiligen Unternehmenskontext überprüft. Die
+Token-Erzeugung wird hinsichtlich URL-sicherer Darstellung und der erwarteten
+Länge des zugrunde liegenden Zufallswerts geprüft. Zusätzlich wird kontrolliert,
+dass zwei aufeinanderfolgend erzeugte Tokens unterschiedliche Werte besitzen.
+
+Die Tests bestätigen damit die Trennung der verschiedenen Zugriffsmodelle sowie
+die Mandantenisolation für ausgewählte Lese- und Schreiboperationen. Die
+Aussagegrenzen der Sicherheitsprüfungen werden gemeinsam mit den übrigen
+Testgrenzen in Abschnitt~\ref{sec:test-ergebnisse-aussagegrenzen}
+zusammengefasst. Der folgende Abschnitt betrachtet die Persistenz und die
+leseseitigen Abfragen.
+
+\subsubsection{Persistenz- und Abfragemodell}
+\label{sec:test-persistenz-abfragemodell}
+
+Die Persistenz- und Abfragetests prüfen, ob Avisierungsdaten entsprechend dem
+Datenmodell gespeichert und für Tourübersicht und Detailansicht korrekt
+rekonstruiert werden. Als Testdatenbank wird PostgreSQL über Testcontainers
+verwendet. Das Schema wird durch Flyway aufgebaut und anschließend von
+Hibernate gegen die JPA-Abbildungen validiert. Vor den eigentlichen Abfragen
+werden ausstehende Änderungen mit \texttt{flush} in die Datenbank geschrieben
+und der Persistence Context geleert. Dadurch basieren die Ergebnisse auf
+tatsächlich persistierten Daten.
+
+Eine zentrale Regel des Abfragemodells besteht darin, für einen Auftrag stets
+die Rückbestätigungsanfrage mit der höchsten internen ID als aktuelle Anfrage zu
+verwenden. Die in
+Abschnitt~\ref{sec:test-zugriffsschutz-mandantenisolation} betrachtete
+Zugriffsbeschränkung wird auf Persistenzebene dadurch unterstützt, dass
+ausschließlich die jeweils neueste Anfrage eines Auftrags aufgelöst wird. Diese
+Auswahl erfolgt jeweils innerhalb des zugehörigen Auftrags. Auch Tourübersicht
+und Detailansicht verwenden diese Regel, sodass Lieferdatum, Lieferfenster und
+Kommunikationskanal aus der jeweils aktuellen Anfrage stammen.
+
+Für die Tourübersicht werden Filterung und Suche separat betrachtet.
+Datumsgrenzen werden einschließlich ihrer Randwerte ausgewertet.
+Unterschiedliche Filterkriterien werden miteinander verknüpft, während mehrere
+Werte innerhalb eines Kriteriums alternativ gelten. Zusätzlich wird zwischen
+Suchtreffern auf Tour- und Auftragsebene unterschieden. Ein Treffer in
+Tournummer oder Kennzeichen lässt die Tour grundsätzlich im Ergebnis, während
+weitere Filter weiterhin auf die enthaltenen Aufträge wirken. Ein Treffer
+ausschließlich in auftragsbezogenen Feldern führt dagegen dazu, dass nur die
+passenden Aufträge innerhalb der Tour angezeigt werden. Die Suche ist
+unabhängig von Groß- und Kleinschreibung.
+
+Für Gruppierung und Paginierung gilt die fachliche Vorgabe, dass eine Tournummer
+nicht für unterschiedliche Liefertage oder Fahrzeuge wiederverwendet wird.
+Aufträge derselben Tour werden daher gemeinsam dargestellt. Die Touren werden
+nach Lieferdatum und Tournummer sortiert, die enthaltenen Aufträge nach Beginn
+und Ende des Lieferfensters sowie nach externer Auftrags-ID. Die Paginierung
+erfolgt auf Tour-Ebene und trennt damit keine Aufträge derselben Tour. In einem
+Testszenario werden drei Touren bei einer Seitengröße von zwei auf zwei Seiten
+verteilt; sämtliche Aufträge der ersten Tour bleiben dabei gemeinsam erhalten.
+
+Für die Detailansicht wird geprüft, ob die aktuelle Anfrage von ihrer Historie
+korrekt getrennt wird. Die neueste Anfrage erscheint als
+\texttt{currentRequest}, ältere Anfragen werden in absteigender Reihenfolge
+ihrer ID als \texttt{previousRequests} ausgegeben. Diese Zuordnung hängt nicht
+davon ab, ob die aktuelle Anfrage bereits versendet wurde oder noch den
+Versandstatus \texttt{PENDING} beziehungsweise \texttt{FAILED} besitzt.
+Vorhandene Kundenreaktionen werden mit Typ, Kommentar und Eingangszeitpunkt
+übernommen. Für Aufträge ohne Rückbestätigungsanfragen wird ein Ergebnis ohne
+\texttt{currentRequest} und mit leerer Historie geliefert; bei einem unbekannten
+Auftrag wird kein Detailergebnis zurückgegeben. Die Mandantenisolation wurde
+bereits in Abschnitt~\ref{sec:test-zugriffsschutz-mandantenisolation}
+betrachtet.
+
+Die Tests bestätigen damit die wesentlichen Persistenz- und Abfrageregeln unter
+Verwendung derselben Datenbanktechnologie wie im Avisierungsservice.
+
+\subsubsection{Workflow-, Wiederholungs- und Nebenläufigkeitsszenarien}
+\label{sec:test-workflow-wiederholung-nebenlaeufigkeit}
+
+Die Workflow-Tests prüfen ausgewählte Pfade der ausführbaren
+BPMN-Prozessdefinition sowie das Verhalten bei Wiederholungen und
+konkurrierenden Operationen. Die automatische Job-Ausführung ist dabei
+deaktiviert, sodass einzelne Jobs und Timer gezielt ausgeführt und die daraus
+entstehenden Prozess- und Datenbankzustände überprüft werden können. Für
+zeitabhängige Szenarien werden Anwendungs- und Prozesszeit kontrolliert gesetzt.
+
+Für den regulären Prozessablauf wird zunächst geprüft, dass nach dem
+Prozessstart ein asynchroner Versand-Job vorliegt und noch keine Versandaktion
+erfolgt ist. Nach dessen erfolgreicher Ausführung muss die
+Rückbestätigungsanfrage den Versandstatus \texttt{SENT} und der Auftrag den
+Bestätigungsstatus \texttt{SENT} besitzen. Zusätzlich werden die vorgesehenen
+Wartezustände des Prozesses sowie der Fälligkeitszeitpunkt des Antworttimers
+überprüft.
+
+Weitere Tests betrachten die alternativen Prozesspfade. Eine Kundenreaktion
+muss einen Callback-Job mit den erwarteten Prozessdaten erzeugen und der Prozess
+nach erfolgreicher Verarbeitung enden. Beim Erreichen der Antwortfrist werden
+Anfrage und Auftrag auf den vorgesehenen Zustand \texttt{NO\_RESPONSE}
+überführt und ebenfalls ein Callback vorbereitet. Wird eine Anfrage durch eine
+neuere ersetzt, muss die bisherige Prozessinstanz dagegen ohne Callback beendet
+werden.
+
+Die Wiederholungslogik des Versands wird mit kontrolliert erzeugten Fehlern
+geprüft. Bei einem wiederholbaren Fehler werden insgesamt bis zu drei
+Versandversuche durchgeführt. Die Tests überprüfen dabei sowohl die Anzahl der
+Versuche als auch die konfigurierten Wartezeiten von einer beziehungsweise fünf
+Minuten. Bleiben alle Versuche erfolglos, wird die Anfrage auf \texttt{FAILED}
+gesetzt und der Prozess ohne DISPO-Callback beendet. Für einen als dauerhaft
+behandelten Fehler wird geprüft, dass keine weiteren fachlich modellierten
+Wiederholungsversuche stattfinden.
+
+Davon getrennt wird das Verhalten bei einem unerwarteten technischen Fehler
+geprüft. In diesem Fall darf kein fachlicher Versandversuch fortgeschrieben
+werden. Stattdessen wird der technische Retry-Zähler des Camunda-Jobs reduziert,
+während die Anfrage im vorherigen Zustand verbleibt und kein fachlicher
+Wiederholungstimer entsteht. Dadurch wird geprüft, dass fachliche und technische
+Wiederholungsmechanismen voneinander getrennt bleiben.
+
+Auch Fehler beim DISPO-Callback werden untersucht. Nach Ausschöpfung der
+technischen Job-Retries muss ein \texttt{failedJob}-Incident vorliegen, während
+die Prozessinstanz bestehen bleibt. Ein zusätzlicher Test prüft den Fall, dass
+die betreffende Rückbestätigungsanfrage zwischenzeitlich durch eine neuere
+ersetzt wurde. Der veraltete Callback darf dann nicht mehr ausgeführt werden;
+die alte Prozessinstanz und der zugehörige Incident werden beendet.
+
+Die Nebenläufigkeitstests prüfen mehrere konkurrierende Zugriffe auf denselben
+fachlichen Zustand. Bei zwei parallelen Versandaufrufen wird kontrolliert, dass
+die externe Versandaktion nur einmal erfolgt und anschließend ein konsistenter
+Versandstatus gespeichert ist. Der Test bezieht sich dabei auf parallele
+Aufrufe der Anwendungslogik und nicht auf mehrere gleichzeitig arbeitende
+Camunda Job Executor.
+
+Für gleichzeitig eintreffende Kundenreaktionen \texttt{CONFIRM} und
+\texttt{REJECT} wird geprüft, dass genau eine Reaktion gespeichert und nur eine
+der beiden Operationen erfolgreich abgeschlossen wird. Der resultierende
+Auftragsstatus muss mit der tatsächlich gespeicherten Reaktion übereinstimmen;
+welche der konkurrierenden Reaktionen gewinnt, ist nicht festgelegt.
+
+Ein weiterer Nebenläufigkeitstest betrachtet die gleichzeitige
+Kundenbestätigung und Ablösung einer bestehenden Anfrage. Dabei wird geprüft,
+dass die beiden Operationen nicht zu einem widersprüchlichen Zwischenzustand
+führen. Nach Abschluss beider Transaktionen ist genau eine Kundenbestätigung
+gespeichert, die bisherige Anfrage inaktiv und der Auftrag für die neu erzeugte
+Avisierung wieder \texttt{OPEN}.
+
+\subsubsection{Ausgehende Kommunikation und Adapterverträge}
+\label{sec:test-kommunikation-adaptervertraege}
+
+Die Tests der ausgehenden Kommunikation prüfen, ob der Avisierungsservice den
+für die Rückbestätigungsanfrage festgelegten Kommunikationskanal korrekt auf den
+zugehörigen Adapter abbildet, die erforderlichen Daten übergibt und ausgewählte
+Fehler an den Systemgrenzen korrekt verarbeitet. Im Unterschied zu
+Abschnitt~\ref{sec:test-workflow-wiederholung-nebenlaeufigkeit} steht dabei die
+backendseitige Schnittstelle zu externen Systemen im Mittelpunkt. Externe
+Sendeoperationen werden ersetzt, HTTP-Antworten durch das Testsetup vorgegeben.
+
+Für E-Mail, SMS und WhatsApp wird geprüft, dass der jeweils vorgesehene Sender
+aufgerufen und mit den relevanten Auftrags- und Anfragedaten versorgt wird. Dazu
+wird zunächst ein Avisierungsauftrag angelegt und anschließend der Versand
+ausgelöst. Durch die ersetzten Sendeoperationen lassen sich Kanalzuordnung und
+Datenübergabe gezielt beobachten.
+
+Beim E-Mail-Versand wird geprüft, dass die mandantenspezifischen
+SMTP-Einstellungen anhand der Unternehmens-ID angefordert und für die
+Senderkonfiguration verwendet werden. Separate Tests untersuchen ausgewählte
+Eigenschaften von \texttt{STARTTLS} und Implicit TLS sowie das Verhalten bei
+deaktivierter SMTP-Authentifizierung. Ohne Authentifizierung werden keine
+Zugangsdaten verwendet und keine Passwortentschlüsselung durchgeführt.
+
+Für die initiale Rückbestätigungsanfrage sowie die Eingangsbestätigungen nach
+Bestätigung oder Ablehnung werden Adressierung, Nachrichtenvariante und
+ausgewählte Template-Inhalte geprüft. Dabei werden Absender, Empfänger und
+Betreff sowie die Übergabe der Bestätigungs-URL kontrolliert. Im initialen
+Template werden Lieferdatum und Lieferfenster geprüft; alle drei
+Nachrichtenvarianten enthalten zudem die vorgesehene Referenz auf das
+eingebettete Logo.
+
+Fehlen erforderliche SMTP-Einstellungen, wird der Versand abgebrochen, bevor
+eine Nachricht versendet wird. Ein simulierter Fehler beim eigentlichen
+E-Mail-Versand wird in einen für die Anwendung definierten Versandfehler
+überführt, wobei die ursprüngliche technische Ursache erhalten bleibt. Damit
+wird ein ausgewählter Fehlerpfad geprüft, nicht die vollständige
+E-Mail-Fehlerbehandlung.
+
+Für den DISPO-Callback wird ein HTTP-POST an die übergebene Zieladresse mit
+Auftrags-ID, Bestätigungsstatus und Kundenkommentar geprüft. Eine erfolgreiche
+Antwort wird korrekt verarbeitet. Ein simulierter Serverfehler führt dagegen
+zu einem für die Anwendung definierten Callback-Fehler, wobei der zugehörige
+Auftrags- und Statuskontext erhalten bleibt.
+
+Die Ergebnisse dieser Adapterprüfungen werden gemeinsam mit den übrigen
+Testbereichen im folgenden Abschnitt eingeordnet.
+
+\subsubsection{Ergebnisse und Aussagegrenzen der Tests des Avisierungsservice}
+\label{sec:test-ergebnisse-aussagegrenzen}
+
+Die Ergebnisse stützen die korrekte Umsetzung zentraler fachlicher Regeln und
+technischer Schutzmechanismen für die untersuchten Szenarien. Unzulässige
+Zustandsänderungen werden zurückgewiesen, zeitliche Zulässigkeitsgrenzen
+berücksichtigt und gültige Kundenreaktionen, Fristabläufe sowie erneute
+Avisierungen in die vorgesehenen Zustände überführt. REST-Schnittstellen,
+Zugriffsregeln und Mandantengrenzen verhalten sich in den geprüften Fällen
+entsprechend den definierten Vorgaben.
+
+Auf Integrationsebene liefern die PostgreSQL-Abfragen die erwarteten Filter-,
+Gruppierungs-, Historien- und Paginierungsergebnisse. Die geprüften BPMN-Pfade
+verarbeiten Kundenreaktionen, Fristabläufe, Versandwiederholungen und abgelöste
+Anfragen wie vorgesehen. In den untersuchten Konkurrenzsituationen bleiben die
+geprüften Konsistenzbedingungen erhalten. Die ausgehenden Adapter erzeugen die
+erwarteten Nachrichten und HTTP-Aufrufe und bilden ausgewählte technische Fehler
+auf die vorgesehene Anwendungslogik des Avisierungsservice ab.
+
+Für den dokumentierten Softwarestand wurde der vollständige
+Maven-\texttt{verify}-Lauf erfolgreich abgeschlossen.
+
+Die Aussagekraft ist auf die beschriebenen Prüfbedingungen begrenzt. Externe
+Systeme wie DISPO, SMTP-Provider oder Twilio werden teilweise durch Test Doubles
+oder simulierte Antworten ersetzt. Geprüft werden damit die backendseitigen
+Adapterverträge, nicht die tatsächliche Verfügbarkeit oder das Verhalten
+produktiver Fremdsysteme. Reales Browserverhalten, Cookie-Eigenschaften und der
+konfigurierte Inaktivitätstimeout werden ebenfalls nicht abgedeckt.
+
+Camunda-Jobs und Timer werden bei deaktivierter automatischer Jobausführung
+gezielt ausgeführt. Daher werden kontrollierte Prozessabläufe geprüft, nicht das
+vollständige Betriebsverhalten der automatischen Jobausführung. Ebenfalls nicht
+untersucht werden Last- und Performanzverhalten, die Migration bestehender
+Produktivdatenbanken, mehrere parallel betriebene Instanzen des
+Avisierungsservice oder beliebige Ausfallszenarien. Die Nebenläufigkeitstests
+decken nur ausgewählte Konkurrenzsituationen ab.
+
+Eine weitere Grenze betrifft externe Seiteneffekte. Da Datenbankänderungen und
+externe Kommunikationsaufrufe nicht atomar gekoppelt sind, kann eine erneute
+Ausführung zu wiederholten externen Effekten führen. Die implementierten
+Zustandsprüfungen reduzieren dieses Risiko, gewährleisten jedoch keine globale
+Exactly-once-Ausführung.
+
+Insgesamt bestätigen die Tests, dass die zentralen fachlichen Regeln,
+Sicherheitsmechanismen sowie Persistenz-, Workflow- und Integrationsfunktionen
+des Avisierungsservice unter den definierten Prüfbedingungen wie vorgesehen
+zusammenwirken. Damit stützen die Testergebnisse die technische Tragfähigkeit
+des in Kapitel 5 beschriebenen Avisierungsservice.
+
+\subsection{Validierung des Webfrontends}
+\label{sec:validierung-frontend}
+
+% Zuständigkeit: anderes Teammitglied.
+% TODO: Inhalt durch das zuständige Teammitglied ergänzen.
+\contentplaceholder
+
+\end{document}
