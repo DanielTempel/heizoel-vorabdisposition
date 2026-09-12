@@ -31,3 +31,14 @@ build/
 .idea/
 *.ps1
 backend/src/main/java/heizoel/backend/code.ps1
+
+# Generated LaTeX files
+/docs/**/*.aux
+/docs/**/*.bcf
+/docs/**/*.fdb_latexmk
+/docs/**/*.fls
+/docs/**/*.out
+/docs/**/*.run.xml
+/docs/**/*.synctex.gz
+/docs/**/*.toc
+/docs/Projektdokumentation/projektdokumentation.pdf

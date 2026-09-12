@@ -1,0 +1,252 @@
+\documentclass[
+  12pt,
+  a4paper,
+  oneside
+]{article}
+
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+  \setmainfont{lmroman12-regular.otf}[
+    BoldFont=lmroman12-bold.otf,
+    ItalicFont=lmroman12-italic.otf
+  ]
+  \setmonofont{lmmono12-regular.otf}
+\fi
+\usepackage[ngerman]{babel}
+\usepackage{microtype}
+
+\usepackage[
+  left=2.5cm,
+  right=2.5cm,
+  top=2.5cm,
+  bottom=2.5cm
+]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{float}
+
+\usepackage{csquotes}
+\usepackage[
+  backend=biber,
+  style=authoryear,
+  sorting=nyt,
+  giveninits=true,
+  maxcitenames=2,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{literatur.bib}
+
+\usepackage{graphicx}
+\usepackage[
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue,
+  citecolor=black
+]{hyperref}
+
+\hypersetup{
+  pdftitle={Projektmanagement},
+  pdfauthor={Daniel Tempel}
+}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+% Unsichtbarer Platzhalter, damit der noch leere Gliederungspunkt im PDF erscheint.
+\newcommand{\contentplaceholder}{\mbox{}\par}
+
+% Erlaubt bei langen technischen Bezeichnern einen Zeilenumbruch nach dem Inhalt.
+\newcommand{\inlinecode}[1]{\texttt{#1}\allowbreak}
+
+\begin{document}
+
+\tableofcontents
+\clearpage
+
+% Dieser Auszug ist dem gemeinsamen Kapitel 8 zugeordnet.
+\setcounter{section}{8}
+
+\subsection{Persönlicher Beitrag und Projektreflexion -- Daniel Tempel}
+\label{sec:projektmanagement}
+
+\subsubsection{Rollen und Verantwortlichkeiten}
+
+Die Aufgaben innerhalb des Projekts wurden fachlich und technisch zwischen
+den Teammitgliedern aufgeteilt. Der persönliche Verantwortungsbereich von
+Daniel Tempel umfasste schwerpunktmäßig die Systemarchitektur sowie die
+Konzeption, Implementierung und Validierung des Avisierungsservice.
+
+Zu den wesentlichen Verantwortungsbereichen gehörten:
+
+\begin{itemize}
+  \item Mitwirkung bei Anforderungserhebung, IST-Analyse und SOLL-Konzeption,
+  \item Systemarchitektur der digitalen Lieferavisierung,
+  \item Architektur-, Domänen- und Persistenzentwurf des Avisierungsservice,
+  \item technische Umsetzung des Avisierungsprozesses und
+        Workflow-Steuerung mit Camunda,
+  \item Fehlerbehandlung, Wiederholungsmechanismen und Nebenläufigkeit,
+  \item kanalunabhängige Kommunikationsarchitektur und
+        E-Mail-Integration,
+  \item Mandantenfähigkeit und Sicherheitskonzept,
+  \item Abfragemodell des Avisierungsdashboards,
+  \item technische Konfiguration und lokale Integrationsumgebung,
+  \item CI-Pipeline und automatisierte Tests des Avisierungsservice sowie
+  \item technische Dokumentation der genannten Bereiche.
+\end{itemize}
+
+Die providerbezogene Integration von SMS und WhatsApp sowie die
+Lieferverfolgung und das Geocoding gehörten nicht zu diesem persönlichen
+Verantwortungsbereich.
+
+\subsubsection{Persönlicher Projektaufwand}
+
+Eine kontinuierliche personenbezogene Zeiterfassung sowie eine quantitative
+Soll-Aufwandsschätzung für einzelne Arbeitspakete wurden zu Projektbeginn
+nicht geführt. Eine belastbare Rekonstruktion tatsächlich geleisteter
+Arbeitsstunden ist daher im Nachhinein nicht möglich.
+
+Für die folgende Darstellung wurde der für das Modul vorgesehene
+Gesamtarbeitsaufwand von 300 Stunden retrospektiv auf die persönlichen
+Arbeitspakete verteilt. Die Verteilung orientiert sich an den Projektphasen,
+der Versionshistorie und dem relativen Umfang der erstellten Ergebnisse.
+Die angegebenen Stunden stellen damit keine gemessenen Ist-Zeiten dar,
+sondern eine orientierende Rekonstruktion der persönlichen
+Aufwandsschwerpunkte.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{7cm}p{3.5cm}p{3cm}}
+\toprule
+Arbeitspaket & Zeitraum & Orientierender Aufwand \\
+\midrule
+Anforderungserhebung, IST-Analyse und SOLL-Konzeption
+  & März--April & ca. 35 h \\
+Systemarchitektur und Konzeption des Avisierungsservice
+  & April--Mai & ca. 35 h \\
+Implementierung des Avisierungsservice
+  & Mai--August & ca. 145 h \\
+Integration, Tests, CI und technische Umgebung
+  & Juli--August & ca. 40 h \\
+Projektdokumentation
+  & Mitte August--Mitte September & ca. 45 h \\
+\midrule
+\textbf{Gesamt}
+  & März--September & \textbf{ca. 300 h} \\
+\bottomrule
+\end{tabular}
+\caption{Orientierende Verteilung des persönlichen Projektaufwands}
+\label{tab:projektaufwand-daniel}
+\end{table}
+
+Ein wesentlicher Teil des Implementierungsaufwands entfiel auf die
+Workflow-Steuerung und das Sicherheitskonzept. Ursache waren insbesondere
+zeitabhängige Zustände,
+erneute Avisierungen, Wiederholungsmechanismen, Nebenläufigkeit sowie
+die unterschiedlichen Zugriffskontexte und die mandantenspezifische
+Datenisolation.
+
+\subsubsection{Herausforderungen und Architekturentwicklung}
+
+Eine der größten Herausforderungen bestand in der Entwicklung einer
+tragfähigen Architektur für den Avisierungsservice und insbesondere in der
+Modellierung des Avisierungsprozesses mit Camunda. Zu Beginn bestand nur
+begrenzte praktische Erfahrung mit einer Workflow Engine und mit
+länger laufenden, ereignisbasierten Prozessen.
+
+In der ersten Umsetzung wurde ein aus DISPO übermittelter
+Avisierungsauftrag persistiert und die Kundenbenachrichtigung anschließend
+synchron versendet. Erst danach wurde ein Camunda-Prozess gestartet, der
+im Wesentlichen die Antwortfrist überwachte. Die Kundenreaktion wurde
+außerhalb dieses Workflows verarbeitet. Im Projektverlauf zeigte sich, dass
+dies den Avisierungsprozess nicht ausreichend als zusammenhängenden
+Lebenszyklus abbildete.
+
+Der Workflow wurde daher grundlegend überarbeitet. Der Nachrichtenversand
+wurde asynchron ausgeführt und die Workflow Engine übernahm anschließend die
+Koordination von Versand, Kundenreaktion, Fristablauf und Ablösung einer
+Rückbestätigungsanfrage. Rückblickend führte dies zu einer klareren Trennung
+zwischen synchroner Auftragsübernahme, fachlichem Zustand und technischer
+Ablaufsteuerung. Aus der später notwendigen Überarbeitung ergibt sich für den
+Projektverlauf die Erkenntnis, den vollständigen Prozessablauf bereits vor
+einer umfangreichen Implementierung möglichst vollständig zu modellieren.
+
+Auch die Architektur wurde nach entsprechendem Feedback weiterentwickelt.
+Die Verantwortlichkeiten zwischen Domain, Application und Adaptern wurden
+deutlicher getrennt und ausgewählte externe Integrationen über Ports
+entkoppelt. Bei der Persistenz wurde dagegen bewusst der in Kapitel 5
+beschriebene pragmatische Kompromiss mit JPA und Spring Data beibehalten.
+Dabei zeigte sich, dass der Nutzen eines Architekturprinzips gegen den
+zusätzlichen strukturellen und organisatorischen Aufwand im konkreten
+Projektkontext abzuwägen ist.
+
+\subsubsection{Bewertung des Vorgehens und der Zusammenarbeit}
+
+Die operative Aufgabensteuerung erfolgte über GitHub Issues. Die Zuordnung
+der Aufgaben orientierte sich an den festgelegten fachlichen und technischen
+Verantwortungsbereichen der Teammitglieder. Die Verteilung und Nachverfolgung
+der Aufgaben wurde dabei überwiegend von Daniel Tempel koordiniert.
+
+Fachliche und technische Abstimmungen fanden in regelmäßigen
+Online-Besprechungen statt, die überwiegend freitags durchgeführt und
+protokolliert wurden. Entscheidungen mit Auswirkungen auf mehrere
+Verantwortungsbereiche wurden gemeinsam im Team getroffen. GitHub Issues
+dienten dabei zur Dokumentation und Nachverfolgung konkreter Arbeitspakete.
+
+Die Implementierung erfolgte entsprechend der fachlichen
+Verantwortungsbereiche überwiegend in getrennten Git-Branches.
+Pull Requests wurden insbesondere eingesetzt, wenn Änderungen in gemeinsam
+genutzte Bestandteile integriert wurden oder Verantwortungsbereiche mehrerer
+Teammitglieder berührten. Dadurch konnten solche Änderungen vor der
+Integration nachvollzogen und abgestimmt werden.
+
+Zusätzlicher Abstimmungs- und Implementierungsaufwand entstand insbesondere
+dann, wenn Anforderungen im Projektverlauf konkretisiert oder erweitert
+wurden. Ein Beispiel hierfür war das Avisierungsdashboard, aus dessen
+fachlicher Ausgestaltung weitere Anforderungen an Abfragemodell,
+Schnittstellen und Zugriffsschutz entstanden.
+
+\subsubsection{Persönlicher Lernfortschritt und Lessons Learned}
+
+Der persönliche Lernfortschritt bestand insbesondere in einem vertieften
+Verständnis für die Abgrenzung fachlicher, technischer und
+integrationsbezogener Verantwortlichkeiten. Aus der zuvor beschriebenen
+Architekturüberarbeitung ergab sich insbesondere die Erkenntnis, dass
+Entkopplung nicht schematisch auf sämtliche Systembereiche übertragen werden
+muss. Ports unterstützten im Projekt die Abgrenzung ausgewählter externer
+Integrationen. Eine zusätzliche Abstraktionsschicht kann in anderen Bereichen
+einen höheren strukturellen Aufwand verursachen, ohne im gegebenen
+Projektkontext einen entsprechenden Nutzen zu erzeugen.
+
+Die Arbeit mit Camunda verdeutlichte, dass die Workflow Engine im
+Avisierungsprozess nicht lediglich zur Ausführung einzelner Timer eingesetzt
+wird, sondern die dauerhafte Koordination zeit- und ereignisabhängiger
+Prozessschritte übernimmt. Damit verbunden war die Erkenntnis, synchrone
+Schnittstellenaufrufe und den übergeordneten fachlichen Prozess als getrennte
+Lebenszyklen zu betrachten.
+
+Weitere Erfahrungen ergaben sich aus der Absicherung unterschiedlicher
+Zugriffskontexte, der Mandantentrennung sowie aus der Behandlung von
+Wiederholungen und Nebenläufigkeit. Insbesondere zeigte sich, dass lokale
+Prüfungen und Sperrmechanismen zwar konkrete konkurrierende Situationen
+beherrschbar machen, daraus jedoch keine allgemeine
+Exactly-once-Garantie für externe Seiteneffekte folgt.
+
+Für vergleichbare zukünftige Projekte ergibt sich daraus, den vollständigen
+fachlichen Prozess mit seinen Zuständen, Ereignissen und Verantwortlichkeiten
+bereits vor einer umfangreichen Implementierung möglichst vollständig zu
+modellieren. Eine weitere Konsequenz besteht darin, den Projektaufwand von
+Beginn an arbeitspaketbezogen und kontinuierlich zu erfassen, da eine
+retrospektive Rekonstruktion lediglich eine grobe Aufwandsverteilung
+ermöglicht.
+
+\end{document}
