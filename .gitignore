@@ -34,11 +34,14 @@ backend/src/main/java/heizoel/backend/code.ps1
 
 # Generated LaTeX files
 /docs/**/*.aux
+/docs/**/*.bbl
 /docs/**/*.bcf
+/docs/**/*.blg
 /docs/**/*.fdb_latexmk
 /docs/**/*.fls
 /docs/**/*.out
 /docs/**/*.run.xml
+/docs/**/*.synctex(busy)
 /docs/**/*.synctex.gz
 /docs/**/*.toc
 /docs/Projektdokumentation/projektdokumentation.pdf

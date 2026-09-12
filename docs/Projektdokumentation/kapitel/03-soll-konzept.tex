@@ -30,6 +30,16 @@ problematische Vorgänge.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{assets/bpmn_soll.png}
+\IfFileExists{assets/bpmn_soll.png}{%
+  \includegraphics[width=\textwidth]{assets/bpmn_soll.png}%
+}{%
+  \fbox{%
+    \parbox[c][5cm][c]{0.94\textwidth}{%
+      \centering
+      \textbf{Abbildung noch nicht hinterlegt}\\[0.5em]
+      Erwartete Datei: \texttt{assets/bpmn\_soll.png}%
+    }%
+  }%
+}
 \caption{BPMN-Modell des SOLL-Prozesses}
 \end{figure}
