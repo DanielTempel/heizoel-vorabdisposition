@@ -1,0 +1,485 @@
+\section{Webfrontend -- Konzeption und Implementierung}
+\label{sec:webfrontend}
+
+Dieses Kapitel erläutert die Gestaltung und Umsetzung der Benutzeroberflächen für das System
+\enquote{Digitale Lieferavisierung}. Im Mittelpunkt stehen die Informationen und
+Handlungsmöglichkeiten, die Disponenten bei der Bearbeitung von Avisierungen und Kunden bei der
+Rückmeldung zu einem Liefertermin benötigen. Ausgehend von diesen Aufgaben werden der Aufbau
+des Webfrontends und die wesentlichen Entscheidungen zur Benutzerführung beschrieben.
+
+\subsection{Einordnung des Webfrontends in das Gesamtsystem}
+
+Das Webfrontend stellt zwei auf unterschiedliche Nutzungssituationen ausgerichtete Bereiche
+bereit. Der Disponent bearbeitet mehrere Aufträge im Zusammenhang ihrer Touren. Er benötigt
+einen Überblick über die eingegangenen Rückmeldungen und muss erkennen können, bei welchen
+Aufträgen weiterer Klärungsbedarf besteht. Dafür verbindet das Avisierungsdashboard eine
+Tourübersicht mit einer auftragsbezogenen Detailansicht. Die E-Mail-Einstellungen ergänzen
+diesen Arbeitsbereich um die Konfiguration des Nachrichtenversands.
+
+Der Kunde benötigt dagegen Informationen zu einem einzelnen Liefertermin. Über die
+Bestätigungsseite kann er die geplante Lieferung prüfen, das vorgeschlagene Zeitfenster
+bestätigen oder ablehnen und eine Nachricht an die Disposition hinterlassen. Nach einer
+Bestätigung kann dieselbe Seite am Liefertag zusätzlich die Lieferverfolgung anzeigen. Eine
+Übersicht über andere Aufträge oder Kunden ist für diesen Zugang nicht vorgesehen.
+
+Diese Trennung bestimmt sowohl den Umfang der angezeigten Informationen als auch die
+Navigation. Während der Disponent zwischen Übersicht, Details und Einstellungen wechselt, führt
+der Kundenlink unmittelbar zum betreffenden Vorgang. Die in Kapitel 4 beschriebene
+Aufgabenverteilung bleibt dabei erhalten: Die Lieferplanung erfolgt in DISPO, der
+Avisierungsservice führt den Avisierungsprozess einschließlich der fachlichen Verarbeitung der
+Rückmeldungen aus. Das Webfrontend stellt die dazugehörigen Informationen dar und übermittelt
+die Entscheidungen der Benutzer.
+
+\subsection{Webfrontend-Architektur und technische Grundlagen}
+
+\subsubsection{Technologieauswahl}
+
+Für die Umsetzung wurde React eingesetzt. Ausschlaggebend war die bereits vorhandene praktische
+Erfahrung mit React aus einem Unternehmensprojekt während des Praxissemesters. React
+unterstützt die Zerlegung einer Oberfläche in Komponenten, die Daten entgegennehmen und
+abhängig vom jeweiligen Zustand unterschiedliche Ansichten darstellen
+\parencite[vgl.][]{reactThinkingInReact}.
+
+Im Projekt eignet sich dieser Aufbau insbesondere für wiederkehrende Elemente wie
+Statuskennzeichnungen, Auftragsinformationen und Anfragekarten. TypeScript ergänzt die
+Implementierung um eine statische Typprüfung. Die Sprache prüft Typbeziehungen vor der
+Ausführung des Programms \parencite[vgl.][]{typescriptHandbook}. In der Anwendung werden damit
+unter anderem die erwarteten Auftragsdaten, Kundenantworten und zulässigen Statuswerte
+beschrieben. Diese Typdefinitionen unterstützen die Arbeit an den Schnittstellen innerhalb des
+Webfrontends; sie ersetzen keine Prüfung eingehender Daten im Avisierungsservice.
+
+Für grundlegende Bedienelemente wird shadcn/ui verwendet. Dessen Komponenten werden als
+bearbeitbarer Quellcode in das Projekt übernommen und können an die Anwendung angepasst werden
+\parencite[vgl.][]{shadcnIntroduction}. Für das Projekt waren vor allem das schlichte
+Erscheinungsbild, die wiederverwendbaren Bedienelemente und die Verringerung wiederkehrender
+Implementierungsarbeit maßgeblich. So konnten Tabellen, Eingabefelder, Schaltflächen und
+aufklappbare Auswahlbereiche auf einer gemeinsamen Grundlage aufgebaut werden. Die Gestaltung
+dieser Elemente erfolgt mit Tailwind CSS. Vite stellt die Entwicklungs- und Build-Umgebung
+bereit; React Router ordnet die aufgerufenen Adressen den jeweiligen Seiten zu. Für die
+Kartenansicht werden Leaflet und React Leaflet eingesetzt.
+
+\subsubsection{Seiten-, Komponenten- und Routingstruktur}
+
+Die Struktur des Webfrontends folgt den fachlichen Ansichten. Jede Seite bündelt die Daten und
+Aktionen ihres Anwendungsfalls. Umfangreichere Teile einer Seite sind wiederum in eigene
+Komponenten aufgeteilt. Beispielsweise bestehen die Tourübersicht aus Filterbereich, Tourkarten
+und Seitennavigation sowie die Detailansicht aus Auftragsinformationen, Anfragekarten und dem
+Formular zur erneuten Avisierung.
+
+\begin{table}[htbp]
+\centering
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.30\textwidth}X@{}}
+\toprule
+Bereich & Aufgabe innerhalb der Oberfläche \\
+\midrule
+Zugang zum Avisierungsdashboard & Zugangslink verarbeiten und den Übergang zur Tourübersicht anzeigen \\
+Tourübersicht & Touren und Aufträge überblicken, suchen und eingrenzen \\
+Auftragsdetails & Aktuelle Anfrage und frühere Avisierungen nachvollziehen; erneute Anfrage anstoßen \\
+E-Mail-Einstellungen & Versandkonfiguration bearbeiten und prüfen \\
+Bestätigungsseite & Lieferdaten prüfen, Kundenreaktion erfassen und den weiteren Zustand anzeigen \\
+\bottomrule
+\end{tabularx}
+\caption{Fachliche Ansichten des Webfrontends}
+\label{tab:webfrontend-ansichten}
+\end{table}
+
+Die Seiten des Avisierungsdashboards liegen unter einem gemeinsamen Layout. Dieses sorgt für
+einheitliche Seitenabstände und Inhaltsbreiten und hält den Navigationszustand der
+Tourübersicht während des Wechsels zwischen den Seiten des Avisierungsdashboards vor. Die
+Auftragsdetailseite wird über die externe Auftragsnummer adressiert. Die Bestätigungsseite
+besitzt eine eigene Route, deren variabler Bestandteil der Token des Bestätigungslinks ist.
+
+Neben den fachlichen Komponenten werden allgemeine UI-Komponenten zentral verwendet. Eine
+gemeinsame Statuskomponente legt beispielsweise Beschriftung und Farbe eines Status fest.
+Dieselbe Darstellung erscheint dadurch sowohl in der Übersicht als auch auf den Anfragekarten.
+Änderungen an diesen Darstellungsregeln können an einer Stelle vorgenommen werden.
+
+\subsubsection{API-Anbindung und Zustandsverwaltung}
+
+Die Kommunikation mit dem Avisierungsservice ist in separaten API-Modulen gebündelt. Sie
+übernehmen die HTTP-Aufrufe für Avisierungsdashboard, Bestätigungsseite, Tracking und
+Einstellungen. Die Seitenkomponenten verwenden diese Funktionen und verarbeiten die
+zurückgegebenen Daten. Dadurch bleiben die Netzwerkzugriffe von der eigentlichen Gestaltung der
+Oberfläche getrennt.
+
+Das Webfrontend verwaltet vor allem Zustände der Interaktion: welche Daten gerade geladen
+werden, welche Filter eingegeben wurden, ob eine Übermittlung läuft und ob eine Rückmeldung
+angezeigt werden muss. Hierfür werden React-Hooks wie \inlinecode{useState} und
+\inlinecode{useEffect} eingesetzt. Gemeinsam benötigte Daten werden über Komponentenparameter
+oder den Kontext des Layouts des Avisierungsdashboards weitergegeben. Eine zusätzliche globale
+Zustandsbibliothek kommt nicht zum Einsatz.
+
+Der fachliche Auftragsstatus wird vom Avisierungsservice übernommen. Nach einer erfolgreich
+übermittelten Kundenantwort werden die Daten erneut abgerufen, bevor die Abschlussansicht
+erscheint. Auch nach dem Anstoßen einer erneuten Avisierung wird die Detailansicht neu geladen.
+Die Anzeige orientiert sich damit am zurückgelieferten Verarbeitungsstand. Lade- und
+Übermittlungszustände werden gesondert dargestellt, damit eine noch laufende Aktion nicht mit
+ihrem abgeschlossenen Ergebnis verwechselt wird.
+
+Für die Bestätigungsseite steht ergänzend ein Mock-Modus mit vorbereiteten Antwort- und
+Tracking-Zuständen zur Verfügung. Dabei werden die Antworten der Schnittstellen im Browser
+simuliert, während die API-Aufrufe der Oberfläche gleich bleiben. Dies ermöglicht die
+Betrachtung einzelner Ansichten auch unabhängig von der vollständigen Umgebung des
+Avisierungsservice. Die systemübergreifende Teststrategie wird in Kapitel 7 behandelt.
+
+\subsubsection{Responsive Design und wiederverwendbare UI-Komponenten}
+
+Die Anordnung der Inhalte berücksichtigt die unterschiedlichen Bildschirmgrößen. Auf breiten
+Ansichten stehen zusammengehörige Informationen nebeneinander. So befindet sich die Aktion zur
+erneuten Avisierung neben den Auftrags- und Anfragedaten. Auf schmalen Ansichten werden diese
+Bereiche untereinander angeordnet. Auch die beiden Antwortschaltflächen der Bestätigungsseite
+wechseln von einer zweispaltigen zu einer einspaltigen Anordnung.
+
+Die Tourübersicht enthält vergleichsweise viele Informationen. Ihre Tabelle bleibt deshalb auf
+schmalen Bildschirmen horizontal scrollbar, anstatt alle Spalten in eine sehr schmale
+Darstellung zu pressen. Für die Bestätigungsseite steht dagegen eine lineare Lesefolge im
+Vordergrund: Liefertermin, Lieferdetails, optionale Nachricht und Entscheidung.
+Abbildung~\ref{fig:frontend-bestaetigung-desktop} zeigt die Bestätigungsseite in der
+Desktopansicht.
+
+Statusinformationen werden durch Text und Farbe gemeinsam vermittelt. Beschriftete
+Eingabefelder, sichtbare Fokusmarkierungen und ergänzende Kennzeichnungen für symbolbasierte
+Schaltflächen unterstützen die Orientierung. Beispielsweise kennzeichnet die Schaltfläche zum
+Aufklappen einer Tour auch ihren geöffneten oder geschlossenen Zustand. Im Avisierungsdashboard
+kann außerdem zwischen heller und dunkler Darstellung gewechselt werden. Die Auswahl wird lokal
+im Browser gespeichert.
+
+\subsection{Avisierungsdashboard}
+
+\subsubsection{Geschützter Zugang zum Avisierungsdashboard}
+
+Im vorgesehenen Integrationsablauf öffnet der Disponent das Avisierungsdashboard aus DISPO
+heraus. Die Einstiegsseite verarbeitet den im Zugangslink enthaltenen Einmalcode und zeigt
+währenddessen an, dass der Zugang geprüft wird. Bei erfolgreichem Austausch wird zur
+Tourübersicht weitergeleitet. Ein zusätzliches Anmeldeformular mit Benutzername und Passwort
+ist für diesen Übergang nicht vorgesehen.
+
+Fehlt der Code oder wird er vom Avisierungsservice nicht akzeptiert, erscheint eine Meldung,
+dass der Zugang zum Avisierungsdashboard nicht möglich ist. Nach dem erfolgreichen Einstieg
+verwenden die Aufrufe des Avisierungsdashboards die vom Avisierungsservice bereitgestellte
+Sitzung. Zustandsändernde Aufrufe übermitteln zusätzlich einen CSRF-Token. Die eigentliche
+Berechtigungsprüfung erfolgt im Avisierungsservice; ihre Ausgestaltung ist in
+Abschnitt~\ref{sec:dashboard-zugriff} beschrieben. Für den Benutzer bildet die Einstiegsseite
+damit einen kurzen Übergang zwischen der bestehenden Arbeitsumgebung und dem
+Avisierungsdashboard.
+
+\subsubsection{Tourübersicht und Statusdarstellung}
+
+Die Tour bildet die zentrale Gliederungseinheit der Übersicht. Im Kopf jeder Tourkarte werden
+Tournummer, Lieferdatum, Fahrzeug, die Anzahl der enthaltenen Aufträge und zusammengefasste
+Statusanzahlen angezeigt. Der Disponent kann so zunächst die Touren überblicken, ohne sämtliche
+Auftragsdetails gleichzeitig lesen zu müssen.
+
+Bei Bedarf lässt sich eine Tour aufklappen. Die Tabelle zeigt dann Auftragsnummer, Kunde,
+Lieferadresse, Lieferzeitfenster, Antwortfrist und Rückbestätigungsstatus. Über den jeweiligen
+Auftrag wird die Detailansicht geöffnet. Die Oberfläche verbindet dadurch zwei
+Betrachtungsebenen: Die Tourkarte vermittelt den Bearbeitungsstand im Zusammenhang der Tour,
+die aufgeklappte Tabelle ermöglicht die Auswahl eines konkreten Vorgangs.
+
+Die Statuskennzeichnungen unterscheiden Aufträge mit versendeter Anfrage, mit Bestätigung, mit
+Ablehnung und ohne Rückmeldung. Ihre Beschriftungen machen insbesondere den Unterschied
+zwischen einer Ablehnung und einer ausgebliebenen Rückmeldung sichtbar. Beide Fälle können eine
+weitere Abstimmung erfordern, beruhen jedoch auf unterschiedlichen Ausgangssituationen. Ein
+versendeter Vorgang ist ebenfalls noch keine Kundenbestätigung. Die fachliche Herleitung dieser
+Zustände erfolgt in Kapitel 5; das Avisierungsdashboard übersetzt sie in eine einheitliche
+Darstellung.
+
+Abbildung~\ref{fig:frontend-touruebersicht} zeigt, wie die verdichtete Sicht im Tourkopf und
+die zugehörigen Aufträge zusammen dargestellt werden.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth,height=0.70\textheight,keepaspectratio]{figures/frontend-touruebersicht.png}
+  \caption{Tourübersicht des Avisierungsdashboards mit Statuszusammenfassung und aufgeklappten Aufträgen.}
+  \label{fig:frontend-touruebersicht}
+  \par\smallskip
+  {\footnotesize Quelle: Eigene Aufnahme der Anwendung mit Demonstrationsdaten.\par}
+\end{figure}
+
+\subsubsection{Suche, Filterung und Paginierung}
+
+Für die gezielte Bearbeitung kann der Disponent die Übersicht eingrenzen. Die Freitextsuche ist
+für das Auffinden eines bekannten Vorgangs vorgesehen, etwa anhand von Kunde, Auftragsnummer
+oder Lieferadresse. Ergänzend bietet der Filterbereich die Auswahl mehrerer Tournummern und
+Statuswerte sowie eines Datumsbereichs. Damit lässt sich beispielsweise die Bearbeitung auf
+ausgewählte Touren mit abgelehnten oder unbeantworteten Anfragen konzentrieren.
+
+Die eingegebenen Filter werden von den bereits angewendeten Bedingungen getrennt gehalten. Der
+Disponent kann deshalb mehrere Kriterien zusammenstellen und anschließend übernehmen. Erst mit
+dem Anwenden wird die Ergebnisliste neu geladen; bei einer neuen Filterung beginnt die Anzeige
+auf der ersten Seite. Die Filterung selbst wird durch den Avisierungsservice ausgeführt und
+betrifft auch die innerhalb der Touren ausgegebenen Aufträge. Eine gefilterte Touransicht ist
+daher als Ausschnitt der passenden Aufträge zu lesen. Ohne gewähltes Startdatum verwendet der
+Avisierungsservice den aktuellen Tag als Untergrenze, wie in Abschnitt~\ref{sec:touruebersicht}
+beschrieben.
+
+Die Paginierung erfolgt auf Ebene der Touren. Der Seitenwechsel trennt somit keine einzelne
+Tour allein aufgrund ihrer Auftragszahl auf mehrere Ergebnisseiten. Die Oberfläche zeigt die
+Gesamtzahl der gefundenen Touren und ermöglicht den Wechsel über Seitennummern sowie Vor- und
+Zurück-Navigation. Filter und ausgewählte Seite bleiben beim Wechsel innerhalb des
+Avisierungsdashboards erhalten, sodass der Disponent nach der Einsicht in einen Auftrag seinen
+vorherigen Arbeitskontext wiederfindet. Ein vollständiges Neuladen der Anwendung setzt diese
+Navigationseinstellungen zurück.
+
+Leere Ergebnisse werden von einem fehlgeschlagenen Datenabruf unterschieden. Die Oberfläche
+meldet entweder, dass keine Touren vorhanden sind beziehungsweise keine Touren zu den Filtern
+passen, oder bietet nach einem Ladefehler einen erneuten Versuch an. Eine gesonderte
+Schaltfläche aktualisiert die Übersicht bei unveränderten Filtern.
+Abbildung~\ref{fig:frontend-filter} veranschaulicht die Zusammenstellung einer kombinierten
+Filterung.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth,height=0.70\textheight,keepaspectratio]{figures/frontend-filter.png}
+  \caption{Suche und Eingrenzung der Tourübersicht nach Touren und Avisierungsstatus.}
+  \label{fig:frontend-filter}
+  \par\smallskip
+  {\footnotesize Quelle: Eigene Aufnahme der Anwendung mit Demonstrationsdaten.\par}
+\end{figure}
+
+\subsection{Auftragsdetailansicht und erneute Avisierung}
+
+\subsubsection{Auftragsdaten und Avisierungshistorie}
+
+Die Detailansicht bündelt die Informationen, die für die Beurteilung eines einzelnen Vorgangs
+erforderlich sind. Im oberen Bereich stehen Auftragsnummer und aktueller Auftragsstatus. Die
+Auftragsinformationen ergänzen Kunden- und Kontaktdaten, Lieferadresse, Tour, Fahrzeug sowie
+Produkt-, Mengen- und Preisangaben. Dies schafft eine gemeinsame Informationsgrundlage für die
+weitere Abstimmung mit dem Kunden.
+
+Darunter sind die aktuelle Anfrage und frühere Anfragen getrennt angeordnet. Jede Anfragekarte
+zeigt den verwendeten Kommunikationskanal, das vorgeschlagene Lieferfenster, den
+Versandzeitpunkt und die Antwortfrist. Bei einer noch laufenden oder fehlgeschlagenen
+Versendung werden anstelle nicht vorhandener Zeitpunkte entsprechende Hinweise angezeigt.
+Dadurch wird erkennbar, ob auf eine Kundenantwort gewartet werden kann oder zunächst der
+Versand betrachtet werden muss.
+
+Eine vorhandene Kundenreaktion erscheint bei der zugehörigen Anfrage zusammen mit ihrem
+Eingangszeitpunkt und einem gegebenenfalls hinterlassenen Kommentar. Das gilt sowohl für
+Bestätigungen als auch für Ablehnungen. Beispielsweise bleibt ein Hinweis auf eingeschränkte
+Erreichbarkeit dem Lieferfenster zugeordnet, auf das sich die Antwort bezogen hat. Fehlt eine
+Antwort oder ein Kommentar, wird dies ausdrücklich angezeigt. Die Historie unterstützt somit
+die Nachvollziehbarkeit mehrerer Avisierungsversuche. Ihre Datengrundlage und Grenzen werden in
+Abschnitt~\ref{sec:auftragsdetails-avisierungshistorie} erläutert.
+
+Abbildung~\ref{fig:frontend-auftragsdetails} zeigt die Auftragsinformationen und die aktuelle
+Anfrage zusammen mit dem Bereich \enquote{Neue Anfrage}. Beim dargestellten bestätigten Auftrag
+ist die Versandaktion deaktiviert. Die früheren Anfragen schließen unterhalb des gezeigten
+Ausschnitts an.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth,height=0.70\textheight,keepaspectratio]{figures/frontend-auftragsdetails.png}
+  \caption{Auftragsdetailansicht mit bestätigter Anfrage und deaktivierter Aktion zur erneuten Avisierung.}
+  \label{fig:frontend-auftragsdetails}
+  \par\smallskip
+  {\footnotesize Quelle: Eigene Aufnahme der Anwendung mit Demonstrationsdaten.\par}
+\end{figure}
+
+\subsubsection{Erneute Avisierung, Validierung und Fehlerrückmeldung}
+
+Die erneute Avisierung wird über den Bereich \enquote{Neue Anfrage} angestoßen. Das bestehende
+Lieferdatum und Zeitfenster werden dort zur Orientierung angezeigt. Änderbar sind der
+Kommunikationskanal und die Dauer der neuen Antwortfrist. Die Oberfläche bietet E-Mail, SMS und
+WhatsApp zur Auswahl an; der Nachrichteninhalt wird durch den Avisierungsservice erzeugt.
+
+Die Aktion richtet sich nach dem Darstellungsstatus der aktuellen Anfrage. Bei \enquote{Keine
+Rückmeldung} oder \enquote{Versand fehlgeschlagen} kann eine neue Anfrage erstellt werden. Bei
+den übrigen Zuständen ist die Schaltfläche deaktiviert. Liegt noch keine Anfrage vor, weist die
+Oberfläche darauf hin, dass ein erneuter Versand nicht möglich ist. Damit ist diese Funktion
+auf die Fortsetzung eines bestehenden Avisierungsvorgangs begrenzt. Insbesondere ist eine
+bereits abgelehnte Anfrage nicht unmittelbar über dieses Formular erneut versendbar; eine
+weitere Terminabstimmung erfolgt im Dispositionsprozess.
+
+Für die Antwortdauer sind ganze Stunden zwischen 1 und 168 zulässig. Die Eingabeprüfung steuert
+die Verfügbarkeit der Versandaktion. Ein Hinweis erläutert zusätzlich, dass die Antwortfrist
+spätestens mit dem Liefertermin endet. Die tatsächliche Fristberechnung und die erneute
+fachliche Prüfung übernimmt der Avisierungsservice entsprechend
+Abschnitt~\ref{sec:kundenreaktion-fristablauf}. Die Prüfung im Webfrontend unterstützt somit
+die Eingabe, während die verbindliche Entscheidung beim Avisierungsservice verbleibt.
+
+Während der Übermittlung sind die Bedienelemente gegen erneutes Auslösen gesperrt. Nach
+erfolgreicher Verarbeitung bestätigt die Oberfläche die Erstellung der neuen Anfrage und lädt
+die Details erneut. Die Meldung bestätigt die Anfrageerstellung; der anschließende Versand
+besitzt einen eigenen Verarbeitungsstand. Für ausgewählte Fehler werden handlungsbezogene
+Meldungen angezeigt, etwa bei fehlenden Kontaktdaten für den gewählten Kanal, bereits laufendem
+Versand oder ungültiger Sitzung des Avisierungsdashboards. Andere Fehler werden mit einer
+allgemeinen Meldung zur fehlgeschlagenen Erstellung zusammengefasst.
+
+\subsection{Bestätigungsseite für Kunden}
+
+\subsubsection{Tokenbasierter Zugriff und Lieferinformationen}
+
+Der Kunde erreicht die Bestätigungsseite über den individuellen Link aus der Benachrichtigung.
+Eine Registrierung oder zusätzliche Anmeldung ist dafür nicht erforderlich. Der im Link
+enthaltene Token ermöglicht den Abruf der zugehörigen Lieferinformationen beim
+Avisierungsservice. Die Prüfung des Tokens und die Begrenzung des Zugriffs auf den jeweiligen
+Vorgang werden in Abschnitt~\ref{sec:kundenzugriff-token} beschrieben.
+
+Die Informationsanordnung richtet sich nach der bevorstehenden Entscheidung. Lieferdatum und
+Zeitfenster sind am Anfang der Seite hervorgehoben. Darunter folgen Auftragsnummer, Kundenname,
+Lieferadresse, Produkt und Menge sowie eine Preisangabe, sofern sie vorliegt. So kann der Kunde
+zunächst den vorgeschlagenen Termin beurteilen und anschließend prüfen, auf welche Bestellung
+sich die Anfrage bezieht. Mengen und Datumsangaben werden in deutscher Schreibweise
+dargestellt. Die Preisangabe wird als vom Avisierungsservice bereitgestellter Text übernommen;
+das Webfrontend führt keine eigene Preisberechnung durch.
+
+Abbildung~\ref{fig:frontend-bestaetigung-desktop} zeigt die Lieferinformationen und
+Antwortmöglichkeiten auf einem Desktopbildschirm. Auf dem Smartphone bleiben dieselben
+fachlichen Informationen in einer durchgehenden vertikalen Reihenfolge erreichbar. Dies
+berücksichtigt, dass ein Link aus einer E-Mail oder Nachricht auch unmittelbar auf einem
+mobilen Endgerät geöffnet werden kann.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth,height=0.70\textheight,keepaspectratio]{figures/frontend-bestaetigung-desktop.png}
+  \caption{Bestätigungsseite mit Lieferinformationen, optionaler Nachricht und Antwortmöglichkeiten in der Desktopansicht.}
+  \label{fig:frontend-bestaetigung-desktop}
+  \par\smallskip
+  {\footnotesize Quelle: Eigene Aufnahme der Anwendung mit Demonstrationsdaten.\par}
+\end{figure}
+
+\subsubsection{Bestätigung, Ablehnung und Kundenkommentar}
+
+Die Kundenentscheidung erfolgt über zwei eindeutig beschriftete Aktionen: \enquote{Termin
+bestätigen} und \enquote{Termin ablehnen}. Das Kommentarfeld ist optional und kann bei beiden
+Entscheidungen verwendet werden. Die Antwort ist dadurch auch ohne Texteingabe möglich, während
+zusätzliche Hinweise für die Disposition mitgeteilt werden können. Ein solcher Hinweis
+verändert das vorgeschlagene Lieferfenster nicht automatisch, sondern ergänzt die übermittelte
+Entscheidung um Informationen für die weitere Bearbeitung.
+
+Vor der Abgabe weist die Seite auf die einmalige Beantwortbarkeit der Anfrage hin. Der
+Kommentar ist auf 2.000 Zeichen begrenzt. Leere beziehungsweise nur aus Leerzeichen bestehende
+Eingaben werden ohne Kommentar übermittelt. Während der Übertragung sind das Kommentarfeld und
+beide Antwortaktionen gesperrt. Dadurch kann die laufende Entscheidung nicht nochmals über
+dieselben Bedienelemente ausgelöst werden; die verbindliche Absicherung gegen mehrfache
+Antworten liegt im Avisierungsservice.
+
+Nach der Übermittlung fragt die Seite den aktuellen Zustand erneut ab und zeigt das Ergebnis
+der Rückmeldung. Der Kunde erhält damit eine sichtbare Rückmeldung zu seiner Aktion. Die
+Verarbeitung der Entscheidung, ihre Speicherung und die Rückmeldung an DISPO sind Gegenstand
+von Kapitel 5.
+
+\subsubsection{Abgeschlossene, abgelaufene und fehlerhafte Anfragen}
+
+Beim erneuten Öffnen einer bereits beantworteten aktuellen Anfrage wird der gespeicherte
+Zustand dargestellt. Die Seite zeigt an, ob der Liefertermin bestätigt oder abgelehnt wurde,
+und enthält weiterhin die wesentlichen Lieferinformationen. Die Antwortschaltflächen erscheinen
+in dieser Ansicht nicht mehr. Wird eine Anfrage mit dem Status \enquote{Keine Rückmeldung}
+geladen, weist die Seite auf die abgelaufene Antwortfrist hin.
+
+Damit unterscheidet die Oberfläche zwischen der Möglichkeit, einen Vorgang noch zu lesen, und
+der Möglichkeit, ihn zu beantworten. Eine Bestätigung oder ein Fristablauf macht den aktuellen
+Link nicht grundsätzlich unbrauchbar. Bei bestätigten Lieferungen kann er später auch für den
+Zugriff auf die Lieferverfolgung verwendet werden. Ein durch eine neuere Anfrage abgelöster
+oder unbekannter Link lässt sich dagegen nicht mehr dem für den Kundenzugriff gültigen Vorgang
+zuordnen.
+
+Für fehlgeschlagene Abrufe und Übermittlungen wird im aktuellen Webfrontend eine gemeinsame
+Fehleransicht verwendet. Sie verweist den Kunden bei Fragen an die Disposition. Da
+unterschiedliche Fehlerursachen zusammengefasst werden, erläutert die Meldung nicht in jedem
+Fall die tatsächliche Ursache, etwa bei einer technischen Verbindungsstörung. Die fachlichen
+Abschlusszustände werden dagegen anhand der erfolgreich abgerufenen Daten gesondert angezeigt.
+
+\subsection{Live-Tracking}
+
+\subsubsection{Verfügbarkeit und Datenfluss}
+
+Die Lieferverfolgung ergänzt die Bestätigungsseite um eine räumliche Orientierung am Liefertag.
+Sie wird im Webfrontend nur im Zusammenhang mit einem bestätigten Liefertermin angefordert. Die
+Seite fragt zunächst ab, ob Tracking verfügbar ist und ob Zielkoordinaten vorliegen. Auf dieser
+Grundlage wird die Kartenansicht eingeblendet; die Fahrerposition wird über einen weiteren
+Aufruf geladen. Bei einer abgelehnten oder ohne Rückmeldung abgeschlossenen Anfrage wird keine
+Karte angezeigt.
+
+Die grundsätzliche Verfügbarkeit am Liefertag wird vom Avisierungsservice ermittelt. Meldet er
+für eine bestätigte Anfrage, dass Tracking nicht verfügbar ist, zeigt die Seite einen Hinweis
+auf die Bereitstellung am Liefertag. Die Herkunft der Zielkoordinaten und die Anbindung der
+Fahrerposition werden in Abschnitt~\ref{sec:lieferverfolgung} behandelt. Das Webfrontend
+verwendet die bereitgestellten Koordinaten für die Darstellung und führt selbst keine
+Adressauflösung durch.
+
+\subsubsection{Karten- und Positionsdarstellung}
+
+Die Kartenansicht verwendet Leaflet mit React Leaflet und Kartenkacheln von OpenStreetMap.
+Unterschiedliche Symbole kennzeichnen das Fahrzeug und das Lieferziel. Der Kartenausschnitt
+wird an die vorhandenen Positionen angepasst. Liegt zunächst nur das Ziel vor, kann dieses
+bereits angezeigt werden; bei verfügbarer Fahrerposition umfasst die Ansicht beide Punkte. Die
+zugehörige Lieferadresse bleibt als Text sichtbar, damit das Kartenziel dem Auftrag zugeordnet
+werden kann.
+
+Zwischen Fahrzeug und Ziel wird eine Verbindungslinie eingezeichnet. Zusätzlich berechnet das
+Webfrontend aus den Koordinaten die Entfernung entlang der Erdoberfläche als
+Luftlinienentfernung und zeigt sie gerundet in Kilometern an. Die Darstellung bietet damit eine
+räumliche Orientierung. Sie enthält weder eine berechnete Straßenroute noch eine Prognose der
+Ankunftszeit.
+
+Bei einer Entfernung von höchstens 80 Metern wechselt die Anzeige zu \enquote{Angekommen}.
+Diese Kennzeichnung beruht auf der im Webfrontend hinterlegten Entfernungsschwelle. Sie ist
+keine durch den Fahrer bestätigte Ankunft und kein Nachweis einer abgeschlossenen Lieferung.
+Abbildung~\ref{fig:frontend-tracking} zeigt die Kombination aus Karte, Positionsmarkierungen
+und Entfernungsanzeige.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth,height=0.70\textheight,keepaspectratio]{figures/frontend-tracking.png}
+  \caption{Lieferverfolgung auf der Bestätigungsseite mit Fahrzeugposition, Lieferziel und Entfernungsanzeige.}
+  \label{fig:frontend-tracking}
+  \par\smallskip
+  {\footnotesize Quelle: Eigene Aufnahme der Anwendung mit Demonstrationsdaten. Kartengrundlage: OpenStreetMap-Mitwirkende.\par}
+\end{figure}
+
+\subsubsection{Aktualisierung und Fehlerbehandlung}
+
+Die erste Fahrerposition wird nach dem Laden der verfügbaren Tracking-Informationen automatisch
+angefordert. Nach einem erfolgreichen Abruf kann der Kunde über \enquote{Aktualisieren} eine
+weitere Position laden. Währenddessen ist die Schaltfläche deaktiviert und zeigt den laufenden
+Abruf an. Neue Koordinaten aktualisieren die Fahrzeugmarkierung und die daraus abgeleitete
+Entfernung. Eine regelmäßige zeitgesteuerte Aktualisierung oder kontinuierliche Übertragung der
+Position ist nicht implementiert.
+
+Kann die Tracking-Information nicht geladen werden oder fehlen Zielkoordinaten, bleibt die
+Kartenansicht ausgeblendet. Die Bestätigung des Liefertermins bleibt davon unabhängig sichtbar.
+Scheitert die Aktualisierung einer bereits geladenen Fahrerposition, behält die Seite den
+letzten verfügbaren Stand bei. Ein gesonderter Fehlerhinweis oder eine sichtbare Zeitangabe zur
+Aktualität dieser Position wird dabei nicht angezeigt. Die Kartenansicht ist deshalb als
+Darstellung des zuletzt abgerufenen Standorts zu verstehen.
+
+\subsection{E-Mail-Einstellungen}
+
+Die E-Mail-Einstellungen sind aus dem Avisierungsdashboard erreichbar und ermöglichen die
+Pflege der Versandkonfiguration des zugeordneten Unternehmens. Der Bereich bündelt SMTP-Server
+und Port, Verbindungsverschlüsselung, gegebenenfalls erforderliche Anmeldedaten sowie
+Absenderadresse und Absendername. Die technische Bedeutung der mandantenspezifischen
+Konfiguration wird in Abschnitt~\ref{sec:emailversand} erläutert. Im Webfrontend steht ihre
+zusammenhängende Bearbeitung im Mittelpunkt.
+
+Anmeldedaten werden nur bei aktivierter SMTP-Authentifizierung eingeblendet. Ein bereits
+gespeichertes Passwort wird nicht angezeigt; stattdessen erläutert ein Hinweis, dass ein leeres
+Passwortfeld den vorhandenen Wert beibehält. Der Benutzer kann damit andere Einstellungen
+ändern, ohne das bisherige Passwort erneut eingeben zu müssen. Die Oberfläche prüft
+erforderliche Eingaben und den Wertebereich des Ports. Über \enquote{Änderungen verwerfen}
+lässt sich der zuletzt geladene Stand wiederherstellen. Nach dem Speichern werden die
+Einstellungen erneut abgerufen und der erfolgreiche Vorgang wird bestätigt.
+
+Zwei ergänzende Aktionen unterstützen die Prüfung der gespeicherten Konfiguration.
+\enquote{Verbindung testen} prüft den Verbindungsaufbau zum SMTP-Server. Ein separater
+Testversand übergibt eine Nachricht an die konfigurierte Absenderadresse. Solange Änderungen
+noch nicht gespeichert sind, bleiben diese Aktionen gesperrt und ein Hinweis fordert zum
+Speichern oder Verwerfen auf. Dadurch beziehen sich die Prüfungen eindeutig auf die
+gespeicherten Werte.
+
+Die Rückmeldungen unterscheiden unter anderem zwischen einem fehlgeschlagenen Verbindungsaufbau
+und einem fehlgeschlagenen Testversand. Eine erfolgreiche Übergabe der Test-E-Mail wird als
+Annahme durch den SMTP-Server beschrieben. Damit behauptet die Oberfläche keine bestätigte
+Zustellung in das Empfängerpostfach. Abbildung~\ref{fig:frontend-email-einstellungen} zeigt die
+Zusammenfassung von Konfiguration und Diagnose innerhalb derselben Ansicht.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth,height=0.70\textheight,keepaspectratio]{figures/frontend-email-einstellungen.png}
+  \caption{E-Mail-Einstellungen im Avisierungsdashboard mit Versandkonfiguration und bei ungespeicherten Änderungen gesperrter SMTP-Diagnose.}
+  \label{fig:frontend-email-einstellungen}
+  \par\smallskip
+  {\footnotesize Quelle: Eigene Aufnahme der Anwendung mit Demonstrationsdaten.\par}
+\end{figure}

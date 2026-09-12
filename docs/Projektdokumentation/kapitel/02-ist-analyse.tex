@@ -1,0 +1,49 @@
+\section{IST-Analyse}
+
+\subsection{Bestehender Avisierungsprozess}
+
+Im bisherigen Ablauf wurden Liefertermine durch die
+Disposition vorbereitet und anschließend auf direktem Weg an
+die Kunden kommuniziert. Rückmeldungen erfolgten je nach
+Situation per E-Mail, telefonisch oder über informelle
+Zwischenabsprachen. Die eingehenden Informationen mussten
+anschließend manuell ausgewertet und an weitere Beteiligte
+weitergegeben werden.
+
+Eine durchgängige digitale Verarbeitung des Prozesses war
+dadurch nur eingeschränkt möglich. Insbesondere bei mehreren
+gleichzeitigen Lieferungen stieg der Koordinationsaufwand
+deutlich an.
+
+\subsection{Bestehende Kommunikationskanäle}
+
+\subsection{Schwachstellen und Optimierungspotenziale}
+
+Die wesentlichen Schwachstellen lagen in der fehlenden
+Standardisierung der Rückmeldungen und in den Medienbrüchen
+zwischen Kommunikation, Bearbeitung und Dokumentation. Daraus
+ergaben sich Verzögerungen, erhöhter Abstimmungsbedarf und ein
+größeres Risiko für Missverständnisse im weiteren Ablauf.
+
+Zusätzlich fehlte eine einheitliche Statussicht, sodass der
+aktuelle Bearbeitungsstand eines Liefertermins nicht jederzeit
+direkt nachvollzogen werden konnte.
+
+\subsection{Funktionale Anforderungen}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{2cm}p{10cm}}
+\toprule
+ID & Beschreibung \\
+\midrule
+A1 & Das System versendet einen Bestätigungslink über E-Mail, SMS oder WhatsApp. \\
+A2 & Der Kunde kann über eine Bestätigungsseite auf den vorgeschlagenen Liefertermin reagieren. \\
+A3 & Nach Eingang der Kundenrückmeldung wird der Status automatisch im System aktualisiert. \\
+A4 & Bei bestätigten Lieferungen kann am Liefertag eine Fahrerkartenansicht bereitgestellt werden. \\
+A5 & Die Disposition erhält über ein Dashboard eine Übersicht aller relevanten Vorgänge und Statuswerte. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Nichtfunktionale Anforderungen}

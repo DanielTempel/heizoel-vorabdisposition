@@ -1,0 +1,198 @@
+\section{Systemarchitektur}
+\label{sec:systemarchitektur}
+
+Auf Grundlage des in Kapitel 3 beschriebenen SOLL-Prozesses wird im Folgenden
+die technische Gesamtarchitektur der digitalen Lieferavisierung dargestellt.
+Zunächst werden die Systemgrenze und das externe Umfeld abgegrenzt. Darauf
+aufbauend werden die zentralen Systemkomponenten, ihre Verantwortlichkeiten
+sowie die relevanten Schnittstellen und Interaktionsabläufe erläutert. Die
+Kapitel 5 und 6 vertiefen anschließend die interne Konzeption und
+Implementierung des Avisierungsservice beziehungsweise des Webfrontends.
+
+\subsection{Systemkontext und Systemgrenzen}
+\label{sec:systemkontext-systemgrenzen}
+
+Für die Betrachtung des Systemkontexts wird die digitale Lieferavisierung
+zunächst als Blackbox aufgefasst. Im Mittelpunkt steht damit nicht ihre interne
+technische Struktur, sondern die Abgrenzung gegenüber den beteiligten Akteuren
+und externen Systemen. Dadurch wird deutlich, welche Verantwortlichkeiten
+innerhalb der entwickelten Lösung liegen und welche außerhalb der Systemgrenze
+verbleiben.
+
+Von besonderer Bedeutung ist die Abgrenzung gegenüber DISPO. DISPO bleibt das
+führende System für Auftrags-, Tour- und Lieferplanungsdaten. Die Touren- und
+Lieferplanung einschließlich der Zuordnung von Fahrzeugen, Liefertagen und
+Lieferzeitfenstern erfolgt weiterhin dort. Die digitale Lieferavisierung
+übernimmt die für den Avisierungsprozess erforderlichen Daten und führt den
+avisierungsspezifischen Prozess- und Rückbestätigungsstatus. Das resultierende
+Avisierungsergebnis wird anschließend an DISPO zurückgemeldet. Für die
+Lieferverfolgung stellt DISPO zudem die aktuelle Fahrerposition bereit. Durch
+diese Aufgabenteilung bleibt die Datenhoheit über die Lieferplanung bei DISPO,
+während die neue Lösung auf den digitalen Avisierungsprozess und die dafür
+bereitgestellten Benutzeroberflächen begrenzt wird.
+
+Der Disponent arbeitet primär in DISPO. Dort werden Lieferaufträge geplant und
+bearbeitet sowie der Avisierungsprozess fachlich ausgelöst. Für die Bearbeitung
+und Überwachung der avisierungsspezifischen Informationen steht ihm zusätzlich
+das Avisierungsdashboard zur Verfügung.
+
+Der Kunde greift über einen individuellen Link auf die Bestätigungsseite zu.
+Eine direkte Interaktion mit DISPO findet nicht statt.
+
+Für die Kundenbenachrichtigung werden externe Kommunikationsdienste angebunden.
+E-Mails werden über eine externe SMTP-Infrastruktur versendet. Für SMS und
+WhatsApp wird ein Messaging-Dienst (Twilio) angebunden.
+
+Ein externer Geocoding-Dienst (Nominatim) unterstützt die Lieferverfolgung,
+indem er aus der Lieferadresse die geografischen Zielkoordinaten ermittelt. Die
+aktuelle Fahrerposition wird dagegen aus DISPO bezogen.
+
+Abbildung~\ref{fig:systemkontext-lieferavisierung} stellt die digitale
+Lieferavisierung als Blackbox in ihrem Systemkontext dar. Sie zeigt die
+beteiligten Akteure sowie die Kommunikationsbeziehungen zu DISPO und den
+angebundenen externen Diensten.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[
+    width=\textwidth,
+    keepaspectratio
+  ]{figures/systemkontext.png}
+  \caption{Systemkontext der digitalen Lieferavisierung}
+  \label{fig:systemkontext-lieferavisierung}
+\end{figure}
+
+Damit bildet die digitale Lieferavisierung eine abgegrenzte Integrationslösung
+zwischen DISPO, den beteiligten Benutzern und den externen technischen
+Diensten.
+
+\subsection{Systemkomponenten und Verantwortlichkeiten}
+\label{sec:systemkomponenten-verantwortlichkeiten}
+
+Innerhalb der in Abschnitt~\ref{sec:systemkontext-systemgrenzen} abgegrenzten
+digitalen Lieferavisierung übernehmen das Webfrontend, der Avisierungsservice
+und die PostgreSQL-Datenbank jeweils die Benutzerinteraktion, die fachliche
+Verarbeitung und die dauerhafte Datenhaltung. Der Avisierungsservice bildet das
+Backend der digitalen Lieferavisierung, während das Webfrontend die
+Benutzeroberflächen bereitstellt.
+Abbildung~\ref{fig:architekturuebersicht-lieferavisierung} zeigt ihre Einordnung
+innerhalb der Systemgrenze.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[
+    width=0.84\textwidth,
+    height=0.72\textheight,
+    keepaspectratio
+  ]{figures/architekturuebersicht.png}
+  \caption{Architekturübersicht der digitalen Lieferavisierung}
+  \label{fig:architekturuebersicht-lieferavisierung}
+\end{figure}
+
+Das \textbf{Webfrontend} ist als React-Anwendung umgesetzt und umfasst zwei
+fachlich getrennte Bereiche: das Avisierungsdashboard für den Disponenten sowie
+die Bestätigungsseite für den Kunden. Das Avisierungsdashboard ermöglicht die
+Einsicht in den Bearbeitungsstand und das Anstoßen einer erneuten Avisierung.
+Über die Bestätigungsseite können Lieferinformationen eingesehen,
+Lieferzeitfenster bestätigt oder abgelehnt sowie optionale Kommentare
+übermittelt werden. Für bestätigte Vorgänge steht am Liefertag zusätzlich eine
+Lieferverfolgung zur Verfügung, sofern die erforderlichen Positionsdaten
+verfügbar sind. Das Webfrontend bezieht Daten vom Avisierungsservice und
+übermittelt Benutzeraktionen an diesen.
+
+Der \textbf{Avisierungsservice} bildet die zentrale fachliche und integrative
+Komponente der Lösung. Als Spring-Boot-Anwendung verarbeitet er die aus DISPO
+übermittelten Avisierungsaufträge, steuert den Avisierungsprozess, verarbeitet
+Kundenreaktionen, koordiniert die Kundenkommunikation und stellt die
+benötigten Ansichts- und Statusdaten bereit. Darüber hinaus bindet er externe
+technische Dienste an und übermittelt das resultierende Avisierungsergebnis an
+DISPO. Die interne Architektur des Avisierungsservice wird in Kapitel 5
+vertieft.
+
+Die in den Avisierungsservice eingebettete \textbf{Workflow Engine Camunda 7}
+übernimmt die dauerhafte Ablaufkoordination des Avisierungsprozesses. Die
+konkrete Workflow-Implementierung wird in Abschnitt 5.2 erläutert.
+
+Die \textbf{PostgreSQL-Datenbank} dient als zentraler Persistenzspeicher
+innerhalb der digitalen Lieferavisierung und speichert die für den
+Avisierungsprozess benötigten Anwendungs- und Prozessdaten.
+
+Durch diese Aufteilung werden Benutzerinteraktion, fachliche Zustandsführung,
+Ablaufkoordination und persistente Datenhaltung voneinander abgegrenzt.
+
+\subsection{Schnittstellen und Zusammenspiel der Komponenten}
+\label{sec:schnittstellen-zusammenspiel}
+
+Im Folgenden werden die wesentlichen Kommunikationsbeziehungen innerhalb der
+digitalen Lieferavisierung sowie zu den angebundenen externen Systemen
+betrachtet. Abbildung~\ref{fig:schnittstellenuebersicht-lieferavisierung} zeigt
+zunächst die wesentlichen Schnittstellen und Datenflussrichtungen.
+Abbildung~\ref{fig:interaktionsablauf-rueckbestaetigung} ergänzt diese statische
+Sicht anschließend um den zeitlichen Ablauf eines exemplarischen
+Avisierungsprozesses.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[
+    width=\textwidth,
+    height=0.68\textheight,
+    keepaspectratio
+  ]{figures/schnittstellenuebersicht.png}
+  \caption{Wesentliche Schnittstellen der digitalen Lieferavisierung}
+  \label{fig:schnittstellenuebersicht-lieferavisierung}
+\end{figure}
+
+Die Kommunikation mit DISPO umfasst mehrere fachlich unterschiedliche Vorgänge.
+DISPO übermittelt Avisierungsaufträge an den Avisierungsservice und initialisiert
+bei Bedarf den Zugang zum Avisierungsdashboard. Die spätere Rückmeldung eines
+Avisierungsergebnisses erfolgt dagegen in Gegenrichtung. Für die
+Lieferverfolgung fragt der Avisierungsservice zusätzlich die aktuelle
+Fahrerposition bei DISPO an und erhält die zugehörigen Positionsdaten zurück.
+
+Auch die beiden Bereiche des Webfrontends kommunizieren direkt mit dem
+Avisierungsservice. Das Avisierungsdashboard übermittelt Datenabfragen und
+Benutzeraktionen und erhält die benötigten Übersichts- und Detailinformationen
+zurück. Der Dashboardzugang wird aus DISPO heraus initiiert; nach dem Übergang
+erfolgt die weitere Kommunikation unmittelbar zwischen Webfrontend und
+Avisierungsservice. Die Bestätigungsseite wird über den individuellen Link aus
+der Kundenbenachrichtigung aufgerufen. Sie bezieht Liefer- und Avisierungsdaten
+sowie Daten zur Lieferverfolgung vom Avisierungsservice und übermittelt die
+Kundenreaktion über die dafür bereitgestellte Schnittstelle.
+
+Für die Lieferverfolgung werden Daten aus unterschiedlichen Quellen
+zusammengeführt. Die Fahrerposition stammt aus DISPO, während die geografischen
+Koordinaten des Lieferziels über den Geocoding-Dienst ermittelt werden. Hierzu
+übermittelt der Avisierungsservice die Lieferadresse als Geocoding-Anfrage und
+erhält die bestimmten Zielkoordinaten zurück. Weitere ausgehende Schnittstellen
+dienen der Kundenkommunikation: E-Mail-Nachrichten werden über die angebundene
+SMTP-Infrastruktur versendet, SMS- und WhatsApp-Nachrichten über den
+Messaging-Dienst. Der Zugriff auf die PostgreSQL-Datenbank erfolgt
+ausschließlich über den Avisierungsservice und dient der persistenten
+Speicherung der für den Prozess benötigten fachlichen und technischen Zustände.
+
+Der Avisierungsprozess besteht nicht aus einem einzelnen synchronen
+Kommunikationsvorgang, sondern aus mehreren zeitlich getrennten Interaktionen.
+Insbesondere die Übermittlung eines Avisierungsauftrags und die
+spätere Rückmeldung des Ergebnisses an DISPO bilden getrennte Vorgänge. Ebenso
+erfolgen der Abruf der Bestätigungsseite und die anschließende Übermittlung einer
+Kundenreaktion über separate Schnittstellen.
+Abbildung~\ref{fig:interaktionsablauf-rueckbestaetigung} zeigt, wie diese
+zeitlich getrennten Interaktionen innerhalb eines Avisierungsvorgangs
+zusammenwirken.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[
+    width=\textwidth,
+    height=0.70\textheight,
+    keepaspectratio
+  ]{figures/interaktionsablauf.png}
+  \caption{Technischer Interaktionsablauf eines Avisierungsprozesses}
+  \label{fig:interaktionsablauf-rueckbestaetigung}
+\end{figure}
+
+Der Ablauf verdeutlicht die zeitliche Entkopplung zwischen der ursprünglichen
+Auftragsübernahme und der späteren Rückmeldung des Avisierungsergebnisses. Die
+dazwischenliegenden Interaktionen werden über einen persistent gespeicherten
+Prozesszustand miteinander verknüpft. Die interne Umsetzung dieser Koordination
+wird in Abschnitt 5.2 vertieft.
