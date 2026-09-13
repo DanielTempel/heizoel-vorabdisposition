@@ -2,48 +2,231 @@
 
 \subsection{Bestehender Avisierungsprozess}
 
-Im bisherigen Ablauf wurden Liefertermine durch die
-Disposition vorbereitet und anschließend auf direktem Weg an
-die Kunden kommuniziert. Rückmeldungen erfolgten je nach
-Situation per E-Mail, telefonisch oder über informelle
-Zwischenabsprachen. Die eingehenden Informationen mussten
-anschließend manuell ausgewertet und an weitere Beteiligte
-weitergegeben werden.
+Im betrachteten Ausgangsprozess ordnete die Disposition bereits
+im DISPO-System vorhandene Heizölaufträge einer Tour zu und
+legte den vorgesehenen Liefertag sowie ein konkretes
+Lieferzeitfenster fest. Die anschließende Abstimmung des
+vorgeschlagenen Termins mit dem Kunden erfolgte weitgehend
+manuell. Die dafür erforderlichen Auftrags- und
+Lieferinformationen mussten für die jeweilige Kontaktaufnahme
+zusammengestellt und dem Kunden übermittelt werden.
 
-Eine durchgängige digitale Verarbeitung des Prozesses war
-dadurch nur eingeschränkt möglich. Insbesondere bei mehreren
-gleichzeitigen Lieferungen stieg der Koordinationsaufwand
-deutlich an.
+Die eingehenden Kundenrückmeldungen wurden anschließend manuell
+ausgewertet und dem jeweiligen Auftrag zugeordnet. Abhängig von
+der Rückmeldung mussten der Bearbeitungsstatus im DISPO-System
+aktualisiert und gegebenenfalls weitere Maßnahmen eingeleitet
+werden. Auch noch ausstehende Antworten mussten durch die
+Disposition gesondert nachverfolgt werden.
+
+Zwischen der Kundenkommunikation und der Dokumentation im
+DISPO-System bestand keine automatisierte Verbindung. Mit
+zunehmender Anzahl parallel bearbeiteter Lieferungen stiegen
+daher sowohl der Koordinationsaufwand als auch die Anforderungen
+an eine eindeutige Zuordnung und Nachverfolgung der
+Kundenreaktionen.
 
 \subsection{Bestehende Kommunikationskanäle}
 
+Die Abstimmung geplanter Liefertermine erfolgte überwiegend
+telefonisch. Die Disposition kontaktierte den Kunden und
+übermittelte dabei die für die Rückbestätigung relevanten
+Informationen zum Auftrag, zum Liefertag und zum vorgesehenen
+Lieferzeitfenster.
+
+In einzelnen Fällen wurden auch alternative Kontaktmöglichkeiten
+wie E-Mail oder WhatsApp genutzt. Die Auswahl und Verwendung des
+jeweiligen Kommunikationswegs erfolgte durch die Disposition und
+wurde für jeden Auftrag individuell gehandhabt.
+
+Unabhängig vom verwendeten Kontaktweg wurden die eingehenden
+Kundenrückmeldungen manuell ausgewertet, dem entsprechenden
+Auftrag zugeordnet und im DISPO-System dokumentiert. War der
+Kunde nicht erreichbar oder blieb eine eindeutige Rückmeldung
+aus, wurden weitere Kontaktversuche ebenfalls durch die
+Disposition organisiert und nachverfolgt.
+
 \subsection{Schwachstellen und Optimierungspotenziale}
 
-Die wesentlichen Schwachstellen lagen in der fehlenden
-Standardisierung der Rückmeldungen und in den Medienbrüchen
-zwischen Kommunikation, Bearbeitung und Dokumentation. Daraus
-ergaben sich Verzögerungen, erhöhter Abstimmungsbedarf und ein
-größeres Risiko für Missverständnisse im weiteren Ablauf.
+Die wesentlichen Schwachstellen des bestehenden Prozesses lagen
+in den Medienbrüchen zwischen Terminplanung,
+Kundenkommunikation, Bearbeitung und Dokumentation.
+Auftragsinformationen mussten für die Kontaktaufnahme
+zusammengestellt und Kundenrückmeldungen anschließend manuell
+dem jeweiligen Auftrag zugeordnet werden. Dadurch entstanden
+zusätzliche Bearbeitungsschritte sowie ein erhöhtes Risiko für
+Verzögerungen, Übertragungsfehler und Missverständnisse.
 
-Zusätzlich fehlte eine einheitliche Statussicht, sodass der
-aktuelle Bearbeitungsstand eines Liefertermins nicht jederzeit
-direkt nachvollzogen werden konnte.
+Statusinformationen wurden zwar im DISPO-System dokumentiert,
+ihre Aktualität hing jedoch von der manuellen Pflege durch die
+Disposition ab. Kontaktversuche, Kundenrückmeldungen und noch
+offene Abstimmungen waren nicht in einer gemeinsamen
+Prozesssicht zusammengeführt. Der aktuelle Stand eines Vorgangs
+konnte daher nur anhand der vorhandenen Einträge und der
+bisherigen Kommunikation nachvollzogen werden.
+
+Auch nicht erreichbare Kunden und ausbleibende Rückmeldungen
+erforderten eine manuelle Kontrolle. Weitere Kontaktversuche
+mussten einzeln organisiert und die betroffenen Aufträge
+gesondert nachverfolgt werden. Mit zunehmender Anzahl parallel
+bearbeiteter Lieferungen stiegen dadurch der zeitliche,
+personelle und organisatorische Aufwand.
+
+Optimierungspotenzial bestand vor allem in der Reduzierung
+wiederkehrender manueller Arbeitsschritte, einer einheitlicheren
+Bearbeitung der Kundenkommunikation und einer verbesserten
+Nachvollziehbarkeit des jeweiligen Rückmeldestands. Gleichzeitig
+sollte die bestehende fachliche Verantwortung der Disposition
+für die Liefer- und Tourenplanung erhalten bleiben.
 
 \subsection{Funktionale Anforderungen}
 
-\begin{table}[H]
-\centering
-\begin{tabular}{p{2cm}p{10cm}}
-\toprule
-ID & Beschreibung \\
-\midrule
-A1 & Das System versendet einen Bestätigungslink über E-Mail, SMS oder WhatsApp. \\
-A2 & Der Kunde kann über eine Bestätigungsseite auf den vorgeschlagenen Liefertermin reagieren. \\
-A3 & Nach Eingang der Kundenrückmeldung wird der Status automatisch im System aktualisiert. \\
-A4 & Bei bestätigten Lieferungen kann am Liefertag eine Fahrerkartenansicht bereitgestellt werden. \\
-A5 & Die Disposition erhält über ein Dashboard eine Übersicht aller relevanten Vorgänge und Statuswerte. \\
-\bottomrule
-\end{tabular}
+Aus der Analyse des bestehenden Prozesses sowie den im
+Projektverlauf vorgenommenen fachlichen Konkretisierungen und
+Erweiterungen wurden die folgenden funktionalen Anforderungen
+an die digitale Lieferavisierung abgeleitet:
+
+\begin{table}[htbp]
+    \centering
+    \caption{Funktionale Anforderungen}
+    \label{tab:funktionale-anforderungen}
+    \begin{tabularx}{\textwidth}{@{}p{0.10\textwidth}X@{}}
+        \toprule
+        ID & Beschreibung \\
+        \midrule
+        A1 &
+        Der Avisierungsservice muss die erforderlichen Auftrags-,
+        Kunden-, Kontakt- und Lieferdaten über eine geschützte
+        DISPO-Schnittstelle übernehmen und dem zugehörigen Unternehmen
+        zuordnen. \\
+
+        A2 &
+        Für einen Avisierungsvorgang muss eine individuelle
+        Bestätigungsanfrage mit einem personalisierten
+        Kundenlink erzeugt werden. \\
+
+        A3 &
+        Die Bestätigungsanfrage muss abhängig vom hinterlegten
+        Kommunikationskanal über E-Mail, SMS oder WhatsApp
+        versendet werden können. \\
+
+        A4 &
+        Der Kunde muss über den Bestätigungslink die relevanten
+        Auftrags- und Lieferinformationen einsehen und den
+        vorgeschlagenen Liefertermin bestätigen oder ablehnen
+        können. Optional muss eine Kundennachricht übermittelt
+        werden können. \\
+
+        A5 &
+        Pro Bestätigungsanfrage darf nur eine Kundenreaktion
+        statuswirksam verarbeitet werden. Für weitere Reaktionen darf
+        ausschließlich die jeweils aktuelle Bestätigungsanfrage gültig
+        sein. \\
+
+        A6 &
+        Das System muss die für eine Bestätigungsanfrage
+        festgelegte Antwortfrist überwachen und eine
+        ausbleibende Kundenreaktion als \texttt{NO\_RESPONSE}
+        verarbeiten. \\
+
+        A7 &
+        Die aus Kundenreaktionen oder Fristabläufen resultierenden
+        Status \texttt{CONFIRMED}, \texttt{REJECTED} und
+        \texttt{NO\_RESPONSE} müssen persistent gespeichert und über
+        die vorgesehene Rückmeldeschnittstelle an das DISPO-System
+        übermittelt werden. \\
+
+        A8 &
+        Die Disposition muss über ein geschütztes Dashboard
+        Touren, Aufträge, Statusanzahlen und offene
+        Avisierungsvorgänge einsehen, durchsuchen und filtern
+        können. \\
+
+        A9 &
+        Die Auftragsdetailansicht muss die aktuelle
+        Bestätigungsanfrage, frühere Anfragen und vorhandene
+        Kundenreaktionen darstellen. Eine zulässige erneute
+        Avisierung muss über einen auswählbaren
+        Kommunikationskanal angestoßen werden können. \\
+
+        A10 &
+        Mandantenspezifische E-Mail-Einstellungen müssen über
+        das Dashboard verwaltet werden können. Zusätzlich müssen
+        ein SMTP-Verbindungstest und der Versand einer
+        Testnachricht möglich sein. \\
+
+        A11 &
+        Für bestätigte Lieferungen muss dem Kunden am Liefertag eine
+        Lieferverfolgung bereitgestellt werden, in der die Zielposition
+        und die aktuelle, von DISPO bereitgestellte Fahrerposition
+        dargestellt werden. \\
+        \bottomrule
+    \end{tabularx}
 \end{table}
 
 \subsection{Nichtfunktionale Anforderungen}
+
+Neben den funktionalen Anforderungen wurden auch nichtfunktionale Anforderungen definiert:
+
+\begin{table}[htbp]
+    \centering
+    \caption{Nichtfunktionale Anforderungen}
+    \label{tab:nichtfunktionale-anforderungen}
+    \begin{tabularx}{\textwidth}{@{}p{0.12\textwidth}X@{}}
+        \toprule
+        ID & Beschreibung \\
+        \midrule
+        N1 &
+        Auftragsdaten, Bestätigungsanfragen und
+        Konfigurationen verschiedener Unternehmen müssen
+        mandantenbezogen verarbeitet und voneinander getrennt
+        werden. \\
+
+        N2 &
+        DISPO-, Dashboard- und Kundenschnittstellen müssen
+        entsprechend ihrem jeweiligen Zugriffskontext
+        geschützt werden. Zugangsdaten und andere sensible
+        Konfigurationswerte dürfen nicht ungeschützt
+        offengelegt werden. \\
+
+        N3 &
+        Zeitabhängige und asynchrone Prozessschritte müssen
+        dauerhaft und nachvollziehbar ausgeführt werden.
+        Wiederholte Ausführungen dürfen nicht zu widersprüchlichen
+        Statusänderungen oder mehrfach verarbeiteten
+        Kundenreaktionen führen. \\
+
+        N4 &
+        Fehler an externen Kommunikations- und DISPO-Schnittstellen
+        müssen kontrolliert behandelt und protokolliert werden.
+        Vorübergehend fehlgeschlagene Prozessschritte müssen, soweit
+        fachlich zulässig, erneut ausgeführt werden können. \\
+
+        N5 &
+        Die Anwendung muss so strukturiert sein, dass externe
+        Systeme, Kommunikationskanäle und technische Adapter
+        mit möglichst geringen Auswirkungen auf die fachliche
+        Anwendungslogik ausgetauscht oder erweitert werden
+        können. \\
+
+        N6 &
+        Zeitabhängige fachliche Entscheidungen und zentrale
+        Systemabläufe müssen reproduzierbar testbar sein. Die
+        wesentlichen fachlichen, integrativen und
+        systemübergreifenden Abläufe müssen durch automatisierte Tests
+        überprüft werden können. \\
+
+        N7 &
+        Personenbezogene und sicherheitsrelevante Daten müssen
+        bei Speicherung, Übertragung und Protokollierung
+        angemessen geschützt werden. Dynamische Tracking-Daten
+        dürfen nicht als dauerhaft gültige Antworten
+        zwischengespeichert werden. \\
+
+        N8 &
+        Die kunden- und dispositionsseitigen Oberflächen müssen
+        die jeweils relevanten Informationen verständlich
+        darstellen und eine eindeutige Bedienung der
+        vorgesehenen Aktionen ermöglichen. \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
