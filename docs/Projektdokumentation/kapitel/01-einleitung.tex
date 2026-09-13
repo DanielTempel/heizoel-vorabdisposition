@@ -2,18 +2,117 @@
 
 \subsection{Motivation und Problemstellung}
 
-Ausgangspunkt des Projekts war die Beobachtung, dass die
-Rückbestätigung von Lieferterminen in weiten Teilen manuell
-erfolgte und dadurch mit hohem Abstimmungsaufwand verbunden war.
-Informationen mussten mehrfach weitergegeben, Rückmeldungen
-manuell ausgewertet und Statusänderungen separat dokumentiert
-werden.
+Das Projekt entstand in Kooperation mit der MINOVA GmbH aus
+einem konkreten Anwendungsfall der Heizöllogistik. Im
+betrachteten Ausgangsprozess wurden geplante Liefertermine
+weitgehend manuell mit den Kunden abgestimmt. Die Disposition
+kontaktierte die Kunden überwiegend telefonisch, teilte ihnen
+den vorgesehenen Liefertag und das Lieferzeitfenster mit und
+erfasste die jeweiligen Rückmeldungen anschließend manuell.
 
-Ziel der Projektarbeit war es deshalb, einen strukturierten
-digitalen Prozess zu entwickeln, der sowohl die fachliche
-Kommunikation mit dem Kunden als auch die technische
-Weiterverarbeitung im System unterstützt.
+Dieser Ablauf war mit einem hohen zeitlichen, personellen und
+organisatorischen Aufwand verbunden. Kunden mussten einzeln
+kontaktiert, ihre Rückmeldungen den entsprechenden Aufträgen
+zugeordnet und Statusänderungen weitergegeben werden. Nicht
+erreichbare Kunden und ausbleibende Antworten erforderten
+zusätzliche Kontaktversuche und eine manuelle Nachverfolgung.
+
+Eine automatisierte Lösung für die standardisierte
+Kundenkommunikation und die strukturierte Verarbeitung der
+Rückmeldungen war im betrachteten Prozess nicht vorhanden.
+Dadurch war der aktuelle Bearbeitungsstand nur mit zusätzlichem
+Abstimmungsaufwand nachvollziehbar. Insbesondere fehlte eine
+zentrale Übersicht darüber, welche Liefertermine bereits
+bestätigt oder abgelehnt wurden und bei welchen Aufträgen eine
+Kundenreaktion noch ausstand. Mit zunehmender Anzahl parallel
+bearbeiteter Aufträge stiegen zugleich das Risiko von
+Verzögerungen und fehlerhaften Zuordnungen sowie der benötigte
+Personaleinsatz.
+
+Aus dieser Ausgangssituation ergab sich der Bedarf nach einem
+durchgängigen digitalen Avisierungsprozess. Die wiederkehrende
+Kundenkommunikation sollte automatisiert, Kundenreaktionen
+eindeutig erfasst und der daraus resultierende
+Bearbeitungsstatus zentral bereitgestellt werden. Auf diese
+Weise sollte die Disposition entlastet und die Bearbeitung
+bereits geplanter Heizöllieferungen nachvollziehbarer und
+effizienter gestaltet werden. Die eigentliche Liefer- und
+Tourenplanung bleibt dabei Aufgabe des DISPO-Systems.
 
 \subsection{Zielsetzung}
 
+Ziel des Projekts war die Entwicklung eines funktionsfähigen
+Prototyps für die workflowbasierte Avisierung und
+Rückbestätigung geplanter Heizöllieferungen. Der
+Avisierungsservice sollte einen von DISPO bereitgestellten
+Auftrag einschließlich der relevanten Kunden-, Kontakt- und
+Lieferdaten übernehmen, daraus eine individuelle
+Bestätigungsanfrage erzeugen und die Kundenbenachrichtigung über
+den für den Auftrag festgelegten Kommunikationskanal versenden.
+
+Die Kundenkommunikation sollte über E-Mail, SMS oder WhatsApp
+erfolgen können. Über einen personalisierten Link sollte der
+Kunde die relevanten Auftrags- und Lieferinformationen einsehen
+und den vorgeschlagenen Liefertermin bestätigen oder ablehnen
+können. Zusätzlich sollte die Übermittlung eines optionalen
+Kommentars möglich sein. Bleibt eine Antwort innerhalb der
+festgelegten Frist aus, sollte der Vorgang ebenfalls in einen
+eindeutigen fachlichen Zustand überführt werden. Das jeweilige
+Ergebnis sollte dauerhaft gespeichert und automatisiert an
+DISPO zurückgemeldet werden.
+
+Das geschützte Avisierungsdashboard sollte eine zentrale
+Übersicht über den aktuellen Stand der Kundenrückbestätigungen
+bereitstellen. Dazu zeigt es die zugehörigen Touren und
+Aufträge mit ihren Avisierungsstatus, Bestätigungsanfragen und
+Kundenreaktionen an. Die Liefer- und Tourenplanung bleibt
+weiterhin vollständig im DISPO-System.
+
+Für Aufträge ohne Kundenrückmeldung sollte über das Dashboard
+eine erneute Bestätigungsanfrage ausgelöst werden können. Dabei
+kann der bisherige Kommunikationskanal beibehalten oder ein
+anderer Kanal ausgewählt werden. Die erneute Anfrage wird
+anschließend über E-Mail, SMS oder WhatsApp an den Kunden
+versendet.
+
+Für bestätigte Lieferungen sollte am Liefertag zusätzlich eine
+Lieferverfolgung bereitgestellt werden. Dazu sollten die aus der
+Lieferadresse ermittelten Zielkoordinaten und die von DISPO
+bereitgestellte Fahrerposition zusammengeführt und dem Kunden
+über die Bestätigungsseite zugänglich gemacht werden.
+
+Neben den funktionalen Abläufen sollte der Prototyp eine
+nachvollziehbare und erweiterbare technische Grundlage
+schaffen. Dazu gehörten eine workflowgestützte und dauerhaft
+ausgeführte Prozesskoordination, klar abgegrenzte Schnittstellen
+zu externen Systemen, eine persistente Statusverwaltung sowie
+die mandantenbezogene Verarbeitung und Trennung von Daten und
+Konfigurationen.
+
 \subsection{Methodische Vorgehensweise}
+
+Die Projektarbeit folgte einem phasenorientierten Vorgehen mit
+iterativen Anpassungen. Die fachliche Grundlage bildeten die
+Analyse des bestehenden Ablaufs sowie die im Lastenheft
+festgehaltenen und im Pflichtenheft konkretisierten
+Anforderungen. Darauf aufbauend wurde der SOLL-Prozess
+ausgearbeitet und mit BPMN~2.0 modelliert. Die Prozessmodellierung
+verband damit die fachliche Beschreibung mit der technischen
+Umsetzung als ausführbarer Workflow.
+
+Die Entwicklung des Prototyps erfolgte schrittweise durch die
+Implementierung und Zusammenführung von Backend, Frontend und
+Workflow-Steuerung. Regelmäßige Abstimmungen dienten dazu,
+Zwischenstände zu bewerten und offene fachliche sowie technische
+Fragen zu klären. Die daraus gewonnenen Erkenntnisse flossen
+in die Weiterentwicklung der Architektur, des Funktionsumfangs
+und der Qualitätssicherung ein.
+
+Die Validierung erfolgte anhand der zentralen Anwendungsfälle
+mithilfe von Unit-, Integrations- und End-to-End-Tests.
+Da das reale DISPO-System im Projekt nicht angebunden werden
+konnte, bildete ein DISPO-Mock das für die Tests erforderliche
+Schnittstellenverhalten nach. Der E-Mail-Versand wurde lokal
+mit Mailpit überprüft, während Playwright zur
+browsergestützten Prüfung der Benutzerabläufe im Rahmen
+der End-to-End-Tests eingesetzt wurde.
