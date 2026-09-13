@@ -874,109 +874,124 @@ dagegen eine externe Provider-Anbindung.
 \subsubsection{SMS und WhatsApp über Twilio: Technologieauswahl und Integration}
 \label{sec:sms-whatsapp}
 
-Für die mobilen Kommunikationskanäle SMS und WhatsApp wurde
-Twilio als externer Messaging-Provider ausgewählt. Twilio
-ermöglicht die Anbindung beider Kanäle über eine gemeinsame
-Messaging-Schnittstelle und unterstützt zentral verwaltete
-Content Templates. Dadurch kann die bestehende
-Kommunikationsarchitektur um beide Kanäle erweitert werden,
-ohne zwei voneinander unabhängige Provider-Integrationen
-implementieren zu müssen
-\parencite{twilioContentTemplates,twilioMessagesResource}.
+Zur Erweiterung der Kundenkommunikation um SMS und WhatsApp wurde
+Twilio als externer Messaging-Provider eingesetzt. Ausschlaggebend
+für diese Technologieentscheidung waren insbesondere die
+unkomplizierte Anbindung über das verfügbare Java SDK sowie die
+Möglichkeit, beide Kommunikationskanäle bereits während der
+Entwicklungsphase mit einem begrenzten Trial-Account zu testen.
+Dadurch konnten die vorgesehenen Kommunikationsabläufe ohne den
+Aufbau einer eigenen Messaging-Infrastruktur zunächst unter
+Entwicklungsbedingungen umgesetzt und überprüft werden.
 
-Nach der in Abschnitt~\ref{sec:kommunikationsabstraktion}
-beschriebenen Kanalauswahl übernimmt der
-\texttt{SmsNotificationSender} beziehungsweise der
-\texttt{WhatsAppNotificationSender} die kanalspezifische
-Weiterleitung. Beide Komponenten erzeugen aus dem Auftrag und
-der Bestätigungsanfrage einen gemeinsamen
-\texttt{ConfirmationMessageContent} und übergeben diesen an den
-\texttt{TwilioMessageSender}. Die Abhängigkeit vom Twilio Java
-SDK bleibt dadurch auf den ausgehenden Kommunikationsadapter
-beschränkt.
+Twilio stellt für SMS und WhatsApp eine gemeinsame
+Messaging-Schnittstelle zur Verfügung. SMS-Nachrichten wurden im
+Rahmen des Trial-Accounts über die Twilio Messages API von einer
+konfigurierten Twilio-Rufnummer an eine verifizierte
+Empfängerrufnummer gesendet. Für den Testbetrieb des
+WhatsApp-Kanals wurde die von Twilio bereitgestellte WhatsApp
+Sandbox verwende \parencite{twilioMessagesResource,twilioWhatsAppSandbox}.
 
-Für beide Kanäle wird das im Twilio Content Template Builder
-angelegte Template \texttt{disposition\_test} verwendet. Die
-Anwendung referenziert dieses Template beim Versand nicht über
-seinen Namen, sondern über die konfigurierte
-Content-Template-SID. Das Template besitzt folgenden Aufbau:
+Die Nachrichteninhalte werden über ein zentral verwaltetes
+Content Template definiert. Hierfür wurde im Twilio Content
+Template Builder projektspezifisch das Template
+\texttt{disposition\_test} angelegt. Das Template wird sowohl
+für SMS als auch für WhatsApp verwendet und beim Versand über
+seine Content-Template-SID referenziert. Dadurch konnten beide
+Kommunikationskanäle weitgehend über eine gemeinsame technische
+Implementierung angebunden und die verwendeten Nachrichteninhalte
+zentral und kanalübergreifend gepflegt werden \parencite{twilioContentTemplates}..
 
-\begin{lstlisting}[language={}]
-Guten Tag {{1}},
+Die technische Umsetzung baut auf der in
+Abschnitt~\ref{sec:kommunikationsabstraktion} beschriebenen
+Kanalauswahl auf. Abhängig vom gespeicherten \texttt{CommunicationChannel} delegiert die Anwendung den
+Versand an den \texttt{SmsNotificationSender} oder den
+\texttt{WhatsAppNotificationSender}. Beide Implementierungen
+erzeugen aus dem Auftrag und der Bestätigungsanfrage einen
+gemeinsamen \texttt{ConfirmationMessageContent} und übergeben
+diesen an den \texttt{TwilioMessageSender}. Die Abhängigkeit
+vom Twilio Java SDK bleibt dadurch auf den ausgehenden
+Kommunikationsadapter beschränkt.
 
-für Ihren Auftrag {{2}} ist die Lieferung von {{3}} ({{4}})
-am {{5}} im Zeitfenster {{6}} geplant.
+Das Content Template enthält folgende Nachricht:
 
-Lieferadresse:
-{{7}}
-
-Bitte bestätigen Sie Ihren Liefertermin über folgenden Link:
-{{8}}
-
+\begin{quote}
+\small\ttfamily
+Guten Tag \{\{1\}\},\par\medskip
+für Ihren Auftrag \{\{2\}\} ist die Lieferung von
+\{\{3\}\} (\{\{4\}\}) am \{\{5\}\} im Zeitfenster
+\{\{6\}\} geplant.\par\medskip
+Lieferadresse:\par
+\{\{7\}\}\par\medskip
+Bitte bestätigen Sie Ihren Liefertermin über folgenden Link:\par
+\{\{8\}\}\par\medskip
 Vielen Dank.
-\end{lstlisting}
+\end{quote}
 
 Die Platzhalter werden beim Versand mit den Daten des jeweiligen
-Auftrags und der Bestätigungsanfrage befüllt:
+Auftrags und der Bestätigungsanfrage befüllt. Ihre Zuordnung ist
+in Tabelle~\ref{tab:twilio-template-variablen} dargestellt.
 
-\begin{itemize}
-    \item \texttt{\{\{1\}\}}: Kundenname,
-    \item \texttt{\{\{2\}\}}: externe Auftragsnummer,
-    \item \texttt{\{\{3\}\}}: Produkt,
-    \item \texttt{\{\{4\}\}}: Bestellmenge,
-    \item \texttt{\{\{5\}\}}: Lieferdatum,
-    \item \texttt{\{\{6\}\}}: Lieferzeitfenster,
-    \item \texttt{\{\{7\}\}}: Lieferadresse,
-    \item \texttt{\{\{8\}\}}: individueller Bestätigungslink.
-\end{itemize}
+\begin{table}[htbp]
+    \centering
+    \caption{Variablen des Twilio Content Templates}
+    \label{tab:twilio-template-variablen}
+    \begin{tabularx}{\textwidth}{@{}p{0.22\textwidth}X@{}}
+        \toprule
+        Platzhalter & Inhalt \\
+        \midrule
+        \texttt{\{\{1\}\}} & Kundenname \\
+        \texttt{\{\{2\}\}} & externe Auftragsnummer \\
+        \texttt{\{\{3\}\}} & Produkt \\
+        \texttt{\{\{4\}\}} & Bestellmenge \\
+        \texttt{\{\{5\}\}} & Lieferdatum \\
+        \texttt{\{\{6\}\}} & Lieferzeitfenster \\
+        \texttt{\{\{7\}\}} & Lieferadresse \\
+        \texttt{\{\{8\}\}} & individueller Bestätigungslink \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
 
-Der \texttt{TwilioMessageSender} übergibt die konfigurierte
-Content-Template-SID als \texttt{ContentSid} und die
-auftragsspezifischen Werte als serialisierte
-\texttt{ContentVariables} an die Twilio Messages API. Twilio
-ermittelt anhand der SID das hinterlegte Template und ersetzt
-die Platzhalter durch die übergebenen Werte. SMS und WhatsApp
-verwenden dadurch dieselben fachlichen Informationen.
+Für den Versand übermittelt der \texttt{TwilioMessageSender}
+die konfigurierte Content-Template-SID als \texttt{ContentSid}
+an die Twilio Messages API. Die auftragsspezifischen Inhalte
+werden den Platzhaltern des Templates zugeordnet, als
+\texttt{ContentVariables} serialisiert und zusammen mit den
+Absender- und Empfängerdaten übertragen. Anhand der SID lädt
+Twilio das hinterlegte Template und setzt die übergebenen Werte
+in die entsprechenden Platzhalter ein.
 
-Die kanalspezifischen Unterschiede betreffen insbesondere die
-Adressierung. SMS-Absender und -Empfänger werden im
-internationalen E.164-Format übertragen. Für WhatsApp ergänzt
-der Adapter das Präfix \texttt{whatsapp:}. Ein bereits
-vorhandenes Präfix wird nicht erneut hinzugefügt. Für beide
-Kanäle können getrennte Absender konfiguriert werden.
+Die kanalspezifische Verarbeitung unterscheidet sich vor allem
+bei der Adressierung. Beide Kanäle verwenden die im Auftrag
+gespeicherte Kundenrufnummer als Empfänger. Für SMS werden
+Absender und Empfänger im internationalen E.164-Format
+übertragen. Bei WhatsApp ergänzt der
+\texttt{TwilioMessageSender} beide Adressen um das von Twilio
+erwartete Präfix \texttt{whatsapp:}. Ein bereits vorhandenes Präfix
+wird dabei nicht doppelt gesetzt. Für SMS und WhatsApp können
+getrennte Absenderkennungen konfiguriert werden.
 
-Die Verbindung zu Twilio wird über einen
-\texttt{TwilioRestClient} aufgebaut. Account SID,
-Authentifizierungstoken, SMS-Absender, WhatsApp-Absender und
-Content-Template-SID werden über Umgebungsvariablen
-bereitgestellt. Im Gegensatz zur mandantenspezifischen
-SMTP-Konfiguration gilt die Twilio-Konfiguration im aktuellen
+Die Kommunikation mit der Twilio API erfolgt über einen
+\texttt{TwilioRestClient}. Die dafür benötigte Account SID,
+das Authentifizierungstoken, die Absender für SMS und WhatsApp
+sowie die Content-Template-SID werden über Umgebungsvariablen
+bereitgestellt. Diese Konfiguration gilt im aktuellen
 Projektstand anwendungsweit.
 
-Vor dem Versand prüft der Adapter, ob die erforderliche
-Provider-Konfiguration vollständig ist und ob Absender und
-Empfänger ein gültiges Format besitzen. Fehler bei der
-Serialisierung der Template-Variablen oder beim Aufruf der
-Twilio API werden als kanalbezogene
-\texttt{NotificationDeliveryException} an die Anwendungslogik
-weitergegeben. Telefonnummern werden in den Log-Ausgaben
-maskiert, sodass nur die letzten Ziffern sichtbar bleiben.
+Vor jedem Versand prüft der Adapter, ob die für den gewählten
+Kanal erforderliche Konfiguration vollständig ist. Zusätzlich
+werden Absender und Empfänger auf ein gültiges E.164-Format
+geprüft. Fehlt die Kundenrufnummer oder besitzt eine der
+verwendeten Adressen ein ungültiges Format, bricht die
+Anwendung den Vorgang vor dem Aufruf der Twilio API ab.
 
-Für die Entwicklung kann die Twilio WhatsApp Sandbox verwendet
-werden. Diese ist ausschließlich für Testzwecke vorgesehen und
-erlaubt den Versand nur an Empfänger, die zuvor mit der Sandbox
-verbunden wurden \parencite{twilioWhatsAppSandbox}. Für einen
-produktiven Einsatz sind entsprechend konfigurierte Absender
-und ein für WhatsApp freigegebenes Content Template
-erforderlich.
-
-Die Twilio-Integration umfasst im aktuellen Projektstand die
-initiale Bestätigungsanfrage über SMS und WhatsApp. Eine
-Eingangsbestätigung nach der Kundenreaktion wird über diese
-Kanäle nicht versendet. Zudem wird kein Twilio-Status-Callback
-verarbeitet. Ein erfolgreicher API-Aufruf bestätigt daher die
-Annahme der Nachricht durch Twilio, jedoch nicht ihre
-endgültige Zustellung an das Endgerät.
+Fehler bei der Serialisierung der Template-Variablen und
+fehlgeschlagene Aufrufe der Twilio API werden als gemeinsame
+\texttt{NotificationDeliveryException} mit Angabe des
+betroffenen Kommunikationskanals an die Anwendungslogik
+weitergegeben. Um personenbezogene Daten in den Log-Ausgaben zu schützen, werden
+Telefonnummern maskiert und nur ihre letzten vier Ziffern
+angezeigt.
 
 \subsection{Mandantenfähigkeit und Sicherheitskonzept}
 \label{sec:sicherheitskonzept}
@@ -1646,151 +1661,155 @@ einer Änderung nicht rekonstruiert werden.
 \subsection{Lieferverfolgung und Geocoding}
 \label{sec:lieferverfolgung}
 
-Die Lieferverfolgung verbindet Positionsdaten aus zwei
-unterschiedlichen Quellen. Die aktuelle Fahrerposition wird über
-eine DISPO-Schnittstelle abgefragt, während die Zielkoordinaten
-aus der im Auftrag gespeicherten Lieferadresse ermittelt werden.
-Der Avisierungsservice führt beide Informationen über die
-jeweilige Bestätigungsanfrage zusammen und stellt sie der
-Bestätigungsseite über getrennte Kundenschnittstellen bereit.
+Die Lieferverfolgung führt Positionsdaten aus zwei
+unterschiedlichen Quellen zusammen. Die aktuelle Fahrerposition
+wird bei Bedarf über eine DISPO-Schnittstelle abgerufen. Die
+Koordinaten des Lieferziels werden dagegen aus der im Auftrag
+gespeicherten Lieferadresse ermittelt. Der Avisierungsservice
+ordnet beide Informationen über die zugehörige
+Bestätigungsanfrage dem jeweiligen Auftrag zu und stellt sie über
+getrennte tokenbasierte Kundenschnittstellen bereit.
 
-Tracking-Informationen werden ausschließlich am hinterlegten
-Liefertag als verfügbar ausgewiesen. Die zeitliche Prüfung
-verwendet den in die Anwendung eingebundenen \texttt{Clock} und
-vergleicht das aktuelle Datum mit dem Datum des
-\texttt{DeliverySlot}. Dadurch kann die Datumsabhängigkeit in
-automatisierten Tests mit einer kontrollierten Zeitquelle
+Tracking-Daten stehen ausschließlich am hinterlegten Liefertag
+zur Verfügung. Zur Prüfung vergleicht die Anwendung das Datum des
+\texttt{DeliverySlot} mit dem aktuellen Datum. Dieses wird über
+einen eingebundenen \texttt{Clock} ermittelt. Dadurch bleibt die
+zeitabhängige Logik unabhängig von direkten Systemzeitaufrufen und
+kann in automatisierten Tests mit einer kontrollierten Zeitquelle
 überprüft werden.
 
 \subsubsection{Daten zur Lieferverfolgung und Fahrerposition}
 
-Die aktuelle Fahrerposition wird nicht im Avisierungsservice
-gespeichert. Stattdessen fragt der
-\texttt{LocationTrackingService} sie bei Bedarf über die
-konfigurierte DISPO-Tracking-Schnittstelle ab. Zur Zuordnung wird
-die externe Auftragsnummer verwendet, da diese den Auftrag auch
-im führenden DISPO-System identifiziert.
+Die Fahrerposition wird nicht im Avisierungsservice gespeichert,
+sondern bei Bedarf aus dem DISPO-System abgerufen. Ausgangspunkt
+der Abfrage ist der übergebene Bestätigungstoken. Der
+\texttt{GetDriverLocationService} ordnet diesen der aktuellen
+Bestätigungsanfrage und dem zugehörigen Auftrag zu. Unbekannte
+Token sowie Token inzwischen abgelöster Anfragen können daher
+nicht für den Zugriff auf Tracking-Daten verwendet werden.
 
-Vor der Abfrage löst der \texttt{GetDriverLocationService} den
-übergebenen Bestätigungstoken auf. Berücksichtigt wird nur die
-aktuelle Bestätigungsanfrage des Auftrags. Ist der Token
-unbekannt oder gehört er zu einer inzwischen abgelösten Anfrage,
-wird der Zugriff abgelehnt.
+Die Abfrage der Fahrerposition erfolgt ausschließlich am
+Liefertag. Hierzu wird das im \texttt{DeliverySlot} gespeicherte
+Lieferdatum mit dem aktuellen Datum verglichen. Stimmen beide
+überein, übergibt der \texttt{GetDriverLocationService} die
+externe Auftragsnummer an den \texttt{LocationTrackingService}.
+Sie dient als Zuordnungsschlüssel, da sie den Auftrag auch im
+führenden DISPO-System eindeutig identifiziert. Vor oder nach
+dem Liefertag erfolgt keine Anfrage an die externe
+Tracking-Schnittstelle.
 
-Die DISPO-Abfrage erfolgt nur, wenn das im
-\texttt{DeliverySlot} gespeicherte Datum dem aktuellen Datum
-entspricht. Vor oder nach dem Liefertag wird keine
-Fahrerposition angefordert. Liefert DISPO gültige Positionsdaten,
-werden diese als Längen- und Breitengrad übernommen. Ist keine
-Position verfügbar oder schlägt der Aufruf der externen
-Schnittstelle fehl, wird keine Fahrerposition zurückgegeben.
-Ein technischer Fehler der DISPO-Abfrage führt damit nicht zum
-Abbruch des gesamten Kundenvorgangs.
+Der \texttt{LocationTrackingService} kapselt den Zugriff auf
+die DISPO-Schnittstelle und stellt die Fahrerposition als
+optionales Ergebnis bereit. Verfügbare Positionsdaten werden in
+ein \texttt{GeoCoordinate} überführt. Abweichende
+Antwortsituationen und Kommunikationsfehler werden innerhalb des
+Adapters behandelt und protokolliert, sodass der aufrufende
+Application Service über eine einheitliche Schnittstelle auf
+das Ergebnis zugreifen kann.
 
-Durch die bedarfsgesteuerte Abfrage erhält die Bestätigungsseite
-den jeweils aktuellen, von DISPO bereitgestellten Standort. Da
-die Position nicht lokal historisiert wird, bildet der
-Avisierungsservice selbst jedoch keinen zurückgelegten
-Fahrweg ab.
+Durch die bedarfsgesteuerte Abfrage erhält der
+Avisierungsservice die zum jeweiligen Anfragezeitpunkt von DISPO
+gelieferte Fahrerposition. Die aktuellen Positionsdaten können
+anschließend über die tokenbasierte Kundenschnittstelle
+ausgegeben werden.
 
 \subsubsection{Zielkoordinaten und Geocoding}
 
-Die Lieferadresse liegt im Auftrag zunächst als Text vor. Für
-die Darstellung auf einer Karte wird sie durch den
-\texttt{DeliveryAddressCoordinateResolver} in geografische
-Koordinaten aufgelöst. Die eigentliche Geocoding-Anfrage erfolgt
-über einen ausgehenden Port, dessen aktuelle Implementierung den
-Nominatim-Dienst von OpenStreetMap verwendet.
+Die Lieferadresse liegt im Auftrag zunächst als Text vor. Zur
+Ermittlung der geografischen Zielposition löst der
+\texttt{DeliveryAddressCoordinateResolver} diese Adresse in
+Längen- und Breitengrad auf. Der Zugriff auf den externen
+Geocoding-Dienst erfolgt über einen ausgehenden Port. Dessen
+aktuelle Implementierung verwendet die Nominatim Search API von
+OpenStreetMap.
 
-Vor der Anfrage wird die Lieferadresse normalisiert. Dabei
-werden unter anderem Umlaute, das Zeichen \texttt{ß},
-abweichende Schreibweisen und überflüssige Leerzeichen
-vereinheitlicht. Aus der normalisierten Adresse wird außerdem
-ein stabiler Cache-Schlüssel erzeugt. Dadurch führen
-unterschiedliche Schreibweisen derselben Adresse möglichst zur
-gleichen Cache-Zuordnung.
+Für die prototypische Umsetzung wurde Nominatim ausgewählt, da
+der Dienst eine dokumentierte HTTP-basierte Suchschnittstelle
+für OpenStreetMap-Daten bereitstellt und ohne ein zusätzliches
+providerspezifisches SDK angebunden werden kann. Dadurch ließ
+sich die Adressauflösung über den bereits verwendeten
+HTTP-Client mit geringem zusätzlichem Integrationsaufwand
+umsetzen. 
 
-Der \texttt{GeocodingClient} übermittelt die Adresse als freie
-Suchanfrage an die Nominatim Search API. Die Antwort wird im
-Format \texttt{jsonv2} angefordert und auf deutsche Ergebnisse
-beschränkt. Verwendet wird der erste zurückgegebene Treffer,
-dessen Werte für Längen- und Breitengrad in ein
-\texttt{GeoCoordinate} überführt werden. Basis-URL,
-Suchpfad, Sprache, Länderfilter, Ergebnisanzahl und
-\texttt{User-Agent} sind über die Anwendungskonfiguration
-einstellbar
+Vor dem externen Aufruf wird die Lieferadresse durch den
+\texttt{AddressNormalizer} aufbereitet. Dabei werden unter
+anderem Umlaute und das Zeichen \texttt{ß} vereinheitlicht, die
+Straßenabkürzung \texttt{Str.} erweitert und überflüssige
+Leerzeichen entfernt. Zusätzlich wird eine stärker
+normalisierte Darstellung als Cache-Schlüssel erzeugt. Dadurch
+können unterschiedliche Schreibweisen derselben Adresse
+möglichst demselben Cache-Eintrag zugeordnet werden.
+
+Der \texttt{GeocodingClient} übermittelt die aufbereitete
+Adresse als freie Suchanfrage an Nominatim. Die Antwort wird im
+Format \texttt{jsonv2} angefordert und mithilfe eines
+Länderfilters auf Ergebnisse aus Deutschland beschränkt. Aus
+der Antwort wird der erste Treffer verwendet. Dessen Werte für
+Längen- und Breitengrad werden in ein
+\texttt{GeoCoordinate} überführt. Basis-URL, Suchpfad,
+Länderfilter, bevorzugte Sprache, maximale Ergebnisanzahl und
+\texttt{User-Agent} können über die Anwendungskonfiguration
+festgelegt werden
 \parencite{nominatimSearchApi}.
 
 Ermittelte Koordinaten werden standardmäßig für 60 Minuten in
-einem lokalen In-Memory-Cache gespeichert. Wiederholte Anfragen
-für dieselbe Adresse müssen dadurch nicht erneut an den externen
-Dienst gesendet werden. Der Cache gilt nur innerhalb der
-laufenden Anwendungsinstanz und wird bei einem Neustart nicht
-beibehalten.
-
-Liefert der Geocoding-Dienst keinen verwendbaren Treffer oder
-ist er technisch nicht erreichbar, erzeugt der Resolver für die
-prototypische Darstellung eine deterministische
-Ersatzkoordinate im Raum Würzburg. Dieselbe normalisierte
-Adresse führt dabei stets zur gleichen Ersatzposition. Diese
-Position ermöglicht weiterhin eine Kartendarstellung, stellt
-jedoch keine verifizierte geografische Lage der Lieferadresse
-dar. Eine leere oder nicht normalisierbare Adresse führt dagegen
-zu keinem Zielpunkt.
-
-Die öffentliche Nominatim-Instanz unterliegt
-Nutzungsbeschränkungen. Die Anwendung setzt einen identifizierbaren
-\texttt{User-Agent} und reduziert wiederholte Zugriffe durch
-Caching. Für einen produktiven Einsatz mit höherem
-Anfragevolumen wären zusätzlich die geltenden Zugriffslimits zu
-berücksichtigen und gegebenenfalls eine eigene Instanz oder ein
-geeigneter kommerzieller Geocoding-Dienst einzusetzen
-\parencite{nominatimUsagePolicy}.
+einem lokalen In-Memory-Cache gespeichert. Eine erneute
+Auflösung derselben Adresse erfordert dadurch während dieses
+Zeitraums keinen weiteren Zugriff auf den externen
+Geocoding-Dienst. Der Cache gehört zur laufenden
+Anwendungsinstanz und wird bei einem Neustart neu aufgebaut.
 
 \subsubsection{Bereitstellung für die Bestätigungsseite}
 
-Die Tracking-Daten werden über zwei tokenbasierte
-Kundenschnittstellen bereitgestellt. Die Schnittstelle
+Der Avisierungsservice stellt die Tracking-Daten über zwei
+tokenbasierte Kundenschnittstellen bereit. Beide Zugriffe
+verwenden den Bestätigungstoken zur Ermittlung der aktuellen
+Bestätigungsanfrage und des zugehörigen Auftrags.
+
+Die GET-Schnittstelle
 
 \begin{center}
 \texttt{/api/customer/confirmations/\{token\}/tracking-info}
 \end{center}
 
-liefert das Kennzeichen \texttt{trackingAvailable} sowie
-optional die Koordinaten des Lieferziels. Dabei entspricht
-\texttt{targetLocationX} dem Längengrad und
-\texttt{targetLocationY} dem Breitengrad. Außerhalb des
-Liefertags ist \texttt{trackingAvailable} auf
-\texttt{false} gesetzt und beide Koordinatenwerte sind
-\texttt{null}.
+liefert das Kennzeichen \texttt{trackingAvailable} und optional
+die Koordinaten des Lieferziels. Dabei repräsentiert
+\texttt{targetLocationX} den Längengrad und
+\texttt{targetLocationY} den Breitengrad. Stimmt das aktuelle
+Datum nicht mit dem Liefertag überein, ist
+\texttt{trackingAvailable} auf \texttt{false} gesetzt und beide
+Koordinatenwerte sind \texttt{null}. Eine Geocoding-Anfrage wird
+in diesem Fall nicht ausgeführt.
 
-Die aktuelle Fahrerposition wird getrennt über
+Die aktuelle Fahrerposition wird über eine getrennte
+GET-Schnittstelle bereitgestellt:
 
 \begin{center}
 \texttt{/api/customer/confirmations/\{token\}/driver-location}
 \end{center}
 
-abgerufen. Ist am Liefertag eine Position verfügbar, liefert die
-Schnittstelle den Längen- und Breitengrad als
-\texttt{locationX} und \texttt{locationY}. Liegt keine Position
-vor oder wird die Schnittstelle außerhalb des Liefertags
-aufgerufen, antwortet sie ohne Positionsdaten mit dem
-HTTP-Status \texttt{404 Not Found}.
+bereitgestellt. Ist am Liefertag eine Position verfügbar, liefert
+die Schnittstelle den Längengrad als \texttt{locationX} und den
+Breitengrad als \texttt{locationY}. Liefert der
+\texttt{GetDriverLocationService} kein Ergebnis, antwortet die
+Schnittstelle ohne Positionsdaten mit dem HTTP-Statuscode
+\texttt{404 Not Found}. Dies gilt insbesondere außerhalb des
+Liefertags, bei einer nicht verfügbaren Fahrerposition und bei
+einem fehlgeschlagenen DISPO-Aufruf.
 
-Beide Antworten werden mit \texttt{Cache-Control: no-store}
-bereitgestellt, damit Browser und zwischengeschaltete Systeme
-keine möglicherweise veralteten Positionsdaten speichern. Die
-Bestätigungsseite lädt die Tracking-Informationen nach einer
-erfolgreichen Terminbestätigung. Nur wenn Tracking verfügbar ist
-und Zielkoordinaten vorliegen, wird zusätzlich die
-Fahrerposition angefordert.
+Die Antwort der Tracking-Info-Schnittstelle sowie erfolgreiche
+Antworten der Fahrerpositionsschnittstelle werden mit
+\texttt{Cache-Control: no-store} versehen. Dadurch weist das
+Backend aufrufende Clients und zwischengeschaltete Systeme an,
+die bereitgestellten Tracking-Daten nicht zwischenzuspeichern.
 
-Die getrennten Schnittstellen erlauben es, die weitgehend
-stabile Zielposition unabhängig von der veränderlichen
-Fahrerposition zu behandeln. Über den Button
-\glqq Aktualisieren\grqq{} kann die Bestätigungsseite die
-Fahrerposition erneut abrufen, ohne die Zieladresse erneut
-geocodieren zu müssen.
+Die Trennung der beiden Schnittstellen berücksichtigt die
+unterschiedliche Veränderungshäufigkeit der Daten. Die
+Zielkoordinaten bleiben für eine Lieferadresse weitgehend
+stabil, während die Fahrerposition bei jedem Abruf erneut vom
+DISPO-System angefordert wird. Dadurch lässt sich die aktuelle
+Fahrerposition wiederholt abfragen, ohne zugleich eine erneute
+Geocodierung der Lieferadresse auszulösen.
 
 \subsection{Technische Konfiguration und lokale Integrationsumgebung}
 \label{sec:technische-konfiguration}
