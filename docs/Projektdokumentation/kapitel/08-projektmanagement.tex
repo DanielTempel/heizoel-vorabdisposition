@@ -4,65 +4,97 @@
 
 \subsubsection{Projektphasen}
 
-Das Projekt wurde in klar abgegrenzte Phasen unterteilt, um
-Analyse, Konzeption, Umsetzung und Validierung strukturiert
-durchführen zu können. Die Übergänge zwischen den Phasen waren
-teilweise iterativ, da Erkenntnisse aus der Implementierung
-wieder in die Ausgestaltung des SOLL-Prozesses eingeflossen
-sind.
+Das Projekt wurde zeitlich und inhaltlich in mehrere Phasen
+gegliedert, um Analyse, Konzeption, Umsetzung und Validierung
+strukturiert durchzuführen. Die Bearbeitung erfolgte nicht
+ausschließlich linear: Erkenntnisse aus der Implementierung
+flossen teilweise in die weitere Konkretisierung des
+SOLL-Prozesses und der technischen Konzeption ein.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{p{5cm}p{4cm}p{3cm}}
+\caption{Projektphasen und Bearbeitungszeiträume}
+\label{tab:projektphasen}
+\begin{tabularx}{\textwidth}{@{}p{0.10\textwidth}X p{0.25\textwidth}@{}}
 \toprule
-Phase & Zeitraum & Status \\
+Phase & Inhalt & Zeitraum \\
 \midrule
-Analyse und Anforderungsabstimmung & xx.xx - xx.xx & abgeschlossen \\
-Architektur und Prozessmodellierung & xx.xx - xx.xx & abgeschlossen \\
-Implementierung & xx.xx - xx.xx & abgeschlossen \\
-Integration und Test & xx.xx - xx.xx & abgeschlossen \\
-Abschluss und Ergebnisaufbereitung & xx.xx - xx.xx & abgeschlossen \\
+P1 & Projektdefinition und Analyse &
+28.04.--04.05.2026 \\
+P2 & Planung und Grundstruktur des Systems &
+05.05.--11.05.2026 \\
+P3 & Architektur und Schnittstellen &
+12.05.--25.05.2026 \\
+P4 & Erweiterung des Systems und Integration der Fahrerposition &
+26.05.--12.06.2026 \\
+P5 & Umsetzung des End-to-End-Prozesses &
+13.06.--06.07.2026 \\
+P6 & Testphase und Fehlerbehebung &
+07.07.--20.07.2026 \\
+P7 & Finalisierung des Prototyps &
+21.07.--03.08.2026 \\
+P8 & Dokumentation und Abschlusspräsentation &
+04.08.--16.09.2026 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 \subsubsection{Projektplan}
 
-Der Projektplan diente als gemeinsame Orientierung für
-inhaltliche Meilensteine, Abstimmungstermine und die
-Reihenfolge der Umsetzung. Besonders hilfreich war die frühe
-Sichtbarkeit von Abhängigkeiten zwischen Prozessmodell,
-Schnittstellen und Benutzeroberfläche.
+Der Projektplan diente als gemeinsame Orientierung für die
+zeitliche Einordnung der Arbeitspakete, die vorgesehenen
+Meilensteine und die Reihenfolge der Umsetzung. Er machte die
+Abfolge der fachlichen und technischen Projektabschnitte
+nachvollziehbar und wurde während des Projektverlaufs an den
+aktuellen Planungsstand angepasst.
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{../Projektplan/assets/projectplan.png}
-\caption{Projektplan}
+    \centering
+    \includegraphics[
+        width=\textwidth,
+        height=0.75\textheight,
+        keepaspectratio
+    ]{figures/projectplan.png}
+    \caption{Projektplan mit Projektphasen und Meilensteinen}
+    \label{fig:projektplan}
 \end{figure}
 
-\subsubsection{Projektaufwand}
+\subsubsection{Projektaufwand und Aufgabenverteilung}
 
-Der dokumentierte Aufwand verteilt sich auf Analyse,
-Konzeption, Implementierung, Test und Abstimmung mit dem
-Auftraggeber. Die Tabelle dient als Beispielstruktur zur
-Erfassung der geleisteten Stunden und kann mit den tatsächlichen
-Projektdaten vervollständigt werden.
+Der Projektaufwand verteilte sich entsprechend den fachlichen
+und technischen Schwerpunkten auf die drei Teammitglieder. Die
+Aufgaben wurden während des Projektverlaufs abgestimmt und bei
+Bedarf gemeinsam bearbeitet. Tabelle~\ref{tab:aufgabenverteilung}
+fasst die wesentlichen persönlichen Arbeitsschwerpunkte
+zusammen.
 
-\begin{longtable}{p{2cm}p{3cm}p{5cm}p{2cm}}
+\begin{table}[H]
+\centering
+\caption{Aufgabenverteilung im Projektteam}
+\label{tab:aufgabenverteilung}
+\begin{tabularx}{\textwidth}{@{}p{0.22\textwidth}X@{}}
 \toprule
-Datum & Person & Tätigkeit & Stunden \\
+Person & Arbeitsschwerpunkte \\
 \midrule
-xx.xx.2026 & Name 1 & Anforderungsanalyse und Recherche & 4 \\
-\midrule
-xx.xx.2026 & Name 2 & Backend-Implementierung & 6 \\
-\midrule
-xx.xx.2026 & Name 3 & BPMN-Modellierung und Camunda-Integration & 5 \\
-\midrule
-xx.xx.2026 & Name 1 & Frontend-Umsetzung und UI-Anpassungen & 5 \\
-\midrule
-xx.xx.2026 & Team & Integrationstest und Ergebnisabstimmung & 4 \\
+Buse Okcu &
+Integration und Test der Kommunikationskanäle,
+Implementierung und Test des Live-Trackings, Umsetzung der
+End-to-End-Tests, Strukturierung und Überarbeitung der
+Projektdokumentation sowie Erstellung der
+Meetingsprotokolle \\
+\addlinespace
+Daniel Tempel &
+Systemarchitektur, Konzeption und Implementierung des
+Avisierungsservice, Workflow-Steuerung mit Camunda,
+REST-Schnittstellen sowie Backend-Tests und technische
+Dokumentation \\
+\addlinespace
+Arsenii Parhom &
+Entwicklung des Webfrontends mit Bestätigungsseite und
+Avisierungsdashboard \\
 \bottomrule
-\end{longtable}
+\end{tabularx}
+\end{table}
 
 \subsection{Projektreflexion}
 
