@@ -2,44 +2,137 @@
 
 \subsection{Zielbild des Avisierungsprozesses}
 
+Das Zielbild umfasst einen durchgängigen digitalen
+Avisierungsprozess für bereits im DISPO-System geplante
+Heizöllieferungen. DISPO bleibt dabei das führende System für
+Auftrags-, Tour- und Lieferplanungsdaten. Die digitale
+Lieferavisierung übernimmt die für die Kundenabstimmung
+erforderlichen Informationen, steuert den
+Rückbestätigungsprozess und übermittelt den daraus
+resultierenden Status über die vorgesehene
+DISPO-Rückmeldeschnittstelle.
+
+Die Kommunikation mit dem Kunden soll standardisiert über
+E-Mail, SMS oder WhatsApp erfolgen. Jede Bestätigungsanfrage
+enthält einen individuellen Link, über den der Kunde die
+relevanten Auftrags- und Lieferinformationen einsehen und den
+vorgeschlagenen Liefertermin bestätigen oder ablehnen kann.
+Der gewählte Kommunikationskanal beeinflusst dabei nicht den
+fachlichen Ablauf der Kundenrückbestätigung.
+
+Kundenreaktionen und das Ausbleiben einer Antwort innerhalb der
+festgelegten Frist sollen in einem einheitlichen Statusmodell
+verarbeitet werden. Über ein geschütztes Avisierungsdashboard
+erhält die Disposition eine zentrale Übersicht über Touren,
+Aufträge, aktuelle Avisierungsstatus und frühere
+Bestätigungsanfragen. Für Vorgänge mit dem Status
+\texttt{NO\_RESPONSE} oder einem technisch fehlgeschlagenen
+Versand kann eine erneute Bestätigungsanfrage angestoßen werden.
+Dabei kann der bisherige Kommunikationskanal beibehalten oder
+ein anderer Kanal ausgewählt werden.
+
+Für bestätigte Lieferungen sollen am Liefertag zusätzlich
+Tracking-Informationen bereitgestellt werden. Dazu wird die über
+die vorgesehene DISPO-Tracking-Schnittstelle abgerufene
+Fahrerposition mit den aus der Lieferadresse ermittelten
+Zielkoordinaten zusammengeführt. Auf diese Weise ergänzt die
+Lieferverfolgung den Rückbestätigungsprozess um aktuelle, für
+den Kunden zugängliche Informationen zum Lieferkontext.
+
+Das Zielbild verbindet damit die standardisierte
+Kundenkommunikation, die workflowgestützte Fristverarbeitung,
+die Statusrückmeldung und die zentrale Übersicht für die
+Disposition in einem gemeinsamen Avisierungsprozess. Die
+Liefer- und Tourenplanung verbleibt weiterhin im DISPO-System
+und bleibt fachlich von der avisierungsspezifischen Verarbeitung
+abgegrenzt.
+
 \subsection{SOLL-Prozess}
 
 \subsubsection{Prozessablauf}
 
-Im SOLL-Prozess wird die Kommunikation mit dem Kunden
-standardisiert ausgelöst und systemseitig begleitet. Nach
-Eingang eines relevanten Vorgangs wird automatisch eine
-Benachrichtigung mit einem personalisierten Link versendet.
-Der Versand kann je nach hinterlegtem Kommunikationsweg über
-E-Mail, SMS oder WhatsApp erfolgen. Über diesen Link gelangt
-der Kunde auf eine Bestätigungsseite, auf der er strukturiert
-auf den vorgeschlagenen Liefertermin reagieren kann.
+Ein bereits im DISPO-System geplanter Auftrag wird mit den für
+die Avisierung erforderlichen Kunden-, Kontakt-, Tour- und
+Lieferdaten an den Avisierungsservice übermittelt. Zusätzlich
+werden der vorgesehene Kommunikationskanal und die gewünschte
+Antwortdauer festgelegt. Auf dieser Grundlage wird eine
+individuelle Bestätigungsanfrage erstellt.
 
-Diese Rückmeldung wird automatisiert verarbeitet, in einen
-Status überführt und den beteiligten Stellen ohne manuelle
-Zwischenschritte bereitgestellt. Dadurch entsteht ein
-durchgängiger Prozess von der Auslösung bis zur Anzeige des
-aktuellen Bearbeitungsstands. Erfolgt eine Bestätigung, kann
-am Tag der Lieferung zusätzlich eine Fahrerkartenansicht
-bereitgestellt werden, um den Lieferkontext für den Kunden
-transparent darzustellen. Parallel dazu behält die Disposition
-über ein Dashboard den Überblick über offene, bestätigte oder
-problematische Vorgänge.
+Die Kundenbenachrichtigung wird anschließend über den für den
+Auftrag festgelegten Kommunikationskanal versendet. Nach dem
+erfolgreichen Versand beginnt die Antwortfrist und die
+Bestätigungsanfrage steht für eine Kundenreaktion zur Verfügung.
+Die Frist ergibt sich aus der festgelegten Antwortdauer und endet
+spätestens mit dem Beginn des Lieferzeitfensters.
+
+Über den personalisierten Link gelangt der Kunde zur
+Bestätigungsseite. Dort werden die für seine Entscheidung
+relevanten Auftrags- und Lieferinformationen angezeigt. Der
+Kunde kann den vorgeschlagenen Liefertermin bestätigen oder
+ablehnen und optional einen Kommentar übermitteln.
+
+Eine Bestätigung führt zum Status \texttt{CONFIRMED}, eine
+Ablehnung zum Status \texttt{REJECTED}. Geht innerhalb der
+festgelegten Frist keine Antwort ein, wird der Vorgang als
+\texttt{NO\_RESPONSE} abgeschlossen. Die Kundenreaktion und ein
+gegebenenfalls übermittelter Kommentar werden gemeinsam mit dem
+erreichten Status gespeichert.
+
+Der Abschlussstatus wird anschließend zusammen mit der externen
+Auftragsnummer über die vorgesehene Rückmeldeschnittstelle an
+das DISPO-System übermittelt. Der aktuelle Bearbeitungsstand
+sowie die bisherigen Bestätigungsanfragen und
+Kundenreaktionen bleiben im Avisierungsdashboard für die
+Disposition nachvollziehbar.
+
+Nach einem Fristablauf ohne Kundenreaktion oder einem endgültig
+fehlgeschlagenen Nachrichtenversand kann die Disposition über
+das Avisierungsdashboard eine erneute Bestätigungsanfrage
+auslösen. Dabei können der bisherige Kommunikationskanal und die
+Antwortdauer beibehalten oder angepasst werden. Frühere Anfragen
+bleiben in der Historie erhalten, während nur der Link der
+aktuellen Bestätigungsanfrage für eine weitere Kundenreaktion
+verwendet werden kann. Eine erneute Avisierung ist nur möglich,
+solange das zugehörige Lieferzeitfenster noch nicht begonnen hat.
+
+Nach der Bestätigung eines Liefertermins können am Liefertag
+zusätzlich Tracking-Informationen bereitgestellt werden. Dazu
+werden die aus der Lieferadresse ermittelte Zielposition und die
+über die vorgesehene DISPO-Tracking-Schnittstelle bereitgestellte
+Fahrerposition zusammengeführt und dem Kunden für die
+Lieferverfolgung zugänglich gemacht.
 
 \subsubsection{BPMN-Modell}
 
+Der zuvor beschriebene SOLL-Prozess bildet die fachliche
+Grundlage für den workflowgestützten Ablauf einer
+Bestätigungsanfrage. Abbildung~\ref{fig:confirmation-request-process}
+zeigt dessen technische Konkretisierung als ausführbares
+BPMN-Modell.
+
+Nach der Erstellung einer Bestätigungsanfrage steuert der
+Workflow zunächst den Versand der Kundenbenachrichtigung.
+Vorübergehend fehlgeschlagene Versandversuche können über einen
+dafür vorgesehenen Wiederholungspfad erneut ausgeführt werden.
+Kann die Nachricht endgültig nicht versendet werden, wird der
+Vorgang über einen eigenen Fehlerpfad abgeschlossen.
+
+Nach einem erfolgreichen Versand wartet ein ereignisbasiertes
+Gateway auf den Eingang einer Kundenreaktion, den Ablauf der
+Antwortfrist oder die Ablösung der Anfrage durch eine neuere
+Bestätigungsanfrage. Eine Kundenreaktion oder ein Fristablauf
+führt zur Ermittlung des fachlichen Abschlussstatus und
+anschließend zur Rückmeldung an das DISPO-System. Eine abgelöste
+Anfrage wird dagegen beendet, ohne einen veralteten Status an
+DISPO zu übermitteln.
+
 \begin{figure}[H]
-\centering
-\IfFileExists{assets/bpmn_soll.png}{%
-  \includegraphics[width=\textwidth]{assets/bpmn_soll.png}%
-}{%
-  \fbox{%
-    \parbox[c][5cm][c]{0.94\textwidth}{%
-      \centering
-      \textbf{Abbildung noch nicht hinterlegt}\\[0.5em]
-      Erwartete Datei: \texttt{assets/bpmn\_soll.png}%
-    }%
-  }%
-}
-\caption{BPMN-Modell des SOLL-Prozesses}
+    \centering
+    \includegraphics[
+        width=\textwidth,
+        height=0.78\textheight,
+        keepaspectratio
+    ]{figures/confirmation-request-process.png}
+    \caption{Ausführbarer BPMN-Prozess einer Bestätigungsanfrage}
+    \label{fig:confirmation-request-process}
 \end{figure}

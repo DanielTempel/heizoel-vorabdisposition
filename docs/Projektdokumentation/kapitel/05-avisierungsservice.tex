@@ -890,7 +890,7 @@ Rahmen des Trial-Accounts über die Twilio Messages API von einer
 konfigurierten Twilio-Rufnummer an eine verifizierte
 Empfängerrufnummer gesendet. Für den Testbetrieb des
 WhatsApp-Kanals wurde die von Twilio bereitgestellte WhatsApp
-Sandbox verwende \parencite{twilioMessagesResource,twilioWhatsAppSandbox}.
+Sandbox verwendet \parencite{twilioMessagesResource,twilioWhatsAppSandbox}.
 
 Die Nachrichteninhalte werden über ein zentral verwaltetes
 Content Template definiert. Hierfür wurde im Twilio Content
@@ -900,7 +900,7 @@ für SMS als auch für WhatsApp verwendet und beim Versand über
 seine Content-Template-SID referenziert. Dadurch konnten beide
 Kommunikationskanäle weitgehend über eine gemeinsame technische
 Implementierung angebunden und die verwendeten Nachrichteninhalte
-zentral und kanalübergreifend gepflegt werden \parencite{twilioContentTemplates}..
+zentral und kanalübergreifend gepflegt werden \parencite{twilioContentTemplates}.
 
 Die technische Umsetzung baut auf der in
 Abschnitt~\ref{sec:kommunikationsabstraktion} beschriebenen
@@ -960,6 +960,40 @@ werden den Platzhaltern des Templates zugeordnet, als
 Absender- und Empfängerdaten übertragen. Anhand der SID lädt
 Twilio das hinterlegte Template und setzt die übergebenen Werte
 in die entsprechenden Platzhalter ein.
+
+Abbildung~\ref{fig:twilio-nachrichtenbeispiele} zeigt die aus
+dem gemeinsamen Content Template erzeugten Nachrichten in den
+beiden Kommunikationskanälen.
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{subfigure}[t]{0.44\textwidth}
+        \centering
+        \includegraphics[
+            height=0.34\textheight,
+            keepaspectratio
+        ]{figures/twilio-sms-beispiel.png}
+        \caption{Versand als SMS}
+        \label{fig:twilio-sms-beispiel}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.44\textwidth}
+        \centering
+        \includegraphics[
+            height=0.34\textheight,
+            keepaspectratio
+        ]{figures/twilio-whatsapp-beispiel.png}
+        \caption{Versand über WhatsApp}
+        \label{fig:twilio-whatsapp-beispiel}
+    \end{subfigure}
+
+    \caption{Über Twilio versendete Rückbestätigungsanfragen}
+    \label{fig:twilio-nachrichtenbeispiele}
+
+    \par\smallskip
+    {\footnotesize\textit{Quelle: Eigene Darstellung.}}
+\end{figure}
 
 Die kanalspezifische Verarbeitung unterscheidet sich vor allem
 bei der Adressierung. Beide Kanäle verwenden die im Auftrag

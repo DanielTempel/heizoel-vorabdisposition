@@ -374,37 +374,36 @@ Fall die tatsächliche Ursache, etwa bei einer technischen Verbindungsstörung. 
 Abschlusszustände werden dagegen anhand der erfolgreich abgerufenen Daten gesondert angezeigt.
 
 \subsection{Live-Tracking}
+\label{sec:frontend-live-tracking}
 
 \subsubsection{Verfügbarkeit und Datenfluss}
 
 Die Lieferverfolgung ergänzt die Bestätigungsseite um eine räumliche Orientierung am Liefertag.
-Sie wird im Webfrontend nur im Zusammenhang mit einem bestätigten Liefertermin angefordert. Die
-Seite fragt zunächst ab, ob Tracking verfügbar ist und ob Zielkoordinaten vorliegen. Auf dieser
-Grundlage wird die Kartenansicht eingeblendet; die Fahrerposition wird über einen weiteren
-Aufruf geladen. Bei einer abgelehnten oder ohne Rückmeldung abgeschlossenen Anfrage wird keine
-Karte angezeigt.
+Das Webfrontend fordert die dafür benötigten Daten ausschließlich für bestätigte Liefertermine an. Die Seite fragt zunächst ab, ob Tracking verfügbar ist und 
+Zielkoordinaten vorliegen. Ist Tracking verfügbar, wird die Fahrerposition über einen separaten Aufruf geladen. Die 
+Kartenansicht wird dargestellt, sobald Zielkoordinaten vorliegen; eine verfügbare Fahrerposition wird darin zusätzlich
+angezeigt.
 
 Die grundsätzliche Verfügbarkeit am Liefertag wird vom Avisierungsservice ermittelt. Meldet er
 für eine bestätigte Anfrage, dass Tracking nicht verfügbar ist, zeigt die Seite einen Hinweis
-auf die Bereitstellung am Liefertag. Die Herkunft der Zielkoordinaten und die Anbindung der
+auf die Bereitstellung am Liefertag. Die Ermittlung der Zielkoordinaten und die Anbindung der
 Fahrerposition werden in Abschnitt~\ref{sec:lieferverfolgung} behandelt. Das Webfrontend
 verwendet die bereitgestellten Koordinaten für die Darstellung und führt selbst keine
-Adressauflösung durch.
+Geocodierung der Lieferadresse durch.
 
 \subsubsection{Karten- und Positionsdarstellung}
 
-Die Kartenansicht verwendet Leaflet mit React Leaflet und Kartenkacheln von OpenStreetMap.
+Die Kartenansicht wird mit Leaflet und React Leaflet umgesetzt; als Kartengrundlage dienen Kartenkacheln von OpenStreetMap.
 Unterschiedliche Symbole kennzeichnen das Fahrzeug und das Lieferziel. Der Kartenausschnitt
-wird an die vorhandenen Positionen angepasst. Liegt zunächst nur das Ziel vor, kann dieses
-bereits angezeigt werden; bei verfügbarer Fahrerposition umfasst die Ansicht beide Punkte. Die
+wird automatisch an die vorhandenen Positionen angepasst. Liegt zunächst nur das Ziel vor, kann dieses bereits angezeigt 
+werden; bei verfügbarer Fahrerposition umfasst die Ansicht beide Punkte. Die
 zugehörige Lieferadresse bleibt als Text sichtbar, damit das Kartenziel dem Auftrag zugeordnet
 werden kann.
 
-Zwischen Fahrzeug und Ziel wird eine Verbindungslinie eingezeichnet. Zusätzlich berechnet das
-Webfrontend aus den Koordinaten die Entfernung entlang der Erdoberfläche als
-Luftlinienentfernung und zeigt sie gerundet in Kilometern an. Die Darstellung bietet damit eine
-räumliche Orientierung. Sie enthält weder eine berechnete Straßenroute noch eine Prognose der
-Ankunftszeit.
+Sind sowohl die Fahrer- als auch die Zielposition verfügbar, werden beide Punkte durch eine Linie miteinander verbunden. 
+Zusätzlich berechnet das Webfrontend aus den Koordinaten die Luftlinienentfernung unter Berücksichtigung der
+Erdkrümmung und zeigt sie auf eine Nachkommastelle gerundet in Kilometern an. Die Darstellung bietet damit eine räumliche Orientierung,
+enthält jedoch weder eine berechnete Straßenroute noch eine Prognose der voraussichtlichen Ankunftszeit.
 
 Bei einer Entfernung von höchstens 80 Metern wechselt die Anzeige zu \enquote{Angekommen}.
 Diese Kennzeichnung beruht auf der im Webfrontend hinterlegten Entfernungsschwelle. Sie ist
@@ -414,7 +413,7 @@ und Entfernungsanzeige.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth,height=0.70\textheight,keepaspectratio]{figures/frontend-tracking.png}
+  \includegraphics[width=0.90\textwidth,height=0.60\textheight,keepaspectratio]{figures/frontend-tracking.png}
   \caption{Lieferverfolgung auf der Bestätigungsseite mit Fahrzeugposition, Lieferziel und Entfernungsanzeige.}
   \label{fig:frontend-tracking}
 \end{figure}
@@ -422,9 +421,9 @@ und Entfernungsanzeige.
 \subsubsection{Aktualisierung und Fehlerbehandlung}
 
 Die erste Fahrerposition wird nach dem Laden der verfügbaren Tracking-Informationen automatisch
-angefordert. Nach einem erfolgreichen Abruf kann der Kunde über \enquote{Aktualisieren} eine
-weitere Position laden. Währenddessen ist die Schaltfläche deaktiviert und zeigt den laufenden
-Abruf an. Neue Koordinaten aktualisieren die Fahrzeugmarkierung und die daraus abgeleitete
+angefordert. Nach einem erfolgreichen Abruf kann der Kunde über den Button \enquote{Aktualisieren} eine
+weitere Position laden. Währenddessen ist der Button deaktiviert und zeigt den laufenden
+Abruf an. Neu geladene Koordinaten aktualisieren die Fahrzeugmarkierung und die daraus abgeleitete
 Entfernung. Eine regelmäßige zeitgesteuerte Aktualisierung oder kontinuierliche Übertragung der
 Position ist nicht implementiert.
 
