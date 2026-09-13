@@ -1,32 +1,76 @@
-\section{Projektrgebnisse}
+\section{Projektergebnisse}
+\label{sec:projektergebnisse}
 
 \subsection{Gesamtergebnis}
 
-Die Projektarbeit führte zu einem konsistenten Prototypen, der
-die wesentlichen Anforderungen des definierten SOLL-Prozesses
-abbildet.
+Im Projekt wurde das System \enquote{Digitale Lieferavisierung} als Prototyp entwickelt. Es
+unterstützt die Disposition dabei, Kundenrückmeldungen zu geplanten Lieferterminen digital
+einzuholen und zu bearbeiten. Damit wurde der in Kapitel 3 beschriebene Ablauf in einer
+gemeinsamen Anwendung umgesetzt.
 
-\begin{itemize}
-    \item Funktionsfähiger Prototyp
-    \item Frontend-Backend-Kommunikation
-    \item Automatisierte Kommunikation über verschiedene Kanäle
-    \item Digitale Rückbestätigung von Lieferterminen
-    \item Statusverwaltung
-    \item Workflow-Steuerung
-    \item Avisierungsdashboard für die Disposition
-    \item Bestätigungsseite für Kunden
-    \item Lieferverfolgung bzw. Fahrerkartenansicht
-\end{itemize}
+Kunden können über einen Link aus einer E-Mail, SMS oder WhatsApp-Nachricht ihre Lieferdaten
+aufrufen und den vorgeschlagenen Termin bestätigen oder ablehnen. Die Antwort wird
+gespeichert, dem Auftrag zugeordnet und an DISPO zurückgemeldet. Geht innerhalb der
+Antwortfrist keine Rückmeldung ein, setzt das System den entsprechenden Status. Diese
+Schritte werden durch den Avisierungsservice und den ausführbaren BPMN-Prozess gesteuert.
+
+Für den Disponenten stehen die Rückmeldungen im Avisierungsdashboard bereit. Er kann
+erkennen, welche Aufträge bestätigt wurden und bei welchen noch eine Klärung erforderlich
+ist. Die Historie zeigt frühere Anfragen und die dazugehörigen Kundenantworten. Dadurch
+bleiben auch Hinweise aus Kommentaren für die weitere Bearbeitung verfügbar. Bei
+ausbleibender Rückmeldung oder fehlgeschlagenem Versand kann eine erneute Anfrage angestoßen
+werden.
+
+Für den Kunden bietet die Bestätigungsseite die Möglichkeit, auf einen Liefertermin zu
+reagieren, ohne den Disponenten dafür telefonisch erreichen zu müssen. Nach einer
+Bestätigung kann er am Liefertag über denselben Link die Kartenansicht zur Lieferverfolgung
+öffnen, sofern die benötigten Daten vorliegen.
+
+Das Ergebnis verbindet somit die Kundenkommunikation mit der Bearbeitung in der Disposition.
+Digital eingegangene Antworten müssen im vorgesehenen Ablauf nicht mehr einzeln übertragen
+werden. Stattdessen kann sich der Disponent auf die Aufträge konzentrieren, bei denen
+weiterer Abstimmungsbedarf besteht. Die Planung der Lieferfenster und Touren bleibt dabei
+wie vorgesehen in DISPO.
+
+Neben der Anwendung steht eine gemeinsame lokale Umgebung für Entwicklung und Demonstration
+zur Verfügung. Webfrontend, Avisierungsservice und die benötigten lokalen Dienste können
+zusammen gestartet werden. Die Prüfung der einzelnen Funktionen und ihres Zusammenspiels ist
+in Kapitel 7 beschrieben.
 
 \subsection{Grenzen des Projektergebnisses}
 
-\subsection{Fazit und Ausblick}
-Das Projekt konnte sowohl aus technischer als auch aus
-organisatorischer Sicht erfolgreich abgeschlossen werden. Neben
-dem entwickelten Prototypen entstand eine belastbare Grundlage
-für die weitere fachliche und technische Ausarbeitung des
-Systems.
+Die Anwendung wurde für die Erprobung des Avisierungsprozesses entwickelt. In der lokalen
+Umgebung ersetzt ein DISPO-Mock die Schnittstellen für Statusrückmeldungen und
+Fahrerpositionen; E-Mails werden über Mailpit entgegengenommen. Der Einsatz mit dem
+tatsächlichen DISPO-System und den betrieblichen Diensten ist deshalb ein weiterer Schritt
+über den vorliegenden Prototyp hinaus.
 
-Die Kombination aus Prozessmodellierung, Webanwendung und
-automatisierter Kommunikation erwies sich als geeigneter Ansatz
-für die Digitalisierung des betrachteten Anwendungsfalls.
+Die Lieferverfolgung verwendet in dieser Umgebung vorbereitete Fahrzeugpositionen. Bei der
+Adressauflösung können außerdem Ersatzkoordinaten zum Einsatz kommen. Die Karte
+veranschaulicht damit die vorgesehene Funktion; für die Begleitung realer Lieferungen sind
+verlässliche Positions- und Adressdaten erforderlich. Die technischen Einzelheiten sind in
+den Abschnitten 5.6 und 6.6 beschrieben.
+
+Wie viel Zeit die digitale Rückbestätigung im Arbeitsalltag spart, wurde im Projekt nicht
+gemessen. Dies lässt sich bei einer späteren Erprobung mit Disponenten und Kunden
+untersuchen.
+
+\subsection{Fazit und Ausblick}
+
+Das Ziel, die Rückbestätigung geplanter Liefertermine digital zu unterstützen, wurde mit dem
+Prototyp erreicht. Kunden können ihre Entscheidung direkt übermitteln, und die Disposition
+erhält die Antworten zusammen mit dem bisherigen Verlauf des Vorgangs. Die Verbindung von
+BPMN-Prozess, Avisierungsservice und Webfrontend macht diesen Ablauf in einer Anwendung
+nutzbar.
+
+Für die Weiterentwicklung wäre zunächst eine Anbindung an die tatsächliche DISPO-Umgebung
+sinnvoll. Anschließend könnte die Anwendung mit einer begrenzten Zahl von Aufträgen im
+Arbeitsalltag erprobt werden. Dabei ließe sich beobachten, wie viele Kunden digital
+antworten, wann weiterhin telefonische Absprachen nötig sind und ob die bereitgestellten
+Informationen für die Bearbeitung ausreichen. Die Erfahrungen der Disponenten und Kunden
+könnten anschließend in die weitere Gestaltung einfließen.
+
+Auch die Lieferverfolgung lässt sich auf dieser Basis ausbauen. Neben der Übernahme realer
+Fahrzeugpositionen wären eine automatische Aktualisierung der Karte und die Anzeige des
+Zeitpunkts der letzten Positionsmeldung mögliche Ergänzungen. Der entwickelte Prototyp
+bietet damit konkrete Ansatzpunkte für die weitere Arbeit mit dem Auftraggeber.
