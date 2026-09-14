@@ -18,7 +18,7 @@ aktualisiert und gegebenenfalls weitere Maßnahmen eingeleitet
 werden. Auch noch ausstehende Antworten mussten durch die
 Disposition gesondert nachverfolgt werden.
 
-Zwischen der Kundenkommunikation und der Dokumentation im
+Zwischen der Kundenkommunikation und der Dokumentation in
 DISPO bestand keine automatisierte Verbindung. Mit
 zunehmender Anzahl parallel bearbeiteter Lieferungen stiegen
 daher sowohl der Koordinationsaufwand als auch die Anforderungen
@@ -78,7 +78,9 @@ Nachvollziehbarkeit des jeweiligen Rückmeldestands. Gleichzeitig
 sollte die bestehende fachliche Verantwortung der Disposition
 für die Liefer- und Tourenplanung erhalten bleiben.
 
-\subsection{Funktionale Anforderungen}
+\subsection{Anforderungsanalyse}
+
+\subsubsection{Funktionale Anforderungen}
 
 Aus der Analyse des bestehenden Prozesses sowie den im
 Projektverlauf vorgenommenen fachlichen Konkretisierungen und
@@ -101,11 +103,11 @@ an die digitale Lieferavisierung abgeleitet:
 
         A2 &
         Für einen Avisierungsvorgang muss eine individuelle
-        Bestätigungsanfrage mit einem personalisierten
+        Rückbestätigungsanfrage mit einem personalisierten
         Kundenlink erzeugt werden. \\
 
         A3 &
-        Die Bestätigungsanfrage muss abhängig vom hinterlegten
+        Die Rückbestätigungsanfrage muss abhängig vom hinterlegten
         Kommunikationskanal über E-Mail, SMS oder WhatsApp
         versendet werden können. \\
 
@@ -117,13 +119,13 @@ an die digitale Lieferavisierung abgeleitet:
         werden können. \\
 
         A5 &
-        Pro Bestätigungsanfrage darf nur eine Kundenreaktion
+        Pro Rückbestätigungsanfrage darf nur eine Kundenreaktion
         statuswirksam verarbeitet werden. Für weitere Reaktionen darf
-        ausschließlich die jeweils aktuelle Bestätigungsanfrage gültig
+        ausschließlich die jeweils aktuelle Rückbestätigungsanfrage gültig
         sein. \\
 
         A6 &
-        Das System muss die für eine Bestätigungsanfrage
+        Das System muss die für eine Rückbestätigungsanfrage
         festgelegte Antwortfrist überwachen und eine
         ausbleibende Kundenreaktion als \texttt{NO\_RESPONSE}
         verarbeiten. \\
@@ -143,7 +145,7 @@ an die digitale Lieferavisierung abgeleitet:
 
         A9 &
         Die Auftragsdetailansicht muss die aktuelle
-        Bestätigungsanfrage, frühere Anfragen und vorhandene
+        Rückbestätigungsanfrage, frühere Anfragen und vorhandene
         Kundenreaktionen darstellen. Eine zulässige erneute
         Avisierung muss über einen auswählbaren
         Kommunikationskanal angestoßen werden können. \\
@@ -163,7 +165,7 @@ an die digitale Lieferavisierung abgeleitet:
     \end{tabularx}
 \end{table}
 
-\subsection{Nichtfunktionale Anforderungen}
+\subsubsection{Nichtfunktionale Anforderungen}
 
 Neben den funktionalen Anforderungen wurden auch nichtfunktionale Anforderungen definiert:
 
@@ -176,7 +178,7 @@ Neben den funktionalen Anforderungen wurden auch nichtfunktionale Anforderungen 
         ID & Beschreibung \\
         \midrule
         N1 &
-        Auftragsdaten, Bestätigungsanfragen und
+        Auftragsdaten, Rückbestätigungsanfragen und
         Konfigurationen verschiedener Unternehmen müssen
         mandantenbezogen verarbeitet und voneinander getrennt
         werden. \\

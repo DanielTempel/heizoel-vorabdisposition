@@ -907,7 +907,7 @@ Abschnitt~\ref{sec:kommunikationsabstraktion} beschriebenen
 Kanalauswahl auf. Abhängig vom gespeicherten \texttt{CommunicationChannel} delegiert die Anwendung den
 Versand an den \texttt{SmsNotificationSender} oder den
 \texttt{WhatsAppNotificationSender}. Beide Implementierungen
-erzeugen aus dem Auftrag und der Bestätigungsanfrage einen
+erzeugen aus dem Auftrag und der Rückbestätigungsanfrage einen
 gemeinsamen \texttt{ConfirmationMessageContent} und übergeben
 diesen an den \texttt{TwilioMessageSender}. Die Abhängigkeit
 vom Twilio Java SDK bleibt dadurch auf den ausgehenden
@@ -929,7 +929,7 @@ Vielen Dank.
 \end{quote}
 
 Die Platzhalter werden beim Versand mit den Daten des jeweiligen
-Auftrags und der Bestätigungsanfrage befüllt. Ihre Zuordnung ist
+Auftrags und der Rückbestätigungsanfrage befüllt. Ihre Zuordnung ist
 in Tabelle~\ref{tab:twilio-template-variablen} dargestellt.
 
 \begin{table}[htbp]
@@ -973,7 +973,7 @@ beiden Kommunikationskanälen.
         \includegraphics[
             height=0.34\textheight,
             keepaspectratio
-        ]{figures/twilio-sms-beispiel.png}
+        ]{figures/twilio-sms-beispiel.jpg}
         \caption{Versand als SMS}
         \label{fig:twilio-sms-beispiel}
     \end{subfigure}
@@ -983,7 +983,7 @@ beiden Kommunikationskanälen.
         \includegraphics[
             height=0.34\textheight,
             keepaspectratio
-        ]{figures/twilio-whatsapp-beispiel.png}
+        ]{figures/twilio-whatsapp-beispiel.jpg}
         \caption{Versand über WhatsApp}
         \label{fig:twilio-whatsapp-beispiel}
     \end{subfigure}
@@ -1701,7 +1701,7 @@ wird bei Bedarf über eine DISPO-Schnittstelle abgerufen. Die
 Koordinaten des Lieferziels werden dagegen aus der im Auftrag
 gespeicherten Lieferadresse ermittelt. Der Avisierungsservice
 ordnet beide Informationen über die zugehörige
-Bestätigungsanfrage dem jeweiligen Auftrag zu und stellt sie über
+Rückbestätigungsanfrage dem jeweiligen Auftrag zu und stellt sie über
 getrennte tokenbasierte Kundenschnittstellen bereit.
 
 Tracking-Daten stehen ausschließlich am hinterlegten Liefertag
@@ -1715,10 +1715,10 @@ kann in automatisierten Tests mit einer kontrollierten Zeitquelle
 \subsubsection{Daten zur Lieferverfolgung und Fahrerposition}
 
 Die Fahrerposition wird nicht im Avisierungsservice gespeichert,
-sondern bei Bedarf aus dem DISPO-System abgerufen. Ausgangspunkt
+sondern bei Bedarf aus DISPO abgerufen. Ausgangspunkt
 der Abfrage ist der übergebene Bestätigungstoken. Der
 \texttt{GetDriverLocationService} ordnet diesen der aktuellen
-Bestätigungsanfrage und dem zugehörigen Auftrag zu. Unbekannte
+Rückbestätigungsanfrage und dem zugehörigen Auftrag zu. Unbekannte
 Token sowie Token inzwischen abgelöster Anfragen können daher
 nicht für den Zugriff auf Tracking-Daten verwendet werden.
 
@@ -1727,8 +1727,7 @@ Liefertag. Hierzu wird das im \texttt{DeliverySlot} gespeicherte
 Lieferdatum mit dem aktuellen Datum verglichen. Stimmen beide
 überein, übergibt der \texttt{GetDriverLocationService} die
 externe Auftragsnummer an den \texttt{LocationTrackingService}.
-Sie dient als Zuordnungsschlüssel, da sie den Auftrag auch im
-führenden DISPO-System eindeutig identifiziert. Vor oder nach
+Sie dient als Zuordnungsschlüssel, da sie den Auftrag auch in DISPO eindeutig identifiziert. Vor oder nach
 dem Liefertag erfolgt keine Anfrage an die externe
 Tracking-Schnittstelle.
 
@@ -1793,12 +1792,24 @@ Zeitraums keinen weiteren Zugriff auf den externen
 Geocoding-Dienst. Der Cache gehört zur laufenden
 Anwendungsinstanz und wird bei einem Neustart neu aufgebaut.
 
+Kann Nominatim für eine Lieferadresse keine Zielkoordinate
+ermitteln, erzeugt der
+\texttt{DeliveryAddressCoordinateResolver} im aktuellen
+Projektstand eine deterministische Ersatzkoordinate im Raum
+Würzburg. Dadurch bleibt die Lieferverfolgung während der
+Entwicklung und Erprobung auch dann reproduzierbar, wenn der
+Geocoding-Dienst nicht erreichbar ist oder kein verwendbares
+Ergebnis liefert. Da die Ersatzkoordinate keine verifizierte
+geografische Position der Lieferadresse darstellt, wäre dieser
+Mechanismus für einen produktiven Einsatz entsprechend
+anzupassen.
+
 \subsubsection{Bereitstellung für die Bestätigungsseite}
 
 Der Avisierungsservice stellt die Tracking-Daten über zwei
 tokenbasierte Kundenschnittstellen bereit. Beide Zugriffe
 verwenden den Bestätigungstoken zur Ermittlung der aktuellen
-Bestätigungsanfrage und des zugehörigen Auftrags.
+Rückbestätigungsanfrage und des zugehörigen Auftrags.
 
 Die GET-Schnittstelle
 
@@ -1822,7 +1833,7 @@ GET-Schnittstelle bereitgestellt:
 \texttt{/api/customer/confirmations/\{token\}/driver-location}
 \end{center}
 
-bereitgestellt. Ist am Liefertag eine Position verfügbar, liefert
+Ist am Liefertag eine Position verfügbar, liefert
 die Schnittstelle den Längengrad als \texttt{locationX} und den
 Breitengrad als \texttt{locationY}. Liefert der
 \texttt{GetDriverLocationService} kein Ergebnis, antwortet die
@@ -1840,8 +1851,8 @@ die bereitgestellten Tracking-Daten nicht zwischenzuspeichern.
 Die Trennung der beiden Schnittstellen berücksichtigt die
 unterschiedliche Veränderungshäufigkeit der Daten. Die
 Zielkoordinaten bleiben für eine Lieferadresse weitgehend
-stabil, während die Fahrerposition bei jedem Abruf erneut vom
-DISPO-System angefordert wird. Dadurch lässt sich die aktuelle
+stabil, während die Fahrerposition bei jedem Abruf erneut von
+DISPO angefordert wird. Dadurch lässt sich die aktuelle
 Fahrerposition wiederholt abfragen, ohne zugleich eine erneute
 Geocodierung der Lieferadresse auszulösen.
 

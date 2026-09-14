@@ -32,7 +32,7 @@ Status besonders wahrscheinlich sind.
 \subsection{End-to-End-Tests}
 
 Die End-to-End-Tests prüfen die zentralen Benutzerabläufe der
-Kundenbestätigung, des Dispositions-Dashboards und der
+Kundenbestätigung, des Avisierungsdashboards und der
 Lieferverfolgung über Frontend, Backend, E-Mail-Versand und
 DISPO-Rückmeldung hinweg. Sie werden mit Playwright im
 Chromium-Browser ausgeführt und befinden sich im Verzeichnis
@@ -42,11 +42,11 @@ Chromium-Browser ausgeführt und befinden sich im Verzeichnis
 
 Die Teststruktur orientiert sich an fachlichen Benutzerabläufen
 und nicht an einzelnen Frontend-Komponenten. Die Szenarien sind
-in die Bereiche Kundenbestätigung, Dispositions-Dashboard und
+in die Bereiche Kundenbestätigung, Avisierungsdashboard und
 Lieferverfolgung gegliedert.
 
 Die Szenarien zur Kundenbestätigung umfassen den Versand und
-Inhalt der Bestätigungs-E-Mail, den Zugriff auf die Kundenseite,
+Inhalt der Bestätigungs-E-Mail, den Zugriff auf die Bestätigungsseite,
 die Anzeige der Lieferdaten sowie die Bestätigung oder Ablehnung
 eines Liefertermins. Zusätzlich werden ungültige
 Bestätigungstoken, optionale Kundenkommentare und die Persistenz
@@ -75,24 +75,24 @@ verteilt:
 \begin{itemize}
     \item \texttt{email.spec.ts} für den Versand und Inhalt der
     Bestätigungs-E-Mail
-    \item \texttt{page.spec.ts} für die Anzeige der Kundenseite
+    \item \texttt{page.spec.ts} für die Anzeige der Bestätigungsseite
     und das Verhalten bei ungültigen Bestätigungstoken
     \item \texttt{response.spec.ts} für Bestätigung, Ablehnung,
     Kundenkommentare, DISPO-Rückmeldungen und persistierte
     Abschlusszustände
 \end{itemize}
 
-Die Tests des Dispositions-Dashboards befinden sich in folgenden
+Die Tests des Avisierungsdashboards befinden sich in folgenden
 Dateien:
 
 \begin{itemize}
     \item \texttt{authentication.spec.ts} für den gültigen und
     ungültigen Dashboard-Zugang
     \item \texttt{overview.spec.ts} für die Tourenübersicht,
-    Statusanzahlen, Suche, Filterung und Pagination,
+    Statusanzahlen, Suche, Filterung und Paginierung,
     \item \texttt{order-detail.spec.ts} für Auftragsdetails,
-    Anfragehistorie, Kundenreaktionen, Resend-Berechtigung und
-    Kanalauswahl
+    Anfragehistorie, Kundenreaktionen, Berechtigung zur erneuten
+    Avisierung und Kanalauswahl
     \item \texttt{settings.spec.ts} für das Laden und Testen der
     E-Mail- und SMTP-Einstellungen
 \end{itemize}
@@ -125,7 +125,7 @@ Datenbankzustände direkt.
 \subsubsection{Versand und Bereitstellung der Anfrage}
 
 Zur Prüfung des Versandablaufs wird über die geschützte
-DISPO-Schnittstelle eine Bestätigungsanfrage für einen
+DISPO-Schnittstelle eine Rückbestätigungsanfrage für einen
 eindeutigen Testauftrag erzeugt. Die dadurch ausgelöste
 Bestätigungs-E-Mail wird über den konfigurierten SMTP-Versand
 an Mailpit übermittelt. Dort wartet der Test auf den Eingang
@@ -179,7 +179,7 @@ erhalten.
 
 Die Persistenz beider Abschlusszustände wird durch das erneute
 Öffnen des Bestätigungslinks geprüft. Der zuvor erreichte Status
-muss weiterhin angezeigt werden, während die Buttons zum
+muss weiterhin angezeigt werden, während die Schaltflächen zum
 Bestätigen und Ablehnen nicht mehr verfügbar sind. Im
 abgelehnten Zustand darf außerdem keine Tracking-Karte
 angezeigt werden.
@@ -190,7 +190,7 @@ Für den Dashboard-Zugang fordert der Test mithilfe eines gültigen
 API-Schlüssels über die geschützte Backend-Schnittstelle einen
 Dashboard-Zugangslink an. Nach dem Öffnen dieses Links im Browser
 prüft der Test den Aufbau einer authentifizierten
-Dashboard-Sitzung, die Weiterleitung zum Dispositions-Dashboard
+Dashboard-Sitzung, die Weiterleitung zum Avisierungsdashboard
 und die Anzeige der Tourenübersicht.
 
 Ein weiterer Test ruft die Anwendung mit einem ungültigen
@@ -212,7 +212,7 @@ angezeigt und ein nicht passender Auftrag aus der Ergebnisliste
 entfernt wird.
 
 Zusätzlich wird die kombinierte Filterung nach Tournummer und
-Bestätigungsstatus geprüft. Der Pagination-Test wechselt auf die
+Bestätigungsstatus geprüft. Der Paginierungstest wechselt auf die
 zweite Ergebnisseite, kontrolliert den dafür ausgeführten
 Backend-Aufruf und prüft die Anzeige der dort enthaltenen
 Ergebnisse.
@@ -220,7 +220,7 @@ Ergebnisse.
 \subsubsection{Auftragsdetails und erneute Avisierung}
 
 Die Auftragsdetailseite zeigt die Stammdaten des Auftrags, den
-aktuellen Status und die aktuelle Bestätigungsanfrage. Die
+aktuellen Status und die aktuelle Rückbestätigungsanfrage. Die
 E2E-Tests prüfen unter anderem die Auftragsnummer, den
 Kundennamen, die E-Mail-Adresse, die Lieferadresse, das Fahrzeug,
 die Bestellmenge und den Kommunikationskanal.
@@ -231,17 +231,18 @@ Anfragen mit den Zuständen \texttt{REJECTED} und
 auf der Detailseite sichtbar sein.
 
 Die Verfügbarkeit der erneuten Avisierung hängt vom aktuellen
-Status ab. Für einen bereits bestätigten Auftrag muss der Button
+Status ab. Für einen bereits bestätigten Auftrag muss die
+Schaltfläche
 \glqq Erneut senden\grqq deaktiviert sein. Für einen Auftrag mit
-dem Status \texttt{NO\_RESPONSE} muss der Button dagegen
+dem Status \texttt{NO\_RESPONSE} muss die Schaltfläche dagegen
 aktiviert sein.
 
 Für eine zulässige erneute Avisierung wird die Auswahl der
 Kommunikationskanäle E-Mail, SMS und WhatsApp geprüft. Nach der
 Auswahl eines Kanals muss die vorherige Auswahl aufgehoben und
 der aktive Kanal über das Attribut \texttt{aria-pressed}
-zugänglich gekennzeichnet werden. Der Button zum erneuten Senden
-muss dabei aktiviert bleiben.
+zugänglich gekennzeichnet werden. Die Schaltfläche zum erneuten
+Senden muss dabei aktiviert bleiben.
 
 Der Versand wird im E2E-Test nicht ausgelöst, da die
 Dashboard-Tests gemeinsam verwendete \texttt{DEMO}-Seed-Daten
@@ -264,7 +265,7 @@ Zunächst wird kontrolliert, ob die gespeicherten
 SMTP-Einstellungen vom Backend geladen und in der
 Benutzeroberfläche dargestellt werden.
 
-Anschließend wird über den Button
+Anschließend wird über die Schaltfläche
 \glqq Verbindung testen\grqq{} geprüft, ob das Backend die
 gespeicherte SMTP-Konfiguration erfolgreich verwenden kann.
 Nach erfolgreichem Abschluss muss eine entsprechende Meldung
@@ -294,8 +295,8 @@ Tracking-Karte noch die Fahrzeug- und Zielmarkierung an.
 Stattdessen wird der Kunde darauf hingewiesen, dass die
 Tracking-Informationen erst am Liefertag verfügbar sind.
 
-Abschließend wird die Aktualisierung der Fahrerposition über den
-Button \glqq Aktualisieren\grqq{} geprüft. Dabei müssen neue
+Abschließend wird die Aktualisierung der Fahrerposition über die
+Schaltfläche \glqq Aktualisieren\grqq{} geprüft. Dabei müssen neue
 Fahrerkoordinaten geladen und der angezeigte Lieferstatus
 beziehungsweise die verbleibende Entfernung aktualisiert
 werden. Die Karte sowie die Fahrzeug- und Zielmarkierung müssen
