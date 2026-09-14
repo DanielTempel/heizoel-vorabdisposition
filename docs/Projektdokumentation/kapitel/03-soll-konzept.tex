@@ -2,129 +2,97 @@
 
 \subsection{Zielbild des Avisierungsprozesses}
 
-Das Zielbild umfasst einen durchgängigen digitalen
-Avisierungsprozess für bereits im DISPO-System geplante
-Heizöllieferungen. DISPO bleibt dabei das führende System für
-Auftrags-, Tour- und Lieferplanungsdaten. Die digitale
-Lieferavisierung übernimmt die für die Kundenabstimmung
-erforderlichen Informationen, steuert den
-Rückbestätigungsprozess und übermittelt den daraus
-resultierenden Status über die vorgesehene
-DISPO-Rückmeldeschnittstelle.
+Das Zielbild ist ein durchgängiger digitaler Avisierungsprozess
+für bereits in DISPO geplante Heizöllieferungen. Die
+Liefer- und Tourenplanung verbleibt in DISPO. Die
+digitale Lieferavisierung unterstützt die anschließende
+Abstimmung des vorgesehenen Liefertermins zwischen der
+Disposition und dem Kunden.
 
-Die Kommunikation mit dem Kunden soll standardisiert über
-E-Mail, SMS oder WhatsApp erfolgen. Jede Bestätigungsanfrage
-enthält einen individuellen Link, über den der Kunde die
-relevanten Auftrags- und Lieferinformationen einsehen und den
-vorgeschlagenen Liefertermin bestätigen oder ablehnen kann.
-Der gewählte Kommunikationskanal beeinflusst dabei nicht den
-fachlichen Ablauf der Kundenrückbestätigung.
+Die Kundenkommunikation soll standardisiert über E-Mail, SMS
+oder WhatsApp erfolgen. Unabhängig vom gewählten
+Kommunikationskanal erhält der Kunde Zugang zu den relevanten
+Lieferinformationen und kann auf den vorgeschlagenen Termin
+reagieren. Dadurch entsteht ein einheitlicher
+Rückbestätigungsprozess, in dem Kundenreaktionen eindeutig dem
+jeweiligen Auftrag zugeordnet werden können.
 
-Kundenreaktionen und das Ausbleiben einer Antwort innerhalb der
-festgelegten Frist sollen in einem einheitlichen Statusmodell
-verarbeitet werden. Über ein geschütztes Avisierungsdashboard
-erhält die Disposition eine zentrale Übersicht über Touren,
-Aufträge, aktuelle Avisierungsstatus und frühere
-Bestätigungsanfragen. Für Vorgänge mit dem Status
-\texttt{NO\_RESPONSE} oder einem technisch fehlgeschlagenen
-Versand kann eine erneute Bestätigungsanfrage angestoßen werden.
-Dabei kann der bisherige Kommunikationskanal beibehalten oder
-ein anderer Kanal ausgewählt werden.
+Für die Disposition schafft das Avisierungsdashboard eine
+zentrale Übersicht über den Bearbeitungsstand der Anfragen.
+Bestätigungen, Ablehnungen, ausbleibende Antworten und
+fehlgeschlagene Versandvorgänge werden nachvollziehbar
+dargestellt. Frühere Anfragen bleiben erhalten und bei Bedarf
+kann eine erneute Kundenkontaktaufnahme veranlasst werden. Das
+Ergebnis der Abstimmung wird anschließend für die weitere
+Bearbeitung in DISPO bereitgestellt.
 
-Für bestätigte Lieferungen sollen am Liefertag zusätzlich
-Tracking-Informationen bereitgestellt werden. Dazu wird die über
-die vorgesehene DISPO-Tracking-Schnittstelle abgerufene
-Fahrerposition mit den aus der Lieferadresse ermittelten
-Zielkoordinaten zusammengeführt. Auf diese Weise ergänzt die
-Lieferverfolgung den Rückbestätigungsprozess um aktuelle, für
-den Kunden zugängliche Informationen zum Lieferkontext.
-
-Das Zielbild verbindet damit die standardisierte
-Kundenkommunikation, die workflowgestützte Fristverarbeitung,
-die Statusrückmeldung und die zentrale Übersicht für die
-Disposition in einem gemeinsamen Avisierungsprozess. Die
-Liefer- und Tourenplanung verbleibt weiterhin im DISPO-System
-und bleibt fachlich von der avisierungsspezifischen Verarbeitung
-abgegrenzt.
+Für bestätigte Liefertermine ergänzt am Liefertag eine
+Lieferverfolgung die Kundeninformation. Sie bietet dem Kunden
+eine räumliche Orientierung zum aktuellen Lieferverlauf.
 
 \subsection{SOLL-Prozess}
 
 \subsubsection{Prozessablauf}
 
-Ein bereits im DISPO-System geplanter Auftrag wird mit den für
-die Avisierung erforderlichen Kunden-, Kontakt-, Tour- und
-Lieferdaten an den Avisierungsservice übermittelt. Zusätzlich
-werden der vorgesehene Kommunikationskanal und die gewünschte
-Antwortdauer festgelegt. Auf dieser Grundlage wird eine
-individuelle Bestätigungsanfrage erstellt.
+Ausgangspunkt des Prozesses ist ein bereits in DISPO
+geplanter Auftrag. Die für die Avisierung erforderlichen
+Kunden-, Kontakt-, Tour- und Lieferdaten werden gemeinsam mit
+dem vorgesehenen Kommunikationskanal und der Antwortdauer an
+die digitale Lieferavisierung übergeben. Auf dieser Grundlage
+wird eine individuelle Rückbestätigungsanfrage erstellt und über
+den festgelegten Kanal an den Kunden versendet.
 
-Die Kundenbenachrichtigung wird anschließend über den für den
-Auftrag festgelegten Kommunikationskanal versendet. Nach dem
-erfolgreichen Versand beginnt die Antwortfrist und die
-Bestätigungsanfrage steht für eine Kundenreaktion zur Verfügung.
-Die Frist ergibt sich aus der festgelegten Antwortdauer und endet
-spätestens mit dem Beginn des Lieferzeitfensters.
+Nach einem erfolgreichen Versand beginnt die Antwortfrist. Sie
+richtet sich nach der festgelegten Antwortdauer und endet
+spätestens mit dem Beginn des Lieferzeitfensters. Über den
+persönlichen Link in der Benachrichtigung gelangt der Kunde zur
+Bestätigungsseite. Dort prüft er die relevanten
+Lieferinformationen und bestätigt oder lehnt den
+vorgeschlagenen Termin ab. Bei Bedarf kann er seiner
+Entscheidung einen Kommentar hinzufügen.
 
-Über den personalisierten Link gelangt der Kunde zur
-Bestätigungsseite. Dort werden die für seine Entscheidung
-relevanten Auftrags- und Lieferinformationen angezeigt. Der
-Kunde kann den vorgeschlagenen Liefertermin bestätigen oder
-ablehnen und optional einen Kommentar übermitteln.
+Die Kundenreaktion wird dem betreffenden Auftrag zugeordnet und
+als Bestätigung oder Ablehnung festgehalten. Geht innerhalb der
+Frist keine Antwort ein, wird der Vorgang als ausbleibende
+Rückmeldung abgeschlossen. Der erreichte Bearbeitungsstand wird
+gespeichert, an DISPO übermittelt und im
+Avisierungsdashboard angezeigt.
 
-Eine Bestätigung führt zum Status \texttt{CONFIRMED}, eine
-Ablehnung zum Status \texttt{REJECTED}. Geht innerhalb der
-festgelegten Frist keine Antwort ein, wird der Vorgang als
-\texttt{NO\_RESPONSE} abgeschlossen. Die Kundenreaktion und ein
-gegebenenfalls übermittelter Kommentar werden gemeinsam mit dem
-erreichten Status gespeichert.
+Nach einer ausbleibenden Kundenreaktion oder einem endgültig
+fehlgeschlagenen Versand kann die Disposition eine neue
+Rückbestätigungsanfrage veranlassen. Dabei können der
+Kommunikationskanal und die Antwortdauer beibehalten oder
+angepasst werden. Frühere Anfragen bleiben in der Historie
+erhalten, während für weitere Kundenreaktionen ausschließlich
+die aktuelle Anfrage maßgeblich ist. Eine erneute Avisierung ist
+nur möglich, solange das Lieferzeitfenster noch nicht begonnen
+hat.
 
-Der Abschlussstatus wird anschließend zusammen mit der externen
-Auftragsnummer über die vorgesehene Rückmeldeschnittstelle an
-das DISPO-System übermittelt. Der aktuelle Bearbeitungsstand
-sowie die bisherigen Bestätigungsanfragen und
-Kundenreaktionen bleiben im Avisierungsdashboard für die
-Disposition nachvollziehbar.
-
-Nach einem Fristablauf ohne Kundenreaktion oder einem endgültig
-fehlgeschlagenen Nachrichtenversand kann die Disposition über
-das Avisierungsdashboard eine erneute Bestätigungsanfrage
-auslösen. Dabei können der bisherige Kommunikationskanal und die
-Antwortdauer beibehalten oder angepasst werden. Frühere Anfragen
-bleiben in der Historie erhalten, während nur der Link der
-aktuellen Bestätigungsanfrage für eine weitere Kundenreaktion
-verwendet werden kann. Eine erneute Avisierung ist nur möglich,
-solange das zugehörige Lieferzeitfenster noch nicht begonnen hat.
-
-Nach der Bestätigung eines Liefertermins können am Liefertag
-zusätzlich Tracking-Informationen bereitgestellt werden. Dazu
-werden die aus der Lieferadresse ermittelte Zielposition und die
-über die vorgesehene DISPO-Tracking-Schnittstelle bereitgestellte
-Fahrerposition zusammengeführt und dem Kunden für die
-Lieferverfolgung zugänglich gemacht.
+Bei einem bestätigten Liefertermin kann der Kunde am Liefertag
+zusätzlich die Lieferverfolgung aufrufen. Dort werden das
+Lieferziel und die aktuell verfügbare Fahrerposition gemeinsam
+dargestellt.
 
 \subsubsection{BPMN-Modell}
 
-Der zuvor beschriebene SOLL-Prozess bildet die fachliche
-Grundlage für den workflowgestützten Ablauf einer
-Bestätigungsanfrage. Abbildung~\ref{fig:confirmation-request-process}
-zeigt dessen technische Konkretisierung als ausführbares
-BPMN-Modell.
+Abbildung~\ref{fig:confirmation-request-process} stellt den
+Ablauf einer einzelnen Rückbestätigungsanfrage und die möglichen
+Prozesspfade als BPMN-Modell dar. Im Mittelpunkt steht die
+zeitliche Trennung zwischen dem Versand der Anfrage und ihrem
+fachlichen Abschluss. Nach dem Versand wartet der Prozess auf
+eine Kundenreaktion oder den Ablauf der Antwortfrist.
 
-Nach der Erstellung einer Bestätigungsanfrage steuert der
-Workflow zunächst den Versand der Kundenbenachrichtigung.
-Vorübergehend fehlgeschlagene Versandversuche können über einen
-dafür vorgesehenen Wiederholungspfad erneut ausgeführt werden.
-Kann die Nachricht endgültig nicht versendet werden, wird der
-Vorgang über einen eigenen Fehlerpfad abgeschlossen.
+Ergänzend bildet das Modell den Umgang mit einem
+fehlgeschlagenen Versand und mit der Ablösung durch eine neuere
+Rückbestätigungsanfrage ab. Abhängig vom Verlauf endet die Anfrage
+mit einem für DISPO bereitzustellenden Ergebnis oder wird ohne
+eine weitere Statusrückmeldung abgeschlossen, wenn sie nicht
+versendet werden konnte oder nicht mehr aktuell ist.
 
-Nach einem erfolgreichen Versand wartet ein ereignisbasiertes
-Gateway auf den Eingang einer Kundenreaktion, den Ablauf der
-Antwortfrist oder die Ablösung der Anfrage durch eine neuere
-Bestätigungsanfrage. Eine Kundenreaktion oder ein Fristablauf
-führt zur Ermittlung des fachlichen Abschlussstatus und
-anschließend zur Rückmeldung an das DISPO-System. Eine abgelöste
-Anfrage wird dagegen beendet, ohne einen veralteten Status an
-DISPO zu übermitteln.
+Die technische Einbindung des Modells und die Umsetzung seiner
+Prozesselemente werden im Zusammenhang mit der
+Workflow-Steuerung des Avisierungsservice in Kapitel~5
+beschrieben.
 
 \begin{figure}[H]
     \centering
@@ -133,6 +101,6 @@ DISPO zu übermitteln.
         height=0.78\textheight,
         keepaspectratio
     ]{figures/confirmation-request-process.png}
-    \caption{Ausführbarer BPMN-Prozess einer Bestätigungsanfrage}
+    \caption{BPMN-Modell des Ablaufs einer Rückbestätigungsanfrage}
     \label{fig:confirmation-request-process}
 \end{figure}
