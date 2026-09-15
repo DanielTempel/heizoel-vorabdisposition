@@ -110,18 +110,11 @@ Verantwortungsbereich.
 
 \subsubsection{Persönlicher Projektaufwand}
 
-Eine kontinuierliche personenbezogene Zeiterfassung sowie eine quantitative
-Soll-Aufwandsschätzung für einzelne Arbeitspakete wurden zu Projektbeginn
-nicht geführt. Eine belastbare Rekonstruktion tatsächlich geleisteter
-Arbeitsstunden ist daher im Nachhinein nicht möglich.
-
-Für die folgende Darstellung wurde der für das Modul vorgesehene
-Gesamtarbeitsaufwand von 300 Stunden retrospektiv auf die persönlichen
-Arbeitspakete verteilt. Die Verteilung orientiert sich an den Projektphasen,
-der Versionshistorie und dem relativen Umfang der erstellten Ergebnisse.
-Die angegebenen Stunden stellen damit keine gemessenen Ist-Zeiten dar,
-sondern eine orientierende Rekonstruktion der persönlichen
-Aufwandsschwerpunkte.
+Da keine kontinuierliche Ist-Zeiterfassung vorliegt, kann der tatsächlich
+geleistete persönliche Aufwand nicht belastbar quantifiziert werden. Die
+folgende Tabelle zeigt daher eine orientierende Verteilung des für das Modul
+vorgesehenen Arbeitsumfangs von 300 Stunden auf die persönlichen
+Arbeitsschwerpunkte.
 
 \begin{table}[H]
 \centering
@@ -144,7 +137,7 @@ Projektdokumentation
   & März--September & \textbf{ca. 300 h} \\
 \bottomrule
 \end{tabular}
-\caption{Orientierende Verteilung des persönlichen Projektaufwands}
+\caption{Orientierende Verteilung des vorgesehenen persönlichen Arbeitsumfangs}
 \label{tab:projektaufwand-daniel}
 \end{table}
 
@@ -234,12 +227,17 @@ Prozessschritte übernimmt. Damit verbunden war die Erkenntnis, synchrone
 Schnittstellenaufrufe und den übergeordneten fachlichen Prozess als getrennte
 Lebenszyklen zu betrachten.
 
-Weitere Erfahrungen ergaben sich aus der Absicherung unterschiedlicher
-Zugriffskontexte, der Mandantentrennung sowie aus der Behandlung von
+Als besonders zweckmäßig erwiesen sich zudem das Strategy Pattern für die
+Kommunikationskanäle, Flyway für die Schemaentwicklung und Docker Compose für
+die lokale Integrationsumgebung. Weitere praktische Erfahrungen entstanden
+durch die SMTP-basierte E-Mail-Kommunikation und die Absicherung
+unterschiedlicher Zugriffskontexte.
+
+Ein weiterer Lernbereich war die Mandantentrennung sowie die Behandlung von
 Wiederholungen und Nebenläufigkeit. Insbesondere zeigte sich, dass lokale
 Prüfungen und Sperrmechanismen zwar konkrete konkurrierende Situationen
-beherrschbar machen, daraus jedoch keine allgemeine
-Exactly-once-Garantie für externe Seiteneffekte folgt.
+beherrschbar machen, daraus jedoch keine allgemeine Exactly-once-Garantie für
+externe Seiteneffekte folgt.
 
 Für vergleichbare zukünftige Projekte ergibt sich daraus, den vollständigen
 fachlichen Prozess mit seinen Zuständen, Ereignissen und Verantwortlichkeiten

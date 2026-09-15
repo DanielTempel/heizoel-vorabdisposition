@@ -12,7 +12,7 @@
 <g id="node2" class="node">
 <title>DISPO</title>
 <path fill="none" stroke="black" d="M245.01,-110.8C245.01,-110.8 164.63,-110.8 164.63,-110.8 158.63,-110.8 152.63,-104.8 152.63,-98.8 152.63,-98.8 152.63,-86.8 152.63,-86.8 152.63,-80.8 158.63,-74.8 164.63,-74.8 164.63,-74.8 245.01,-74.8 245.01,-74.8 251.01,-74.8 257.01,-80.8 257.01,-86.8 257.01,-86.8 257.01,-98.8 257.01,-98.8 257.01,-104.8 251.01,-110.8 245.01,-110.8"/>
-<text xml:space="preserve" text-anchor="middle" x="204.82" y="-89.2" font-family="Arial" font-size="12.00">DISPO-System</text>
+<text xml:space="preserve" text-anchor="middle" x="204.82" y="-89.2" font-family="Arial" font-size="12.00">DISPO</text>
 </g>
 <!-- Disponent&#45;&gt;DISPO -->
 <g id="edge1" class="edge">
