@@ -1,0 +1,38 @@
+\section{Glossar und Abkürzungsverzeichnis}
+
+\begin{longtable}{p{0.25\textwidth} p{0.68\textwidth}}
+\textbf{Begriff / Abkürzung} & \textbf{Erläuterung} \\
+\hline
+\endhead
+
+Avisierungsdashboard &
+Geschützter Bereich des Webfrontends für die Disposition. Dort werden Touren, Aufträge, Rückbestätigungsstatus, frühere Anfragen und Aktionen zur erneuten Avisierung angezeigt. \\
+
+Avisierungsservice &
+Backend-Komponente der digitalen Lieferavisierung. Der Service verarbeitet Avisierungsaufträge, steuert den Workflow, persistiert Zustände, versendet Benachrichtigungen und stellt Schnittstellen bereit. \\
+
+Webfrontend &
+React-basierte Benutzeroberfläche der digitalen Lieferavisierung. Sie umfasst das Avisierungsdashboard für Disponenten und die Bestätigungsseite für Kunden. \\
+
+Bestätigungsseite &
+Kundenseitige Oberfläche zur Prüfung der Lieferinformationen sowie zur Bestätigung oder Ablehnung des vorgeschlagenen Liefertermins. \\
+
+E2E-Test &
+End-to-End-Test; Test eines vollständigen Benutzer- oder Systemablaufs über mehrere Komponenten hinweg. \\
+
+CSRF &
+Cross-Site Request Forgery; Angriffsmuster, bei dem ungewollte zustandsändernde Anfragen ausgelöst werden. Dashboard-Anfragen werden deshalb mit einem CSRF-Token geschützt. \\
+
+DISPO &
+Externes führendes System für Auftrags-, Tour- und Lieferplanungsdaten. Die Liefer- und Tourenplanung verbleibt in DISPO. \\
+
+Geocoding &
+Umwandlung einer textuellen Adresse in geografische Koordinaten. Im Projekt wird dies für die Zielposition der Lieferverfolgung verwendet. \\
+
+Nominatim &
+Geocoding-Dienst auf Basis von OpenStreetMap-Daten, der im Projekt zur Ermittlung von Zielkoordinaten verwendet wird. \\
+
+Twilio &
+Externer Messaging-Dienst, der im Projekt für den Versand von SMS- und WhatsApp-Nachrichten eingesetzt wird. \\
+
+\end{longtable}
