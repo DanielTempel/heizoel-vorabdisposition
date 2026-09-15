@@ -77,7 +77,7 @@
 \setcounter{section}{8}
 
 \subsection{Persönlicher Beitrag und Projektreflexion -- Daniel Tempel}
-\label{sec:projektmanagement}
+\label{sec:persoenlicher-beitrag-daniel}
 
 \subsubsection{Rollen und Verantwortlichkeiten}
 
@@ -167,11 +167,9 @@ Lebenszyklus abbildete.
 Der Workflow wurde daher grundlegend überarbeitet. Der Nachrichtenversand
 wurde asynchron ausgeführt und die Workflow Engine übernahm anschließend die
 Koordination von Versand, Kundenreaktion, Fristablauf und Ablösung einer
-Rückbestätigungsanfrage. Rückblickend führte dies zu einer klareren Trennung
+Bestätigungsanfrage. Rückblickend führte dies zu einer klareren Trennung
 zwischen synchroner Auftragsübernahme, fachlichem Zustand und technischer
-Ablaufsteuerung. Aus der später notwendigen Überarbeitung ergibt sich für den
-Projektverlauf die Erkenntnis, den vollständigen Prozessablauf bereits vor
-einer umfangreichen Implementierung möglichst vollständig zu modellieren.
+Ablaufsteuerung.
 
 Auch die Architektur wurde nach entsprechendem Feedback weiterentwickelt.
 Die Verantwortlichkeiten zwischen Domain, Application und Adaptern wurden
@@ -179,7 +177,7 @@ deutlicher getrennt und ausgewählte externe Integrationen über Ports
 entkoppelt. Bei der Persistenz wurde dagegen bewusst der in Kapitel 5
 beschriebene pragmatische Kompromiss mit JPA und Spring Data beibehalten.
 Dabei zeigte sich, dass der Nutzen eines Architekturprinzips gegen den
-zusätzlichen strukturellen und organisatorischen Aufwand im konkreten
+zusätzlichen Struktur- und Implementierungsaufwand im konkreten
 Projektkontext abzuwägen ist.
 
 \subsubsection{Bewertung des Vorgehens und der Zusammenarbeit}
