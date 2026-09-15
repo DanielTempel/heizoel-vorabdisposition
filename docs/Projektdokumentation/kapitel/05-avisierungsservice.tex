@@ -1337,10 +1337,10 @@ Avisierungsservice überprüft diese personenbezogene Identität nicht selbst,
 sondern bestimmt über die authentifizierte DISPO-Schnittstelle ausschließlich
 den zugehörigen Mandanten. Der DISPO-API-Key verbleibt innerhalb der
 System-zu-System-Kommunikation und wird nicht an den Browser weitergegeben. Für
-den Dashboardzugriff wird somit die bereits bestimmte Mandantenidentität
+den Dashboard-Zugriff wird somit die bereits bestimmte Mandantenidentität
 übertragen, nicht das langfristig gültige Authentifizierungsgeheimnis.
 
-Fordert DISPO einen Dashboardzugriff an, erzeugt der Avisierungsservice einen
+Fordert DISPO einen Dashboard-Zugriff an, erzeugt der Avisierungsservice einen
 kurzlebigen Einmalcode für die im \texttt{CompanyContext} enthaltene
 \texttt{companyId}. Der Code basiert auf 32 kryptografisch zufälligen Bytes,
 wird serverseitig der Mandantenidentität zugeordnet und ist eine Minute gültig.
@@ -1364,7 +1364,7 @@ gespeicherten Mandantenzuordnung wird ein \texttt{CompanyContext}
 wiederhergestellt, als
 authentifizierter Principal in den Spring-Security-Kontext übernommen und in
 einer serverseitigen HTTP-Sitzung gespeichert. Für die Authentifizierung
-weiterer Dashboardzugriffe verwendet der Browser ausschließlich die vom
+weiterer Dashboard-Zugriffe verwendet der Browser ausschließlich die vom
 Avisierungsservice ausgestellte Session-ID im Cookie; bei zustandsändernden
 Anfragen kommt zusätzlich ein CSRF-Token zum Einsatz.
 
@@ -1390,7 +1390,7 @@ Request-Parametern oder fachlichen Nutzdaten bestimmt; die weitere
 Datenisolation erfolgt wie in Abschnitt~\ref{sec:mandantenkontext} beschrieben.
 
 Da der Browser das Session-Cookie automatisch mitsendet, werden
-zustandsändernde Dashboardzugriffe zusätzlich durch CSRF-Schutz abgesichert.
+zustandsändernde Dashboard-Zugriffe zusätzlich durch CSRF-Schutz abgesichert.
 Nach dem Sitzungsaufbau kann ein CSRF-Token abgerufen und im Header
 \texttt{X-CSRF-TOKEN} übertragen werden. Im gewählten Ablauf wird vor dem
 Austausch des Einmalcodes keine vorbereitende Dashboard-Sitzung mit CSRF-Token
@@ -1448,7 +1448,7 @@ DISPO-Kontext zur browserbasierten Dashboard-Sitzung zusammen.
     \draw[lifeline] (12,-0.35) -- (12,-14.8);
 
     \draw[message] (0,-1.4) --
-      node[midway,above,msglabel] {Dashboardzugriff\\+ \texttt{X-API-Key}}
+      node[midway,above,msglabel] {Dashboard-Zugriff\\+ \texttt{X-API-Key}}
       (6,-1.4);
 
     \node[internal] at (6.2,-2.35) {Einmalcode erzeugen};
@@ -1545,7 +1545,7 @@ Anfrage den höchsten Datenbankidentifikator unter den Bestätigungsanfragen
 desselben Auftrags besitzt. Wird nach einer Anfrage A eine neuere Anfrage B
 erzeugt, bleibt Token A zwar historisch gespeichert, kann über die
 Kundenschnittstelle jedoch nicht mehr aufgelöst werden. Dadurch verlieren
-ältere Kundenlinks ihre Gültigkeit, ohne dass die zugehörigen historischen
+ältere Bestätigungslinks ihre Gültigkeit, ohne dass die zugehörigen historischen
 Anfragen gelöscht werden müssen.
 
 Welche Funktion nach erfolgreicher Tokenauflösung genutzt werden kann, hängt
