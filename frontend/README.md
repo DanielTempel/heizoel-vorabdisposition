@@ -4,9 +4,12 @@ React frontend for customer delivery confirmations and the dispatcher dashboard.
 
 ## Run everything with Docker Compose
 
-Create `backend/.env` with the backend settings described in the
-[backend README](../backend/README.md). Set `DEV_API_KEY` there to the existing
-API key of the company whose dashboard data you want to present.
+For the project handover, place the `.env` received separately by e-mail at
+`backend/.env`. The file is excluded from Git. Follow the
+[project README](../README.md#lokal-starten) for startup and a manual browser walkthrough.
+For a separate development setup, configure the values described in the
+[backend README](../backend/README.md), including `DEV_API_KEY` for the company
+whose dashboard data you want to present.
 
 From the repository root:
 
@@ -28,8 +31,9 @@ to recreate the container with the new value. To stop the stack, run
 
 The browser calls `http://localhost:8080`. The Vite demo handler calls the same
 backend through Docker's internal address `http://backend:8080`, configured by
-`DISPO_BACKEND_URL`. Compose passes only `DEV_API_KEY` to the frontend for demo
-access; the key is not copied into the image or exposed in browser code.
+`DISPO_BACKEND_URL`. The repository-root Compose file loads `backend/.env` into
+the frontend container at runtime. The Vite demo handler uses `DEV_API_KEY`;
+the file is excluded from the image and the key is not exposed in browser code.
 The frontend port is published on the local computer only. Use `localhost`
 consistently with the backend's configured frontend/CORS URL.
 

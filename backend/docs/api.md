@@ -13,9 +13,12 @@ With the backend running locally:
 
 DISPO, dashboard, resend, and settings endpoints are company-scoped.
 
-- Outside the `prod` profile, the backend uses a fixed company context for company `1`.
-- In the `prod` profile, callers provide `X-API-Key`. The backend hashes the value and resolves the matching company.
-- A missing or invalid production API key returns `401 Unauthorized` using the standard error envelope.
+- DISPO endpoints (`/api/dispo/**`) require `X-API-Key` in every profile, including
+  `dev`. The backend hashes the value and resolves the matching company.
+- A missing or invalid API key returns `401 Unauthorized` using the standard error envelope.
+- Dashboard, resend, and settings endpoints (`/api/dashboard/**`) use a browser
+  session established through the dashboard access-link login. Dashboard writes
+  require the session's CSRF token; the access-code exchange is exempt.
 
 Customer endpoints do not use the company API-key resolver. They address a confirmation request through its opaque customer token.
 
@@ -70,10 +73,10 @@ Both responses use `Cache-Control: no-store`.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/api/dispo/dashboard/tours` | Load paged, filtered tours and their orders. |
-| `GET` | `/api/dispo/dashboard/tour-numbers` | Load tour-number filter options. |
-| `GET` | `/api/dispo/dashboard/orders/{externalOrderId}` | Load the company-scoped order and full confirmation-request history. |
-| `POST` | `/api/dispo/dashboard/orders/{externalOrderId}/resend` | Start a new asynchronous confirmation request for an existing order. |
+| `GET` | `/api/dashboard/tours` | Load paged, filtered tours and their orders. |
+| `GET` | `/api/dashboard/tour-numbers` | Load tour-number filter options. |
+| `GET` | `/api/dashboard/orders/{externalOrderId}` | Load the company-scoped order and full confirmation-request history. |
+| `POST` | `/api/dashboard/orders/{externalOrderId}/resend` | Start a new asynchronous confirmation request for an existing order. |
 
 The resend endpoint returns `202 Accepted` with the order in `OPEN` state. It does not wait for notification delivery. See [Dashboard](dashboard.md) for filters, grouping, detail status mapping, and resend restrictions.
 
@@ -81,10 +84,10 @@ The resend endpoint returns `202 Accepted` with the order in `OPEN` state. It do
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/api/dispo/settings/email` | Read the current company's SMTP settings without exposing the stored password. |
-| `PUT` | `/api/dispo/settings/email` | Create or update the current company's SMTP settings. |
-| `POST` | `/api/dispo/settings/email/test-connection` | Test the configured SMTP connection. |
-| `POST` | `/api/dispo/settings/email/test-message` | Send a test message to the configured sender address. |
+| `GET` | `/api/dashboard/settings/email` | Read the current company's SMTP settings without exposing the stored password. |
+| `PUT` | `/api/dashboard/settings/email` | Create or update the current company's SMTP settings. |
+| `POST` | `/api/dashboard/settings/email/test-connection` | Test the configured SMTP connection. |
+| `POST` | `/api/dashboard/settings/email/test-message` | Send a test message to the configured sender address. |
 
 The response indicates whether a password is configured but never returns the password. An omitted password on update preserves the existing encrypted password when authentication remains enabled. Disabling authentication removes stored username/password values.
 

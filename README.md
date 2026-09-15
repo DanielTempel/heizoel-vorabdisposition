@@ -28,16 +28,27 @@ E-Mail-Einstellungen verwalten.
 - Freie Ports `3000`, `8080`, `5432`, `1025`, `8025`, `5050` und `8090`.
 - Für den ersten Build Internetzugang zum Laden der Images und Abhängigkeiten.
 
-Der vollständige Stack wird in Containern gebaut und gestartet. Java, Maven und
+Der vollständige Stack wird mit einer Compose-Anweisung in sechs separaten
+Containern gebaut und gestartet. Java, Maven und
 Node.js sind dafür auf dem Host nicht erforderlich. Für die weiter unten
 beschriebenen lokalen Prüfungen werden JDK 17 oder neuer sowie Node.js 24 mit npm
 benötigt; der Maven Wrapper ist im Repository enthalten.
 
-### 1. Lokale Konfiguration anlegen
+### 1. Separat erhaltene Konfiguration ablegen
 
-Für die lokale Präsentation wird eine Datei `backend/.env` verwendet. Docker
-Compose liest diese Datei und übergibt die benötigten Werte an Backend und
-Frontend.
+Die Datei `.env` wird dem Prüfer separat per E-Mail übergeben und ist nicht im
+Git-Repository enthalten. Vor dem Start:
+
+1. Das Repository klonen oder das Projektarchiv entpacken.
+2. Die per E-Mail erhaltene Datei unter `backend/.env` ablegen. Der Dateiname muss
+   genau `.env` lauten, auch unter Windows (nicht `.env.txt` oder `.env.example`).
+3. Ein Terminal im Repository-Hauptverzeichnis öffnen. Dort liegen diese README
+   und die für den Start verwendete `docker-compose.yml`.
+
+Die Compose-Datei bindet `backend/.env` über `env_file` ein und übergibt die Werte
+an Backend und Frontend. Die Datei muss nicht in einen Container kopiert werden;
+ein zusätzlicher Parameter `--env-file` ist für diese Compose-Datei nicht nötig.
+Die Datei bleibt lokal und darf nicht in Git aufgenommen werden.
 
 `SECRET_ENCRYPTION_MASTER_KEY` dient zur Verschlüsselung gespeicherter
 SMTP-Passwörter; `DEV_API_KEY` ermöglicht den Dashboard-Zugang über die DISPO-Demo.
@@ -84,8 +95,8 @@ und Tracking-Anfragen. Weitere Konfiguration steht in der
    Konfiguration führt ein frischer Zugangslink in das Dashboard mit den Daten der Firma.
 3. Für eine E-Mail-Prüfung im Dashboard unter **Einstellungen** eine Test-E-Mail
    versenden und den Eingang in Mailpit kontrollieren.
-4. Für einen vollständigen Kundenablauf die unten beschriebenen Playwright-Tests
-   ausführen. Die Dashboard-Demodaten allein lösen keine Benachrichtigungsprozesse aus.
+4. Den folgenden Kundenablauf manuell durchspielen. Die Dashboard-Demodaten
+   allein lösen keine Benachrichtigungsprozesse aus.
 
 Im Browser durchgehend `localhost` verwenden. Bei Problemen zuerst
 `docker compose ps` und die Backend-/Frontend-Logs prüfen. Ein abgelehnter
@@ -101,6 +112,40 @@ unter **Einstellungen** den SMTP-Server prüfen: Für Compose muss er `mailpit` 
 Port `1025` sein. Abweichende gespeicherte SMTP-Adressen werden beim Start nicht
 automatisch überschrieben. Mit **Verbindung testen** lässt sich die Einstellung prüfen.
 
+### 4. Vollständigen Kundenablauf im Browser prüfen
+
+Dieser Ablauf benötigt nur den laufenden Compose-Stack und einen Browser.
+Voraussetzung sind die lokalen Mailpit-Einstellungen aus Schritt 3.
+
+1. Über die DISPO-Demo im Dashboard anmelden und anschließend den
+   [Auftrag DEMO-TOMORROW-004](http://localhost:3000/dashboard/orders/DEMO-TOMORROW-004)
+   öffnen. Er gehört zu **Felix Roth**, Tour **NORD-3**, und hat nach dem
+   Backend-Start den Status **Keine Rückmeldung** sowie einen Liefertermin am
+   folgenden Tag von **12:00 bis 13:00 Uhr**.
+2. Unter **Neue Anfrage** den Kommunikationskanal **E-Mail** auswählen, die
+   Antwortfrist auf **24** Stunden belassen und **Erneut senden** anklicken.
+   Dadurch wird eine neue Anfrage mit einem echten Benachrichtigungsprozess angelegt.
+3. [Mailpit](http://localhost:8025) öffnen und auf die neue Terminanfrage an
+   `felix.roth@example.com` warten. Der Versand erfolgt asynchron; bei Bedarf
+   einige Sekunden warten. Mailpit fängt die E-Mail lokal ab.
+4. Den Kundenlink aus dieser neuen E-Mail öffnen und **Termin bestätigen**
+   anklicken. Erwartet wird **Der Liefertermin wurde bestätigt.**
+5. Die Auftragsseite im Dashboard neu laden. Der Status sollte **Bestätigt**
+   sein; die neue Anfrage und die bisherige Anfrage sind in der Detailansicht sichtbar.
+6. Die [Statusrückmeldungen im DISPO Mock](http://localhost:8090/api/dispo/confirmation-status-updates)
+   öffnen bzw. neu laden. Für `externalOrderId` **DEMO-TOMORROW-004** sollte ein
+   Eintrag mit `confirmationStatus` **CONFIRMED** erscheinen. Auch diese
+   Rückmeldung erfolgt asynchron.
+
+Der erneute Versand setzt eine unbeantwortete oder fehlgeschlagene Anfrage und
+einen noch zukünftigen Liefertermin voraus. Für eine Wiederholung nach diesem
+Durchlauf im Repository-Hauptverzeichnis `docker compose restart backend`
+ausführen und den Backend-Start abwarten. Der Dev-Seed setzt dabei alle
+`DEMO-`-Aufträge zurück und richtet ihre Termine relativ zum aktuellen Datum ein.
+Alte E-Mails bleiben in Mailpit sichtbar; für die Wiederholung den Link aus der
+neu versendeten E-Mail verwenden. Den Backend-Container erst nach Abschluss des
+laufenden Durchlaufs neu starten.
+
 ### Stoppen und Änderungen übernehmen
 
 Alle folgenden Befehle im Repository-Hauptverzeichnis ausführen:
@@ -113,8 +158,10 @@ Die Datenbank bleibt im Docker-Volume erhalten. Nach Quellcodeänderungen den
 betroffenen Dienst neu bauen, beispielsweise mit
 `docker compose up -d --build frontend` oder
 `docker compose up -d --build backend`.
-Nach einer Änderung von `DEV_API_KEY` in der verwendeten Datei genügt
-`docker compose up -d frontend`.
+Nach einer Änderung von `backend/.env` mit `docker compose up -d backend frontend`
+die Container mit den aktuellen Werten neu erstellen lassen. `DEV_API_KEY` muss
+weiterhin zur Demo-Firma passen; eine Änderung der Datei legt keinen neuen
+API-Schlüssel für die Firma an.
 
 Für Frontend-Entwicklung mit lokalem Vite-Server und automatischer Aktualisierung
 siehe [Frontend separat starten](frontend/README.md#run-the-frontend-separately).
@@ -163,9 +210,9 @@ mit ESLint. Hierfür muss der Backend-Stack nicht laufen.
 
 Zuerst den vollständigen lokalen Compose-Stack starten. Die Tests benötigen
 Frontend, Backend, Mailpit und DISPO Mock sowie den passenden API-Schlüssel.
-Der unten stehende Node.js-Aufruf liest dafür ebenfalls `backend/.env.example`;
-eine eigene `.env` ist nicht erforderlich. Der Compose-Parameter allein setzt
-keine Umgebungsvariablen für lokal gestartete Tests.
+Der unten stehende Node.js-Aufruf liest dafür dieselbe separat erhaltene Datei
+`backend/.env`. Die Compose-Konfiguration allein setzt keine Umgebungsvariablen
+für lokal gestartete Tests.
 Die Suite erwartet die lokalen Mailpit-Demoeinstellungen: SMTP-Server `mailpit`,
 Port `1025`, keine Verschlüsselung oder SMTP-Authentifizierung, Absenderadresse
 `dispo@heizoel.local` und Absendername `Heizöl Disposition`. Bei einer bereits
@@ -178,7 +225,7 @@ Entwicklungsdatenbank vorgesehen.
 cd frontend
 npm ci
 npx playwright install chromium
-node --env-file=../backend/.env.example ./node_modules/@playwright/test/cli.js test
+node --env-file=../backend/.env ./node_modules/@playwright/test/cli.js test
 npx playwright show-report
 ```
 

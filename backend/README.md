@@ -51,14 +51,20 @@ The code follows a ports-and-adapters architecture. See [Architecture](docs/arch
 
 ## Prerequisites
 
-- JDK 17 or newer
 - Docker with Docker Compose
+- JDK 17 or newer only for running the backend or its tests outside Docker
 
 The Maven Wrapper is included, so a separate Maven installation is not required.
 
 ## Local Development
 
-Create a `.env` file in the backend directory before starting the local stack. Docker Compose reads this file automatically. At minimum, provide the encryption key:
+For the project handover, the examiner receives `.env` separately by e-mail.
+Place it at `backend/.env` before starting the stack; it is excluded from Git.
+The repository-root Compose file loads it through `env_file`.
+See the [project README](../README.md#lokal-starten) for the complete startup
+sequence and browser walkthrough.
+
+For a separate development setup, create `backend/.env` with at least:
 
 ```dotenv
 SECRET_ENCRYPTION_MASTER_KEY=<Base64-encoded 32-byte key>
@@ -70,11 +76,11 @@ For the Dispo demo button, also set `DEV_API_KEY` in this `.env` to the existing
 API key of the company to present. Compose passes it to the frontend's Vite
 server at runtime; it does not create or change a company credential.
 
-Build and start the complete local stack from the repository root, including
-the backend and frontend:
+Build and start the complete local stack, including the backend and frontend.
+Run these commands from the repository root (if currently in `backend`, first
+run `cd ..`):
 
 ```bash
-cd ..
 docker compose up -d --build
 docker compose ps
 ```
@@ -97,7 +103,10 @@ See the [frontend README](../frontend/README.md) for standalone frontend develop
 | pgAdmin | `http://localhost:5050` | Inspect PostgreSQL |
 | DISPO Mock | `http://localhost:8090` | Local status callback and tracking target |
 
-The Compose credentials and service definitions are authoritative in [`docker-compose.yml`](docker-compose.yml). The `dev` profile seeds company `1` with Mailpit e-mail settings and dashboard demo data through the Flyway development callback.
+The Compose credentials and service definitions are authoritative in the
+[repository-root Compose file](../docker-compose.yml). The `dev` profile seeds
+company `1` with Mailpit e-mail settings and dashboard demo data through the
+Flyway development callback.
 
 ## Configuration
 
@@ -120,7 +129,7 @@ Swagger and the controller/DTO code are authoritative for exact request and resp
 
 ## Running Tests
 
-Run the test suite with the Maven Wrapper:
+From the `backend` directory, run the test suite with the Maven Wrapper:
 
 ```bash
 ./mvnw test
@@ -148,5 +157,7 @@ For agent-specific repository rules, see [`AGENTS.md`](AGENTS.md).
 
 - The local DISPO integration is represented by a mock.
 - SMS and WhatsApp delivery use Twilio and require the corresponding account, sender, and content-template configuration.
-- Development uses a fixed company context for company `1`; the production profile resolves companies from `X-API-Key`.
+- DISPO endpoints require `X-API-Key` in every profile, including `dev`. The key
+  identifies the company. The dashboard uses a browser session established
+  through its access-link login; the `dev` profile supplies demo data for company `1`.
 - Geocoding uses the configured external provider when enabled and therefore may require network access.

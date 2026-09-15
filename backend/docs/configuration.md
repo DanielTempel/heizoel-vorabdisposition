@@ -16,7 +16,12 @@ Start the local profile as described in the [README](../README.md#local-developm
 
 Shared configuration optionally imports `.env` through `spring.config.import`, so the file is available to a backend process started directly from the backend directory regardless of the active profile.
 
-Docker Compose also reads the git-ignored backend `.env` file for variable interpolation. It explicitly forwards `SECRET_ENCRYPTION_MASTER_KEY` and the Twilio variables to the backend container; other `.env` entries are not injected automatically. Database and local service addresses are defined directly in `docker-compose.yml`.
+The [repository-root Compose file](../../docker-compose.yml) loads the git-ignored
+`backend/.env` into both backend and frontend containers through `env_file`.
+For the project handover, this file is provided separately by e-mail. Run Compose
+from the repository root; no `--env-file` argument is needed for this setup.
+Database and local service addresses are set in the Compose `environment` blocks,
+which take precedence over entries from `env_file`.
 
 ## Property Groups
 
@@ -114,7 +119,13 @@ Encrypted SMTP values are additionally bound to a company-specific encryption co
 
 ### Company Resolution
 
-`ApiKeyCompanyContextResolver` resolves the current company in every profile. Company-scoped requests must provide `X-API-Key`; the resolver hashes the supplied value with SHA-256 and looks up the matching `Company` by `api_key_hash`. Missing or blank keys return `401 Unauthorized` with `MISSING_API_KEY`, while unknown keys return `401 Unauthorized` with `INVALID_API_KEY`. Raw API keys are not stored.
+`ApiKeyAuthenticationProvider` resolves the company for `/api/dispo/**` in every
+profile. Requests must provide `X-API-Key`; the provider hashes it with SHA-256
+and looks up the matching `Company` by `api_key_hash`. Missing or blank keys
+return `401 Unauthorized` with `MISSING_API_KEY`, while unknown keys return
+`401 Unauthorized` with `INVALID_API_KEY`. Raw API keys are not stored.
+The browser dashboard uses a company-scoped session established by exchanging
+the one-time code from a dashboard access link.
 
 Each `Company` owns:
 
@@ -124,7 +135,7 @@ Each `Company` owns:
 
 ### E-mail Settings
 
-E-mail delivery is configured through `/api/dispo/settings/email`, not through global Spring Mail credentials.
+E-mail delivery is configured through `/api/dashboard/settings/email`, not through global Spring Mail credentials.
 
 Stored settings include SMTP host/port, transport security, authentication mode, optional username/encrypted password, and sender address/name. Read responses expose only whether a password is configured. Supported security modes are `STARTTLS`, `IMPLICIT_TLS`, and `NONE`.
 
@@ -132,7 +143,7 @@ The `dev` Flyway callback seeds company `1` with unauthenticated Mailpit setting
 
 ## Local Infrastructure Configuration
 
-`docker-compose.yml` is authoritative for local images, ports, volumes, development credentials, and service dependencies. Compose builds and starts the backend on port `8080`. Inside the Compose network, the backend connects to PostgreSQL at `postgres:5432`, Mailpit at `mailpit:1025`, and DISPO Mock at `dispo-mock:8090`; the published host ports remain available for direct local access.
+The [repository-root Compose file](../../docker-compose.yml) is authoritative for local images, ports, volumes, development credentials, and service dependencies. Compose builds and starts the backend on port `8080`. Inside the Compose network, the backend connects to PostgreSQL at `postgres:5432`, Mailpit at `mailpit:1025`, and DISPO Mock at `dispo-mock:8090`; the published host ports remain available for direct local access.
 
 The `dev` profile adds both `classpath:db/migration` and `classpath:db/dev` to Flyway. The development callback maintains demo dashboard data and local SMTP settings; it must not be treated as production seed or schema history.
 
