@@ -16,7 +16,7 @@ E-Mail-Einstellungen verwalten.
 | --- | --- |
 | [Backend](backend/README.md) | Spring Boot, Java 17, Camunda 7, PostgreSQL, Flyway und REST-APIs |
 | [Frontend](frontend/README.md) | React, TypeScript und Vite; Bestätigungsseite, Avisierungsdashboard und lokale DISPO-Demo |
-| [Lokaler Stack](backend/docker-compose.yml) | Backend, Frontend, PostgreSQL, Mailpit, pgAdmin und DISPO Mock |
+| [Lokaler Stack](docker-compose.yml) | Backend, Frontend, PostgreSQL, Mailpit, pgAdmin und DISPO Mock |
 | [Projektdokumentation](docs/) | Fachliche und technische Ausarbeitung |
 | [BPMN](bpmn/) | Modellunterlagen; die vom Backend geladenen Prozesse liegen unter [backend/src/main/resources/processes](backend/src/main/resources/processes/) |
 
@@ -33,33 +33,31 @@ Node.js sind dafür auf dem Host nicht erforderlich. Für die weiter unten
 beschriebenen lokalen Prüfungen werden JDK 17 oder neuer sowie Node.js 24 mit npm
 benötigt; der Maven Wrapper ist im Repository enthalten.
 
-### 1. Mitgelieferte Demo-Konfiguration verwenden
+### 1. Lokale Konfiguration anlegen
 
-Für die lokale Präsentation wird die mitgelieferte Datei
-[`backend/.env.example`](backend/.env.example) direkt verwendet. Eine eigene `.env`
-muss weder angelegt noch in einen Container kopiert werden. Die folgenden
-Compose-Befehle lesen die Datei über `--env-file .env.example` und übergeben die
-benötigten Werte an Backend und Frontend.
+Für die lokale Präsentation wird eine Datei `backend/.env` verwendet. Docker
+Compose liest diese Datei und übergibt die benötigten Werte an Backend und
+Frontend.
 
 `SECRET_ENCRYPTION_MASTER_KEY` dient zur Verschlüsselung gespeicherter
 SMTP-Passwörter; `DEV_API_KEY` ermöglicht den Dashboard-Zugang über die DISPO-Demo.
 Diese Werte sind für die lokale Demonstration bestimmt. Der API-Schlüssel muss
 zum Hash der Demo-Firma im [Dev-Seed](backend/src/main/resources/db/dev/afterMigrate.sql)
-passen. Für eigene Einstellungen kann optional eine lokale `.env` angelegt und
-in den Befehlen mit `--env-file .env` ausgewählt werden.
+passen.
 
 ### 2. Stack bauen und starten
 
 Aus dem Repository-Hauptverzeichnis:
 
 ```sh
-cd backend
-docker compose --env-file .env.example up -d --build
-docker compose --env-file .env.example ps
-docker compose --env-file .env.example logs --tail=100 backend frontend
+docker compose up -d --build
+docker compose ps
+docker compose logs --tail=100 backend frontend
 ```
 
-Vorher einen separat gestarteten Frontend-Server auf Port `3000` beenden.
+Vorher einen separat gestarteten Frontend-Server auf Port `3000` beenden. Das
+Frontend wird von Compose automatisch als eigener Container gestartet; ein
+separates `npm run dev` ist dafür nicht erforderlich.
 Der Backend-Start einschließlich Flyway-Migrationen kann beim ersten Mal etwas
 dauern. Ein gestarteter Container allein bedeutet noch nicht, dass die Anwendung
 bereits Anfragen verarbeiten kann.
@@ -90,8 +88,13 @@ und Tracking-Anfragen. Weitere Konfiguration steht in der
    ausführen. Die Dashboard-Demodaten allein lösen keine Benachrichtigungsprozesse aus.
 
 Im Browser durchgehend `localhost` verwenden. Bei Problemen zuerst
-`docker compose --env-file .env.example ps` und die Backend-/Frontend-Logs prüfen. Ein abgelehnter
+`docker compose ps` und die Backend-/Frontend-Logs prüfen. Ein abgelehnter
 Demo-Zugang kann auf einen fehlenden oder nicht passenden `DEV_API_KEY` hinweisen.
+
+Wenn ein per WhatsApp empfangener lokaler Link auf dem Mac geöffnet wird, kann
+WhatsApp oder der Browser die Adresse automatisch von `http://...` auf
+`https://...` umstellen. Für die lokale Demo ohne HTTPS muss die Adresse in der
+Browser-Adresszeile wieder auf `http://...` geändert werden.
 
 Falls bei einer bereits verwendeten Datenbank keine E-Mails ankommen, im Dashboard
 unter **Einstellungen** den SMTP-Server prüfen: Für Compose muss er `mailpit` mit
@@ -100,18 +103,18 @@ automatisch überschrieben. Mit **Verbindung testen** lässt sich die Einstellun
 
 ### Stoppen und Änderungen übernehmen
 
-Alle folgenden Befehle im Verzeichnis `backend` ausführen:
+Alle folgenden Befehle im Repository-Hauptverzeichnis ausführen:
 
 ```sh
-docker compose --env-file .env.example stop
+docker compose stop
 ```
 
 Die Datenbank bleibt im Docker-Volume erhalten. Nach Quellcodeänderungen den
 betroffenen Dienst neu bauen, beispielsweise mit
-`docker compose --env-file .env.example up -d --build frontend` oder
-`docker compose --env-file .env.example up -d --build backend`.
+`docker compose up -d --build frontend` oder
+`docker compose up -d --build backend`.
 Nach einer Änderung von `DEV_API_KEY` in der verwendeten Datei genügt
-`docker compose --env-file .env.example up -d frontend`.
+`docker compose up -d frontend`.
 
 Für Frontend-Entwicklung mit lokalem Vite-Server und automatischer Aktualisierung
 siehe [Frontend separat starten](frontend/README.md#run-the-frontend-separately).

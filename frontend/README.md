@@ -8,7 +8,7 @@ Create `backend/.env` with the backend settings described in the
 [backend README](../backend/README.md). Set `DEV_API_KEY` there to the existing
 API key of the company whose dashboard data you want to present.
 
-From the `backend` directory:
+From the repository root:
 
 ```sh
 docker compose up -d --build
@@ -24,7 +24,7 @@ are not needed on the host. Stop any local frontend already using port 3000.
 After source changes, rebuild with `docker compose up -d --build frontend`.
 After changing `DEV_API_KEY` in `backend/.env`, run `docker compose up -d frontend`
 to recreate the container with the new value. To stop the stack, run
-`docker compose stop` from `backend`.
+`docker compose stop` from the repository root.
 
 The browser calls `http://localhost:8080`. The Vite demo handler calls the same
 backend through Docker's internal address `http://backend:8080`, configured by
@@ -38,12 +38,12 @@ consistently with the backend's configured frontend/CORS URL.
 Start the backend services, leaving the frontend container stopped:
 
 ```sh
-# From backend/
+# From the repository root
 docker compose up -d --build backend postgres mailpit pgadmin dispo-mock
 ```
 
 If the frontend container is already running, first run
-`docker compose stop frontend` from `backend` to free port 3000.
+`docker compose stop frontend` from the repository root to free port 3000.
 Then, from `frontend`, with Node.js 24 installed:
 
 ```sh

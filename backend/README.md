@@ -42,7 +42,7 @@ backend/
 ├── src/test/             unit and integration tests
 ├── docs/                 detailed backend documentation
 ├── dispo-mock/           local DISPO callback and tracking mock
-├── docker-compose.yml    local infrastructure
+├── docker-compose.yml    legacy local infrastructure definition
 ├── AGENTS.md             repository-specific agent rules
 └── pom.xml               build and dependency configuration
 ```
@@ -70,9 +70,11 @@ For the Dispo demo button, also set `DEV_API_KEY` in this `.env` to the existing
 API key of the company to present. Compose passes it to the frontend's Vite
 server at runtime; it does not create or change a company credential.
 
-Build and start the complete local stack, including the backend and frontend:
+Build and start the complete local stack from the repository root, including
+the backend and frontend:
 
 ```bash
+cd ..
 docker compose up -d --build
 docker compose ps
 ```
