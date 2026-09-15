@@ -84,10 +84,12 @@ Projektdokumentation sowie Erstellung der
 Meetingprotokolle \\
 \addlinespace
 Daniel Tempel &
-Systemarchitektur, Konzeption und Implementierung des
-Avisierungsservice, Workflow-Steuerung mit Camunda,
-REST-Schnittstellen sowie Backend-Tests und technische
-Dokumentation \\
+Systemarchitektur, Architektur-, Domänen- und Persistenzentwurf sowie
+Implementierung des Avisierungsservice, Workflow-Steuerung mit Camunda,
+kanalunabhängige Kommunikationsarchitektur und E-Mail-Integration,
+Mandantenfähigkeit und Sicherheitskonzept, Abfragemodell des
+Avisierungsdashboards, technische Integrationsumgebung, CI-Pipeline,
+Backend-Tests und technische Dokumentation \\
 \addlinespace
 Arsenii Parhom &
 Entwicklung des Webfrontends mit Bestätigungsseite und
@@ -193,171 +195,51 @@ zunächst in das Thema einarbeiten. Bei einem ähnlichen Projekt
 würde ich versuchen, solche Aufgaben früher in den Projektablauf
 einzubeziehen.
 
-\subsection{Persönlicher Beitrag und Projektreflexion -- Daniel Tempel}
-\label{sec:persoenlicher-beitrag-daniel}
+\noindent\textbf{Daniel Tempel}\par
+\nopagebreak
 
-\subsubsection{Rollen und Verantwortlichkeiten}
+Mein Schwerpunkt im Projekt lag auf der Systemarchitektur sowie der
+Konzeption und Implementierung des Avisierungsservice. Dazu gehörten
+insbesondere die fachliche und technische Modellierung des
+Avisierungsprozesses, die Workflow-Steuerung mit Camunda, die
+Mandanten- und Sicherheitsmechanismen, das Abfragemodell für das
+Avisierungsdashboard sowie die technische Integrationsumgebung und
+automatisierte Backend-Tests.
 
-Die Aufgaben innerhalb des Projekts wurden fachlich und technisch zwischen
-den Teammitgliedern aufgeteilt. Der persönliche Verantwortungsbereich von
-Daniel Tempel umfasste schwerpunktmäßig die Systemarchitektur sowie die
-Konzeption, Implementierung und Validierung des Avisierungsservice.
+Eine der größten Herausforderungen war die Modellierung des
+Avisierungsprozesses als länger laufender Workflow. In einer frühen
+Umsetzung wurde ein aus DISPO übermittelter Avisierungsauftrag zunächst
+persistiert und die Kundenbenachrichtigung synchron versendet. Camunda
+übernahm anschließend im Wesentlichen nur die Überwachung der
+Antwortfrist, während die Kundenreaktion außerhalb des Workflows
+verarbeitet wurde. Im weiteren Projektverlauf zeigte sich, dass diese
+Aufteilung den fachlichen Lebenszyklus nicht ausreichend zusammenhängend
+abbildete.
 
-Zu den wesentlichen Verantwortungsbereichen gehörten:
+Der Workflow wurde deshalb grundlegend überarbeitet. Der
+Nachrichtenversand wurde in die asynchrone Prozessverarbeitung
+überführt, während die Workflow Engine die Koordination von Versand,
+Kundenreaktion, Fristablauf und Ablösung einer Bestätigungsanfrage
+übernahm. Dadurch wurde die Trennung zwischen synchroner
+Auftragsübernahme, fachlichem Zustand und technischer Ablaufsteuerung
+deutlicher.
 
-\begin{itemize}
-  \item Mitwirkung bei Anforderungserhebung, IST-Analyse und SOLL-Konzeption,
-  \item Systemarchitektur der digitalen Lieferavisierung,
-  \item Architektur-, Domänen- und Persistenzentwurf des Avisierungsservice,
-  \item technische Umsetzung des Avisierungsprozesses und
-        Workflow-Steuerung mit Camunda,
-  \item Fehlerbehandlung, Wiederholungsmechanismen und Nebenläufigkeit,
-  \item kanalunabhängige Kommunikationsarchitektur und
-        E-Mail-Integration,
-  \item Mandantenfähigkeit und Sicherheitskonzept,
-  \item Abfragemodell des Avisierungsdashboards,
-  \item technische Konfiguration und lokale Integrationsumgebung,
-  \item CI-Pipeline und automatisierte Tests des Avisierungsservice sowie
-  \item technische Dokumentation der genannten Bereiche.
-\end{itemize}
+Die Zusammenarbeit im Team erfolgte überwiegend über GitHub Issues,
+getrennte Branches und regelmäßige Abstimmungen. Die Verteilung und
+Nachverfolgung der Arbeitspakete wurde von mir in weiten Teilen
+koordiniert. Besonders bei Anforderungen, die mehrere
+Verantwortungsbereiche betrafen, beispielsweise bei der späteren
+Ausgestaltung des Avisierungsdashboards, waren wiederholte fachliche
+und technische Abstimmungen erforderlich.
 
-Die providerbezogene Integration von SMS und WhatsApp sowie die
-Lieferverfolgung und das Geocoding gehörten nicht zu diesem persönlichen
-Verantwortungsbereich.
-
-\subsubsection{Persönlicher Projektaufwand}
-
-Da keine kontinuierliche Ist-Zeiterfassung vorliegt, kann der tatsächlich
-geleistete persönliche Aufwand nicht belastbar quantifiziert werden. Die
-folgende Tabelle zeigt daher eine orientierende Verteilung des für das Modul
-vorgesehenen Arbeitsumfangs von 300 Stunden auf die persönlichen
-Arbeitsschwerpunkte.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{p{7cm}p{3.5cm}p{3cm}}
-\toprule
-Arbeitspaket & Zeitraum & Orientierender Aufwand \\
-\midrule
-Anforderungserhebung, IST-Analyse und SOLL-Konzeption
-  & März--April & ca. 35 h \\
-Systemarchitektur und Konzeption des Avisierungsservice
-  & April--Mai & ca. 35 h \\
-Implementierung des Avisierungsservice
-  & Mai--August & ca. 145 h \\
-Integration, Tests, CI und technische Umgebung
-  & Juli--August & ca. 40 h \\
-Projektdokumentation
-  & Mitte August--Mitte September & ca. 45 h \\
-\midrule
-\textbf{Gesamt}
-  & März--September & \textbf{ca. 300 h} \\
-\bottomrule
-\end{tabular}
-\caption{Orientierende Verteilung des vorgesehenen persönlichen Arbeitsumfangs}
-\label{tab:projektaufwand-daniel}
-\end{table}
-
-Ein wesentlicher Teil des Implementierungsaufwands entfiel auf die
-Workflow-Steuerung und das Sicherheitskonzept. Ursache waren insbesondere
-zeitabhängige Zustände,
-erneute Avisierungen, Wiederholungsmechanismen, Nebenläufigkeit sowie
-die unterschiedlichen Zugriffskontexte und die mandantenspezifische
-Datenisolation.
-
-\subsubsection{Herausforderungen und Architekturentwicklung}
-
-Eine der größten Herausforderungen bestand in der Entwicklung einer
-tragfähigen Architektur für den Avisierungsservice und insbesondere in der
-Modellierung des Avisierungsprozesses mit Camunda. Zu Beginn bestand nur
-begrenzte praktische Erfahrung mit einer Workflow Engine und mit
-länger laufenden, ereignisbasierten Prozessen.
-
-In der ersten Umsetzung wurde ein aus DISPO übermittelter
-Avisierungsauftrag persistiert und die Kundenbenachrichtigung anschließend
-synchron versendet. Erst danach wurde ein Camunda-Prozess gestartet, der
-im Wesentlichen die Antwortfrist überwachte. Die Kundenreaktion wurde
-außerhalb dieses Workflows verarbeitet. Im Projektverlauf zeigte sich, dass
-dies den Avisierungsprozess nicht ausreichend als zusammenhängenden
-Lebenszyklus abbildete.
-
-Der Workflow wurde daher grundlegend überarbeitet. Der Nachrichtenversand
-wurde asynchron ausgeführt und die Workflow Engine übernahm anschließend die
-Koordination von Versand, Kundenreaktion, Fristablauf und Ablösung einer
-Bestätigungsanfrage. Rückblickend führte dies zu einer klareren Trennung
-zwischen synchroner Auftragsübernahme, fachlichem Zustand und technischer
-Ablaufsteuerung.
-
-Auch die Architektur wurde nach entsprechendem Feedback weiterentwickelt.
-Die Verantwortlichkeiten zwischen Domain, Application und Adaptern wurden
-deutlicher getrennt und ausgewählte externe Integrationen über Ports
-entkoppelt. Bei der Persistenz wurde dagegen bewusst der in Kapitel 5
-beschriebene pragmatische Kompromiss mit JPA und Spring Data beibehalten.
-Dabei zeigte sich, dass der Nutzen eines Architekturprinzips gegen den
-zusätzlichen Struktur- und Implementierungsaufwand im konkreten
-Projektkontext abzuwägen ist.
-
-\subsubsection{Bewertung des Vorgehens und der Zusammenarbeit}
-
-Die operative Aufgabensteuerung erfolgte über GitHub Issues. Die Zuordnung
-der Aufgaben orientierte sich an den festgelegten fachlichen und technischen
-Verantwortungsbereichen der Teammitglieder. Die Verteilung und Nachverfolgung
-der Aufgaben wurde dabei überwiegend von Daniel Tempel koordiniert.
-
-Fachliche und technische Abstimmungen fanden in regelmäßigen
-Online-Besprechungen statt, die überwiegend freitags durchgeführt und
-protokolliert wurden. Entscheidungen mit Auswirkungen auf mehrere
-Verantwortungsbereiche wurden gemeinsam im Team getroffen. GitHub Issues
-dienten dabei zur Dokumentation und Nachverfolgung konkreter Arbeitspakete.
-
-Die Implementierung erfolgte entsprechend der fachlichen
-Verantwortungsbereiche überwiegend in getrennten Git-Branches.
-Pull Requests wurden insbesondere eingesetzt, wenn Änderungen in gemeinsam
-genutzte Bestandteile integriert wurden oder Verantwortungsbereiche mehrerer
-Teammitglieder berührten. Dadurch konnten solche Änderungen vor der
-Integration nachvollzogen und abgestimmt werden.
-
-Zusätzlicher Abstimmungs- und Implementierungsaufwand entstand insbesondere
-dann, wenn Anforderungen im Projektverlauf konkretisiert oder erweitert
-wurden. Ein Beispiel hierfür war das Avisierungsdashboard, aus dessen
-fachlicher Ausgestaltung weitere Anforderungen an Abfragemodell,
-Schnittstellen und Zugriffsschutz entstanden.
-
-\subsubsection{Persönlicher Lernfortschritt und Lessons Learned}
-
-Der persönliche Lernfortschritt bestand insbesondere in einem vertieften
-Verständnis für die Abgrenzung fachlicher, technischer und
-integrationsbezogener Verantwortlichkeiten. Aus der zuvor beschriebenen
-Architekturüberarbeitung ergab sich insbesondere die Erkenntnis, dass
-Entkopplung nicht schematisch auf sämtliche Systembereiche übertragen werden
-muss. Ports unterstützten im Projekt die Abgrenzung ausgewählter externer
-Integrationen. Eine zusätzliche Abstraktionsschicht kann in anderen Bereichen
-einen höheren strukturellen Aufwand verursachen, ohne im gegebenen
-Projektkontext einen entsprechenden Nutzen zu erzeugen.
-
-Die Arbeit mit Camunda verdeutlichte, dass die Workflow Engine im
-Avisierungsprozess nicht lediglich zur Ausführung einzelner Timer eingesetzt
-wird, sondern die dauerhafte Koordination zeit- und ereignisabhängiger
-Prozessschritte übernimmt. Damit verbunden war die Erkenntnis, synchrone
-Schnittstellenaufrufe und den übergeordneten fachlichen Prozess als getrennte
-Lebenszyklen zu betrachten.
-
-Als besonders zweckmäßig erwiesen sich zudem das Strategy Pattern für die
-Kommunikationskanäle, Flyway für die Schemaentwicklung und Docker Compose für
-die lokale Integrationsumgebung. Weitere praktische Erfahrungen entstanden
-durch die SMTP-basierte E-Mail-Kommunikation und die Absicherung
-unterschiedlicher Zugriffskontexte.
-
-Ein weiterer Lernbereich war die Mandantentrennung sowie die Behandlung von
-Wiederholungen und Nebenläufigkeit. Insbesondere zeigte sich, dass lokale
-Prüfungen und Sperrmechanismen zwar konkrete konkurrierende Situationen
-beherrschbar machen, daraus jedoch keine allgemeine Exactly-once-Garantie für
-externe Seiteneffekte folgt.
-
-Für vergleichbare zukünftige Projekte ergibt sich daraus, den vollständigen
-fachlichen Prozess mit seinen Zuständen, Ereignissen und Verantwortlichkeiten
-bereits vor einer umfangreichen Implementierung möglichst vollständig zu
-modellieren. Eine weitere Konsequenz besteht darin, den Projektaufwand von
-Beginn an arbeitspaketbezogen und kontinuierlich zu erfassen, da eine
-retrospektive Rekonstruktion lediglich eine grobe Aufwandsverteilung
-ermöglicht.
+Für mich lagen die wichtigsten Lernergebnisse in der Arbeit mit
+länger laufenden und ereignisabhängigen Prozessen, der Abgrenzung von
+fachlichen und technischen Zuständen sowie der Behandlung von
+Mandantentrennung, Wiederholungen und Nebenläufigkeit. Als zweckmäßig
+erwiesen sich insbesondere das Strategy Pattern für die
+Kommunikationskanäle, Flyway für die Schemaentwicklung und Docker
+Compose für die lokale Integrationsumgebung. Für zukünftige Projekte
+würde ich den vollständigen fachlichen Prozess mit seinen Zuständen,
+Ereignissen und Verantwortlichkeiten früher modellieren und den
+Projektaufwand von Beginn an kontinuierlich arbeitspaketbezogen
+erfassen.
