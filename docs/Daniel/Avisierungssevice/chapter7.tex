@@ -108,7 +108,7 @@ weitgehend isoliert geprüft werden, während beispielsweise Mandantentrennung,
 Datenbankabfragen oder die Ausführung des BPMN-Prozesses das Zusammenspiel
 mehrerer Komponenten erfordern.
 
-\subsubsection{Teststrategie und Testumgebung}
+\subsubsection{Prüfaufbau und Testumgebung}
 \label{sec:teststrategie-anforderungsbezug-testumgebung}
 
 Die Auswahl des Prüfaufbaus richtet sich danach, welche Eigenschaft untersucht
@@ -197,16 +197,16 @@ Die Tests der Domänen- und Anwendungslogik prüfen ausgewählte fachliche
 Invarianten und Entscheidungsregeln des Avisierungsservice. Im Mittelpunkt
 stehen zeitliche Grenzbedingungen, Zustandsänderungen sowie die
 Wiederverwendung, Aktualisierung oder Ersetzung bestehender
-Rückbestätigungsanfragen.
+Bestätigungsanfragen.
 
 Zeitabhängige Regeln werden gezielt an ihren Grenzen geprüft. Ein Lieferfenster
 muss bei der Übernahme noch in der Zukunft liegen, und eine Kundenreaktion ist
 nur vor Ablauf der Antwortfrist zulässig. Betrachtet werden daher Zeitpunkte
 unmittelbar vor sowie beim Erreichen der jeweiligen Grenze.
 
-Bei Rückbestätigungsanfragen werden insbesondere unzulässige Zustandsänderungen
+Bei Bestätigungsanfragen werden insbesondere unzulässige Zustandsänderungen
 geprüft. Eine bereits als \texttt{SENT} markierte Anfrage darf weder erneut in
-diesen Zustand überführt noch nachträglich als Zustellfehler gekennzeichnet
+diesen Zustand überführt noch nachträglich als Versandfehler gekennzeichnet
 werden. Änderungen der Auftragsdaten verändern außerdem nicht automatisch den
 fachlichen Bestätigungsstatus.
 
@@ -238,7 +238,7 @@ Anfragen. Zusätzlich wird geprüft, dass ein unzulässiger Zustand oder ein
 bereits begonnenes Lieferfenster vor nachgelagerten Bedingungen erkannt wird.
 Wird die erneute Avisierung aufgrund eines unzulässigen Zustands zurückgewiesen,
 bleiben der bestehende Auftragsstatus und die vorhandenen
-Rückbestätigungsanfragen unverändert.
+Bestätigungsanfragen unverändert.
 
 Der folgende Abschnitt betrachtet die Eingabevalidierung sowie die Abbildung
 fachlicher Ergebnisse und Fehler auf den REST-Vertrag.
@@ -266,7 +266,7 @@ dieser mit \texttt{400 Bad Request} und \texttt{VALIDATION\_ERROR}
 zurückgewiesen. Fachlich ungültige Daten werden dagegen durch die
 Anwendungslogik geprüft. Ein Lieferfenster in der Vergangenheit führt ebenfalls
 zu \texttt{400 Bad Request}; anschließend sind weder Auftrag noch
-Rückbestätigungsanfrage gespeichert.
+Bestätigungsanfrage gespeichert.
 
 Davon zu unterscheiden ist die Abbildung bereits festgestellter fachlicher
 Fehler. Im MVC-Test für einen ungültigen Zeitraum einer Abfrage des
@@ -283,7 +283,7 @@ Kundenreaktion führt zu \texttt{204 No Content}, eine abgelaufene Anfrage zu
 Anfrage zu \texttt{409 Conflict}.
 
 Für die Detailansicht des Avisierungsdashboards wird außerdem geprüft, ob
-Auftragsdaten, aktuelle Rückbestätigungsanfrage, Historie und Kundenreaktion in
+Auftragsdaten, aktuelle Bestätigungsanfrage, Historie und Kundenreaktion in
 der vorgesehenen JSON-Struktur ausgegeben werden. Fehlerantworten enthalten einen
 maschinenlesbaren Fehlercode, eine Beschreibung, HTTP-Status, Pfad und
 Zeitstempel. Für einen nicht vorhandenen Auftrag werden alle fünf Felder
@@ -374,7 +374,7 @@ und der Persistence Context geleert. Dadurch basieren die Ergebnisse auf
 tatsächlich persistierten Daten.
 
 Eine zentrale Regel des Abfragemodells besteht darin, für einen Auftrag stets
-die Rückbestätigungsanfrage mit der höchsten internen ID als aktuelle Anfrage zu
+die Bestätigungsanfrage mit der höchsten internen ID als aktuelle Anfrage zu
 verwenden. Die in
 Abschnitt~\ref{sec:test-zugriffsschutz-mandantenisolation} betrachtete
 Zugriffsbeschränkung wird auf Persistenzebene dadurch unterstützt, dass
@@ -410,7 +410,7 @@ ihrer ID als \texttt{previousRequests} ausgegeben. Diese Zuordnung hängt nicht
 davon ab, ob die aktuelle Anfrage bereits versendet wurde oder noch den
 Versandstatus \texttt{PENDING} beziehungsweise \texttt{FAILED} besitzt.
 Vorhandene Kundenreaktionen werden mit Typ, Kommentar und Eingangszeitpunkt
-übernommen. Für Aufträge ohne Rückbestätigungsanfragen wird ein Ergebnis ohne
+übernommen. Für Aufträge ohne Bestätigungsanfragen wird ein Ergebnis ohne
 \texttt{currentRequest} und mit leerer Historie geliefert; bei einem unbekannten
 Auftrag wird kein Detailergebnis zurückgegeben. Die Mandantenisolation wurde
 bereits in Abschnitt~\ref{sec:test-zugriffsschutz-mandantenisolation}
@@ -432,7 +432,7 @@ zeitabhängige Szenarien werden Anwendungs- und Prozesszeit kontrolliert gesetzt
 Für den regulären Prozessablauf wird zunächst geprüft, dass nach dem
 Prozessstart ein asynchroner Versand-Job vorliegt und noch keine Versandaktion
 erfolgt ist. Nach dessen erfolgreicher Ausführung muss die
-Rückbestätigungsanfrage den Versandstatus \texttt{SENT} und der Auftrag den
+Bestätigungsanfrage den Versandstatus \texttt{SENT} und der Auftrag den
 Bestätigungsstatus \texttt{SENT} besitzen. Zusätzlich werden die vorgesehenen
 Wartezustände des Prozesses sowie der Fälligkeitszeitpunkt des Antworttimers
 überprüft.
@@ -464,7 +464,7 @@ Wiederholungsmechanismen voneinander getrennt bleiben.
 Auch Fehler beim DISPO-Callback werden untersucht. Nach Ausschöpfung der
 technischen Job-Retries muss ein \texttt{failedJob}-Incident vorliegen, während
 die Prozessinstanz bestehen bleibt. Ein zusätzlicher Test prüft den Fall, dass
-die betreffende Rückbestätigungsanfrage zwischenzeitlich durch eine neuere
+die betreffende Bestätigungsanfrage zwischenzeitlich durch eine neuere
 ersetzt wurde. Der veraltete Callback darf dann nicht mehr ausgeführt werden;
 die alte Prozessinstanz und der zugehörige Incident werden beendet.
 
@@ -492,7 +492,7 @@ Avisierung wieder \texttt{OPEN}.
 \label{sec:test-kommunikation-adaptervertraege}
 
 Die Tests der ausgehenden Kommunikation prüfen, ob der Avisierungsservice den
-für die Rückbestätigungsanfrage festgelegten Kommunikationskanal korrekt auf den
+für die Bestätigungsanfrage festgelegten Kommunikationskanal korrekt auf den
 zugehörigen Adapter abbildet, die erforderlichen Daten übergibt und ausgewählte
 Fehler an den Systemgrenzen korrekt verarbeitet. Im Unterschied zu
 Abschnitt~\ref{sec:test-workflow-wiederholung-nebenlaeufigkeit} steht dabei die
@@ -512,7 +512,7 @@ Eigenschaften von \texttt{STARTTLS} und Implicit TLS sowie das Verhalten bei
 deaktivierter SMTP-Authentifizierung. Ohne Authentifizierung werden keine
 Zugangsdaten verwendet und keine Passwortentschlüsselung durchgeführt.
 
-Für die initiale Rückbestätigungsanfrage sowie die Eingangsbestätigungen nach
+Für die initiale Bestätigungsanfrage sowie die Eingangsbestätigungen nach
 Bestätigung oder Ablehnung werden Adressierung, Nachrichtenvariante und
 ausgewählte Template-Inhalte geprüft. Dabei werden Absender, Empfänger und
 Betreff sowie die Übergabe der Bestätigungs-URL kontrolliert. Im initialen

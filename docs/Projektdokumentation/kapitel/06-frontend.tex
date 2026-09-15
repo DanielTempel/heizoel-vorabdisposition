@@ -281,7 +281,7 @@ Die Aktion richtet sich nach dem Darstellungsstatus der aktuellen Anfrage. Bei \
 Rückmeldung} oder \enquote{Versand fehlgeschlagen} kann eine neue Anfrage erstellt werden. Bei
 den übrigen Zuständen ist die Schaltfläche deaktiviert. Liegt noch keine Anfrage vor, weist die
 Oberfläche darauf hin, dass ein erneuter Versand nicht möglich ist. Damit ist diese Funktion
-auf die Fortsetzung eines bestehenden Avisierungsvorgangs begrenzt. Insbesondere ist eine
+auf die Fortsetzung eines bestehenden Avisierungsprozesses begrenzt. Insbesondere ist eine
 bereits abgelehnte Anfrage nicht unmittelbar über dieses Formular erneut versendbar; eine
 weitere Terminabstimmung erfolgt im Dispositionsprozess.
 
@@ -380,14 +380,14 @@ Abschlusszustände werden dagegen anhand der erfolgreich abgerufenen Daten geson
 
 Die Lieferverfolgung ergänzt die Bestätigungsseite um eine räumliche Orientierung am Liefertag.
 Das Webfrontend fordert die dafür benötigten Daten ausschließlich für bestätigte Liefertermine an. Die Seite fragt zunächst ab, ob Tracking verfügbar ist und 
-Zielkoordinaten vorliegen. Ist Tracking verfügbar, wird die Fahrerposition über einen separaten Aufruf geladen. Die 
-Kartenansicht wird dargestellt, sobald Zielkoordinaten vorliegen; eine verfügbare Fahrerposition wird darin zusätzlich
+Zielkoordinaten vorliegen. Ist Tracking verfügbar, wird die Fahrzeugposition über einen separaten Aufruf geladen. Die
+Kartenansicht wird dargestellt, sobald Zielkoordinaten vorliegen; eine verfügbare Fahrzeugposition wird darin zusätzlich
 angezeigt.
 
 Die grundsätzliche Verfügbarkeit am Liefertag wird vom Avisierungsservice ermittelt. Meldet er
 für eine bestätigte Anfrage, dass Tracking nicht verfügbar ist, zeigt die Seite einen Hinweis
 auf die Bereitstellung am Liefertag. Die Ermittlung der Zielkoordinaten und die Anbindung der
-Fahrerposition werden in Abschnitt~\ref{sec:lieferverfolgung} behandelt. Das Webfrontend
+Fahrzeugposition werden in Abschnitt~\ref{sec:lieferverfolgung} behandelt. Das Webfrontend
 verwendet die bereitgestellten Koordinaten für die Darstellung und führt selbst keine
 Geocodierung der Lieferadresse durch.
 
@@ -396,7 +396,7 @@ Geocodierung der Lieferadresse durch.
 Die Kartenansicht wird mit Leaflet und React Leaflet umgesetzt; als Kartengrundlage dienen Kartenkacheln von OpenStreetMap.
 Unterschiedliche Symbole kennzeichnen das Fahrzeug und das Lieferziel. Der Kartenausschnitt
 wird automatisch an die vorhandenen Positionen angepasst. Liegt zunächst nur das Ziel vor, kann dieses bereits angezeigt 
-werden; bei verfügbarer Fahrerposition umfasst die Ansicht beide Punkte. Die
+werden; bei verfügbarer Fahrzeugposition umfasst die Ansicht beide Punkte. Die
 zugehörige Lieferadresse bleibt als Text sichtbar, damit das Kartenziel dem Auftrag zugeordnet
 werden kann.
 
@@ -420,7 +420,7 @@ und Entfernungsanzeige.
 
 \subsubsection{Aktualisierung und Fehlerbehandlung}
 
-Die erste Fahrerposition wird nach dem Laden der verfügbaren Tracking-Informationen automatisch
+Die erste Fahrzeugposition wird nach dem Laden der verfügbaren Tracking-Informationen automatisch
 angefordert. Nach einem erfolgreichen Abruf kann der Kunde über den Button \enquote{Aktualisieren} eine
 weitere Position laden. Währenddessen ist der Button deaktiviert und zeigt den laufenden
 Abruf an. Neu geladene Koordinaten aktualisieren die Fahrzeugmarkierung und die daraus abgeleitete
@@ -429,7 +429,7 @@ Position ist nicht implementiert.
 
 Kann die Tracking-Information nicht geladen werden oder fehlen Zielkoordinaten, bleibt die
 Kartenansicht ausgeblendet. Die Bestätigung des Liefertermins bleibt davon unabhängig sichtbar.
-Scheitert die Aktualisierung einer bereits geladenen Fahrerposition, behält die Seite den
+Scheitert die Aktualisierung einer bereits geladenen Fahrzeugposition, behält die Seite den
 letzten verfügbaren Stand bei. Ein gesonderter Fehlerhinweis oder eine sichtbare Zeitangabe zur
 Aktualität dieser Position wird dabei nicht angezeigt. Die Kartenansicht ist deshalb als
 Darstellung des zuletzt abgerufenen Standorts zu verstehen.

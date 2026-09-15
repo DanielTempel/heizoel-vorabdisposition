@@ -149,11 +149,6 @@ Spring-Data-JPA-Repositories und Abstraktionen wie \texttt{Pageable} zu;
 zugleich definieren die Domänenklassen ihre relationale Abbildung über
 Jakarta-Persistence-Annotationen.
 
-Abbildung~\ref{fig:abhaengigkeitsrichtungen} zeigt die resultierende Adapter-
-und Abhängigkeitsstruktur des Avisierungsservice.
-
-% Abbildung unverändert
-
 Auf separate Repository-Ports, Persistence-Entities und die damit verbundene
 Mappinglogik wurde verzichtet. Eine Austauschbarkeit der Persistenztechnologie
 war im Projektumfang nicht gefordert und hätte zusätzlichen Struktur- und
@@ -173,7 +168,7 @@ Persistenzstacks.
 \label{sec:domaenenmodell}
 
 Das Domänenmodell trennt den aus DISPO übernommenen Auftrag, einzelne
-Rückbestätigungsanfragen und die darauf bezogenen Kundenreaktionen. Fachliche,
+Bestätigungsanfragen und die darauf bezogenen Kundenreaktionen. Fachliche,
 technische und prozessbezogene Zustände werden jeweils dem Objekt zugeordnet,
 dessen Verantwortung sie beschreiben.
 
@@ -226,7 +221,31 @@ Abschnitt~\ref{sec:konfigurationsschutz} behandelt.
 Tabelle~\ref{tab:zustandsdimensionen} fasst die getrennt modellierten
 Zustandsaspekte zusammen.
 
-% Tabelle unverändert
+\begin{table}[htbp]
+  \centering
+  \caption{Zustandsdimensionen des Avisierungsmodells}
+  \label{tab:zustandsdimensionen}
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.13\textwidth}>{\raggedright\arraybackslash}p{0.24\textwidth}>{\raggedright\arraybackslash}p{0.24\textwidth}>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    Ebene & Objekt & Zustand / Merkmal & Bedeutung \\
+    \midrule
+    Fachlich & \texttt{Order}
+      & \texttt{OPEN}, \texttt{SENT}, \texttt{CONFIRMED}, \texttt{REJECTED}, \texttt{NO\_RESPONSE}
+      & Auftragsbezogener Stand der Avisierung \\
+    Technisch & \texttt{Confirmation-}\newline\texttt{Request}
+      & \texttt{PENDING}, \texttt{SENT}, \texttt{FAILED}
+      & Technischer Versandstatus \\
+    Gültigkeit & \texttt{Confirmation-}\newline\texttt{Request}
+      & \texttt{active}
+      & Freigabe für Kundenreaktionen; zusätzlich werden Frist, Aktualität und vorhandene Antwort geprüft \\
+    Prozess & Camunda-Prozessinstanz
+      & Workflowzustand
+      & Technische Ablaufsteuerung, Wartezustände und Fortsetzungen \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
 Die Trennung verhindert eine Vermischung fachlicher und technischer Zustände.
 Ein fehlgeschlagener Versand stellt beispielsweise keine Ablehnung des Kunden
@@ -258,7 +277,16 @@ Tabellen, ihre Beziehungen sowie ausgewählte Schlüssel- und
 Eindeutigkeitsbedingungen. Von Camunda und Flyway verwaltete technische
 Tabellen werden nicht dargestellt.
 
-% Abbildung unverändert
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[
+        width=\textwidth,
+        height=0.72\textheight,
+        keepaspectratio
+    ]{figures/persistenzmodell.png}
+    \caption{Vereinfachtes Persistenzmodell des Avisierungsservice}
+    \label{fig:persistenzmodell}
+\end{figure}
 
 Die Zuordnung eines \texttt{Order} zu seiner \texttt{Company} erfolgt über
 \texttt{company\_id}. Da die aus DISPO übernommene
@@ -287,7 +315,7 @@ insbesondere referenzielle Integrität, Eindeutigkeit und ausgewählte
 strukturelle Wertebereiche.
 
 Ergänzende Indizes unterstützen insbesondere mandanten- und tourbezogene
-Abfragen sowie den Zugriff auf die Rückbestätigungsanfragen eines Auftrags.
+Abfragen sowie den Zugriff auf die Bestätigungsanfragen eines Auftrags.
 
 Die Schemaentwicklung wird mit Flyway gesteuert. Änderungen werden als
 versionierte Migrationen in definierter Reihenfolge ausgeführt und in der
@@ -318,7 +346,7 @@ Datenstruktur; seine Weiterentwicklung erfolgt kontrolliert über Flyway.
 \label{sec:prozessumsetzung}
 
 Der Avisierungsprozess umfasst die Übernahme des Avisierungsauftrags aus DISPO,
-die Benachrichtigung des Kunden, die Verarbeitung der Rückbestätigung oder eines
+die Benachrichtigung des Kunden, die Verarbeitung der Kundenreaktion oder eines
 Fristablaufs sowie die abschließende Statusrückmeldung an DISPO. Er verbindet
 damit die synchrone Auftragsübernahme mit einer nachgelagerten, zeitlich
 verteilten Verarbeitung. Die folgenden Abschnitte beschreiben diesen
@@ -330,7 +358,7 @@ Nebenläufigkeit.
 
 Ein Avisierungsauftrag wird über eine REST-Schnittstelle aus DISPO übernommen
 und zusammen mit dem bereits bestimmten Mandantenkontext an die
-Anwendungslogik übergeben. Ob dabei eine neue Rückbestätigungsanfrage und
+Anwendungslogik übergeben. Ob dabei eine neue Bestätigungsanfrage und
 Prozessinstanz entstehen, hängt vom vorhandenen Verarbeitungszustand ab. Die
 vorgelagerte Authentifizierung und Ermittlung des Mandantenkontexts werden in
 Abschnitt~\ref{sec:dispo-authentifizierung} beschrieben.
@@ -356,14 +384,50 @@ externe Auftrags-ID führt daher nicht automatisch zu einem weiteren
 
 Die weitere Verarbeitung ist zustandsabhängig. Der Avisierungsservice
 berücksichtigt den bestehenden \texttt{Order} und dessen letzte
-Rückbestätigungsanfrage und vergleicht deren relevante Daten mit dem neu
+Bestätigungsanfrage und vergleicht deren relevante Daten mit dem neu
 eingegangenen Auftrag. Daraus ergibt sich, ob die bestehende Verarbeitung
 weiterverwendet oder aktualisiert werden kann oder eine neue
-Rückbestätigungsanfrage mit neuer Prozessinstanz erforderlich ist.
+Bestätigungsanfrage mit neuer Prozessinstanz erforderlich ist.
 Tabelle~\ref{tab:avisierungsauftrag-entscheidung} fasst diese Entscheidung
 zusammen.
 
-% Tabelle unverändert
+\begin{table}[htbp]
+  \centering
+  \caption{Entscheidung bei der Übernahme eines Avisierungsauftrags}
+  \label{tab:avisierungsauftrag-entscheidung}
+  \small
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.43\textwidth}>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    Ausgangslage & Verarbeitung \\
+    \midrule
+    Kein \texttt{Order} vorhanden
+      & Auftrag mit \texttt{OPEN}, neue \texttt{PENDING}-Anfrage und Prozessinstanz anlegen \\
+    Auftrag vorhanden, noch keine Anfrage
+      & Auftrag aktualisieren und auf \texttt{OPEN} setzen; neue Anfrage und Prozessinstanz anlegen \\
+    Letzte Anfrage \texttt{PENDING}, Daten unverändert
+      & Vorhandene Verarbeitung unverändert weiterverwenden; kein neuer Prozess \\
+    Letzte Anfrage \texttt{PENDING}, Daten geändert
+      & Auftrag aktualisieren und auf \texttt{OPEN} setzen; bestehende Anfrage aktualisieren, Prozess beibehalten \\
+    Letzte Anfrage \texttt{SENT} und aktiv, Daten unverändert
+      & Bestehende Anfrage und aktuellen Auftragsstatus weiterverwenden \\
+    Letzte Anfrage \texttt{SENT} und inaktiv, Auftrag \texttt{CONFIRMED} oder \texttt{REJECTED}, Daten unverändert
+      & Vorhandenes Ergebnis weiterverwenden; keine neue Anfrage oder Prozessinstanz \\
+    Alle übrigen Fälle, insbesondere \texttt{FAILED}, abgeschlossenes \texttt{NO\_RESPONSE} oder geänderte Daten bei \texttt{SENT}
+      & Auftrag aktualisieren und auf \texttt{OPEN} setzen; aktive alte Anfrage deaktivieren und Ablösung signalisieren; neue \texttt{PENDING}-Anfrage und Prozessinstanz anlegen \\
+    \bottomrule
+  \end{tabularx}
+  \par\smallskip
+  \begin{minipage}{\textwidth}
+    \footnotesize
+    Maßgeblich ist die letzte Anfrage nach interner ID. „Daten unverändert“
+    bedeutet: Sowohl Auftragsdaten (Tour, Kunde, Kontakte, Lieferadresse,
+    Produkt, Menge und Preistext) als auch Anfragedaten (Lieferfenster,
+    Kommunikationskanal und Antwortdauer) stimmen überein.
+    Die Wiederverwendung einer aktiven \texttt{SENT}-Anfrage prüft hier
+    \texttt{active}, nicht zusätzlich den Ablaufzeitpunkt.
+  \end{minipage}
+\end{table}
 
 Eine identische erneute Übertragung erzeugt bei einer bereits laufenden
 \texttt{PENDING}-Anfrage keine zusätzliche Prozessinstanz. Ändern sich die
@@ -372,7 +436,7 @@ wodurch ihre Zuordnung zur vorhandenen Prozessinstanz erhalten bleibt. Auch
 eine aktive \texttt{SENT}-Anfrage oder ein weiterhin verwendbares
 abgeschlossenes Ergebnis kann bei unveränderten Daten wiederverwendet werden.
 
-Ist eine neue Rückbestätigungsanfrage erforderlich, wird ein Token für den
+Ist eine neue Bestätigungsanfrage erforderlich, wird ein Token für den
 späteren Kundenzugriff erzeugt und ein neuer \texttt{ConfirmationRequest} mit
 Kommunikationskanal, Lieferfenster und Antwortfrist im Versandstatus
 \texttt{PENDING} gespeichert. Zu diesem Zeitpunkt ist die Anfrage noch nicht
@@ -437,13 +501,21 @@ Abbildung~\ref{fig:confirmation-request-process} dessen technische
 Konkretisierung durch Service Tasks, Wartezustände, Nachrichtenereignisse,
 Timer und Fehlerpfade.
 
-% Abbildung unverändert
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[
+        width=\textwidth,
+        height=0.62\textheight,
+        keepaspectratio
+    ]{figures/confirmation-request-process.png}
+    \caption{Technische Workflow-Steuerung des Avisierungsprozesses in Camunda}
+    \label{fig:confirmation-request-process}
+\end{figure}
 
 Das BPMN-Modell wird unter dem Schlüssel
-\texttt{confirmation-request-process} deployt. Jede Prozessinstanz repräsentiert
-einen konkreten Avisierungsvorgang und ist über die interne
-\texttt{ConfirmationRequest.id} als Business Key einer
-Rückbestätigungsanfrage zugeordnet. Derselbe Schlüssel wird zusammen mit dem
+\texttt{confirmation-request-process} deployt. Jede Prozessinstanz ist über die interne
+\texttt{ConfirmationRequest.id} als Business Key genau einer
+Bestätigungsanfrage zugeordnet. Derselbe Schlüssel wird zusammen mit dem
 jeweiligen Message-Namen zur Korrelation von Kundenreaktionen oder
 Ablösungsereignissen verwendet.
 
@@ -457,7 +529,27 @@ Die Integration erfolgt in beide Richtungen.
 Tabelle~\ref{tab:workflow-integration} fasst die technischen Bindeglieder und
 Verantwortlichkeiten zusammen.
 
-% Tabelle unverändert
+\begin{table}[htbp]
+  \centering
+  \caption{Technische Integration zwischen Camunda und Application Layer}
+  \label{tab:workflow-integration}
+  \small
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.25\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    Bindeglied & Richtung / Geltungsbereich & Aufgabe \\
+    \midrule
+    Java Delegate & Camunda $\rightarrow$ Application
+      & Use Case aufrufen; Ergebnisse als Prozessvariablen oder \texttt{BpmnError} in den Ablauf übertragen \\
+    Workflow Service & Application $\rightarrow$ Camunda
+      & Prozess starten; Kundenreaktion oder Ablösung per Message korrelieren \\
+    Business Key & Beide Richtungen
+      & Prozessinstanz über die interne \texttt{ConfirmationRequest.id} zuordnen; bei Korrelation zusätzlich Message-Namen verwenden \\
+    Prozessvariablen & Innerhalb Camunda; Austausch über Adapter
+      & Ablaufparameter wie Versandversuche, Retry-Abstand und Antwortfrist sowie Ergebnisdaten für die Fortsetzung bereitstellen \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
 Java Delegates bilden die Camunda-spezifische Schnittstelle zur
 Anwendungslogik. Sie lesen Business Key und Prozessvariablen, rufen die
@@ -491,12 +583,12 @@ die Workflow Engine die zeit- und ereignisabhängige Ablaufkoordination
 Bevor eine Kundenreaktion übermittelt wird, stellt der Avisierungsservice die
 für die Bestätigungsseite benötigten Auftrags- und Lieferinformationen anhand
 des im Bestätigungslink enthaltenen Tokens bereit. Dabei wird ausschließlich
-die jeweils neueste Rückbestätigungsanfrage eines Auftrags berücksichtigt.
+die jeweils neueste Bestätigungsanfrage eines Auftrags berücksichtigt.
 Neben den Lieferdaten wird aus dem Zustand der Anfrage und einer gegebenenfalls
 bereits vorhandenen Kundenreaktion der darzustellende Bestätigungsstatus
 abgeleitet.
 
-Nach einem technisch erfolgreichen Versand wird die Rückbestätigungsanfrage in
+Nach einem technisch erfolgreichen Versand wird die Bestätigungsanfrage in
 den Versandstatus \texttt{SENT} überführt, \texttt{sentAt} gespeichert und mit
 \texttt{active = true} für Kundenreaktionen aktiviert. Gleichzeitig wechselt
 der zugehörige \texttt{Order} von \texttt{OPEN} nach \texttt{SENT}.
@@ -557,7 +649,35 @@ Zustandsübergangs entscheidet weiterhin die Anwendungslogik.
 Tabelle~\ref{tab:kundenreaktion-fristablauf} fasst die resultierenden
 Zustandsübergänge zusammen.
 
-% Tabelle unverändert
+\begin{table}[htbp]
+  \centering
+  \caption{Zustandsübergänge bei Kundenreaktion und Fristablauf}
+  \label{tab:kundenreaktion-fristablauf}
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.17\textwidth}>{\raggedright\arraybackslash}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.28\textwidth}>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    Ereignis & \texttt{Order} & \texttt{Confirmation-}\newline\texttt{Request} & \texttt{Customer-}\newline\texttt{Response} \\
+    \midrule
+    \texttt{CONFIRM} & \texttt{CONFIRMED}
+      & \texttt{active = false}, Versandstatus \texttt{SENT}
+      & Mit Typ \texttt{CONFIRM} gespeichert \\
+    \texttt{REJECT} & \texttt{REJECTED}
+      & \texttt{active = false}, Versandstatus \texttt{SENT}
+      & Mit Typ \texttt{REJECT} gespeichert \\
+    Fristablauf & \texttt{NO\_RESPONSE}
+      & \texttt{active = false}, Versandstatus \texttt{SENT}
+      & Keine Kundenreaktion angelegt \\
+    \bottomrule
+  \end{tabularx}
+  \par\smallskip
+  \begin{minipage}{\textwidth}
+    \footnotesize
+    Dargestellt sind zulässige Übergänge: Eine Kundenreaktion setzt die neueste,
+    aktive, unbeantwortete und noch nicht abgelaufene Anfrage voraus.
+    Beim Fristablauf muss die Anfrage aktiv und der Ablaufzeitpunkt erreicht sein.
+  \end{minipage}
+\end{table}
 
 Eine gültige Kundenentscheidung oder der Fristablauf beendet die aktive
 Antwortphase. Der Auftrag befindet sich anschließend in
@@ -573,9 +693,9 @@ Eine erneute Verarbeitung kann auf zwei Wegen ausgelöst werden. Einerseits kann
 DISPO einen bereits bekannten Auftrag erneut übermitteln, beispielsweise
 aufgrund geänderter Auftrags- oder Avisierungsdaten oder nach einem zuvor
 erfolglosen Avisierungsversuch. Andererseits kann nach einem endgültigen
-Zustellfehler oder einem Fristablauf ohne Kundenreaktion eine erneute Avisierung
+Versandfehler oder einem Fristablauf ohne Kundenreaktion eine erneute Avisierung
 manuell über das Avisierungsdashboard angestoßen werden. Beide Wege können zur
-Erzeugung einer neuen Rückbestätigungsanfrage führen, unterscheiden sich jedoch
+Erzeugung einer neuen Bestätigungsanfrage führen, unterscheiden sich jedoch
 hinsichtlich ihrer Änderungsmöglichkeiten und fachlichen Voraussetzungen.
 
 Sind bei der erneuten Übermittlung durch DISPO die Daten einer bereits
@@ -585,9 +705,9 @@ wartende Prozessinstanz über das Ereignis
 \texttt{ConfirmationRequestSuperseded} beendet. Die abgelöste Prozessinstanz
 endet auf diesem Pfad ohne fachliche Statusrückmeldung an DISPO. Maßgeblich für
 die weitere Verarbeitung ist anschließend die neu erzeugte
-Rückbestätigungsanfrage.
+Bestätigungsanfrage.
 
-Wird aufgrund des bestehenden Zustands eine neue Rückbestätigungsanfrage
+Wird aufgrund des bestehenden Zustands eine neue Bestätigungsanfrage
 erzeugt, werden deren anfragespezifische Daten separat gespeichert. Dadurch
 bleiben das jeweilige Lieferfenster, der Kommunikationskanal, die Antwortfrist
 und der Versandstatus der einzelnen Versuche nachvollziehbar.
@@ -596,7 +716,7 @@ und der Versandstatus der einzelnen Versuche nachvollziehbar.
 \label{sec:statusrueckmeldung-dispo}
 
 Beim Abschluss des ursprünglichen HTTP-Aufrufs aus DISPO liegt noch
-kein Rückbestätigungsergebnis vor. Eine Kundenentscheidung kann unmittelbar
+kein endgültiges Avisierungsergebnis vor. Eine Kundenentscheidung kann unmittelbar
 nach dem Versand, aber auch erst nach längerer Wartezeit eintreten; alternativ
 kann die Antwortfrist ohne Kundenreaktion ablaufen. Das Integrationskonzept
 sieht daher einen mandantenspezifisch konfigurierten Callback-Endpunkt vor, über
@@ -606,29 +726,29 @@ zurückmeldet.
 Die Statusrückmeldung ist Bestandteil des regulären Prozesspfads und erfolgt
 vor dessen Abschluss. Das ausführbare Prozessmodell führt die Zustände
 \texttt{CONFIRMED}, \texttt{REJECTED} und \texttt{NO\_RESPONSE} zu diesem
-Schritt. Ein technischer Zustellfehler mit dem Versandstatus \texttt{FAILED}
-sowie die Ablösung einer Rückbestätigungsanfrage durch eine neuere Avisierung
+Schritt. Ein technischer Versandfehler mit dem Versandstatus \texttt{FAILED}
+sowie die Ablösung einer Bestätigungsanfrage durch eine neuere Avisierung
 enden dagegen auf separaten Prozesspfaden. Der Callback-Schritt übergibt den
 bereits bestimmten Status zusammen mit der Identität der zugrunde liegenden
-Rückbestätigungsanfrage an die Anwendungslogik zur externen Rückmeldung.
+Bestätigungsanfrage an die Anwendungslogik zur externen Rückmeldung.
 
 Vor dem HTTP-Aufruf wird geprüft, ob die zugrunde liegende
-Rückbestätigungsanfrage noch aktuell ist. Hierzu wird die jüngste
+Bestätigungsanfrage noch aktuell ist. Hierzu wird die jüngste
 \texttt{ConfirmationRequest} des betreffenden \texttt{Order} bestimmt und ihre
 ID mit der im Business Key der Prozessinstanz enthaltenen Anfrage-ID
 verglichen. Nur bei Übereinstimmung wird die Rückmeldung ausgeführt.
 
 Diese Prüfung verhindert insbesondere die Übertragung eines bereits überholten
-Status. Wird beispielsweise nach einer Rückbestätigungsanfrage A aufgrund
+Status. Wird beispielsweise nach einer Bestätigungsanfrage A aufgrund
 geänderter Avisierungsdaten eine neue Anfrage B erzeugt und erreicht die
 Prozessinstanz von A erst danach den Callback-Schritt, wird die Rückmeldung von
 A unterdrückt. Anfrage A ist zu diesem Zeitpunkt nicht mehr die jüngste
-Rückbestätigungsanfrage des Auftrags.
+Bestätigungsanfrage des Auftrags.
 
 Ist die Anfrage weiterhin aktuell, wird das Callback-Ziel aus der dem Auftrag
 zugeordneten \texttt{Company} bestimmt. Dadurch kann für jeden Mandanten ein
 eigener DISPO-Endpunkt konfiguriert werden. Übertragen werden die externe
-Auftrags-ID, der Rückbestätigungsstatus und, sofern vorhanden, ein vom Kunden
+Auftrags-ID, der Bestätigungsstatus und, sofern vorhanden, ein vom Kunden
 übermittelter Kommentar. Die ursprünglich aus DISPO übernommene externe
 Auftrags-ID ermöglicht die Zuordnung zur dortigen Auftragsidentität, ohne dass
 interne Datenbankidentifikatoren des Avisierungsservice über die Systemgrenze
@@ -651,8 +771,8 @@ Zustands.
 
 Beim Nachrichtenversand werden Fehler danach unterschieden, ob ein weiterer
 Versandversuch sinnvoll vorgesehen ist oder der Versand unmittelbar als
-fehlgeschlagen behandelt wird. Vom Kommunikationssystem gemeldete
-Zustellfehler werden grundsätzlich als wiederholbar behandelt. Eine feinere
+fehlgeschlagen behandelt wird. Vom Kommunikationsadapter gemeldete technische Versandfehler
+werden grundsätzlich als wiederholbar behandelt. Eine feinere
 Unterscheidung zwischen kurzfristigen und dauerhaft bestehenden Ursachen
 erfolgt dabei nicht. Nicht wiederholbar sind dagegen beispielsweise eine
 fehlende notwendige E-Mail-Konfiguration oder der Fall, dass ein bei der
@@ -665,7 +785,7 @@ dem dritten Versuch fünf Minuten. Für diese konkrete Anzahl und die Wartezeite
 ist keine fachliche Herleitung dokumentiert; sie werden daher lediglich als
 Bestandteil der aktuellen technischen Konfiguration betrachtet. Kann die
 Nachricht nicht erfolgreich versendet werden, wird die
-Rückbestätigungsanfrage als \texttt{FAILED} markiert. Der Auftrag bleibt im
+Bestätigungsanfrage als \texttt{FAILED} markiert. Der Auftrag bleibt im
 Status \texttt{OPEN}, sodass eine erneute Avisierung möglich ist. Ein
 Versandfehler wird damit nicht mit einer Ablehnung oder einer ausgebliebenen
 Kundenreaktion gleichgesetzt.
@@ -734,10 +854,10 @@ jedoch nicht, dass beide gleichzeitig eintreffenden Aufrufe identisch
 erfolgreich verarbeitet werden.
 
 Zusätzlich begrenzen Zustandsprüfungen unnötige Wiederholungen. Eine bereits
-erfolgreich versendete Rückbestätigungsanfrage wird bei einer erneuten
+erfolgreich versendete Bestätigungsanfrage wird bei einer erneuten
 Ausführung nicht nochmals versendet. Ebenso wird ein bereits verarbeiteter
 Versandfehler nicht erneut als neuer Zustandswechsel behandelt. Für eine
-Rückbestätigungsanfrage kann außerdem höchstens eine Kundenreaktion gespeichert
+Bestätigungsanfrage kann außerdem höchstens eine Kundenreaktion gespeichert
 werden. Vor einer Statusrückmeldung an DISPO wird zusätzlich geprüft, ob die
 zugehörige Anfrage weiterhin die jüngste Anfrage des Auftrags ist. Bereits
 erkennbare veraltete Rückmeldungen können dadurch unterdrückt werden.
@@ -763,7 +883,7 @@ werden kann.
 
 Die ausgehende Kundenkommunikation übermittelt die im Avisierungsprozess
 ausgelösten Nachrichten an den Kunden. Die initiale
-Rückbestätigungsanfrage kann über E-Mail, SMS oder WhatsApp versendet werden.
+Bestätigungsanfrage kann über E-Mail, SMS oder WhatsApp versendet werden.
 Zusätzlich ist nach einer verarbeiteten Kundenreaktion eine Eingangsbestätigung
 vorgesehen.
 
@@ -779,11 +899,11 @@ werden der E-Mail-Versand sowie die Anbindung von SMS und WhatsApp betrachtet.
 Um die fachliche Prozesslogik von konkreten Übertragungstechnologien zu
 entkoppeln, verwendet der Application Layer den \texttt{NotificationService}
 als ausgehende Kommunikationsgrenze. Darüber werden die initiale
-Rückbestätigungsanfrage sowie die Eingangsbestätigung nach einer
+Bestätigungsanfrage sowie die Eingangsbestätigung nach einer
 Kundenreaktion ausgelöst, ohne dass die aufrufenden Application Services von
 SMTP- oder Provider-Schnittstellen abhängen.
 
-Der für eine konkrete Rückbestätigungsanfrage zu verwendende
+Der für eine konkrete Bestätigungsanfrage zu verwendende
 Kommunikationskanal ist im zugehörigen \texttt{ConfirmationRequest} festgelegt.
 Die Auswahl der konkreten Kanalimplementierung ist nach dem Strategy Pattern
 strukturiert \parencite{gamma1994designPatterns}. Für E-Mail, SMS und WhatsApp existieren
@@ -858,11 +978,11 @@ Abschnitten~\ref{sec:kundenreaktion-fristablauf}
 und~\ref{sec:fehlerbehandlung} beschrieben.
 
 Der gemeinsame Sender-Vertrag sieht neben der initialen
-Rückbestätigungsanfrage auch eine Eingangsbestätigung nach einer
+Bestätigungsanfrage auch eine Eingangsbestätigung nach einer
 Kundenreaktion vor. Im aktuellen Projektstand wird diese Eingangsbestätigung
 jedoch nur über E-Mail versendet. Für SMS und WhatsApp wurde sie aufgrund
 technischer Einschränkungen des im Projekt verwendeten Twilio-Demo-Setups nicht
-umgesetzt. Die initiale Rückbestätigungsanfrage wird dagegen über alle drei
+umgesetzt. Die initiale Bestätigungsanfrage wird dagegen über alle drei
 vorgesehenen Kommunikationskanäle unterstützt.
 
 Die zentrale Auswahl- und Delegationslogik muss bei der Ergänzung eines
@@ -881,18 +1001,18 @@ Kanalauswahl übernimmt der E-Mail-Adapter die kanalspezifische Erzeugung und
 und die technische Übertragung über SMTP voneinander getrennt.
 
 Für die HTML-Aufbereitung werden drei Thymeleaf-Templates verwendet: eines für
-die initiale Rückbestätigungsanfrage sowie jeweils eines für die
+die initiale Bestätigungsanfrage sowie jeweils eines für die
 Eingangsbestätigung nach einer Bestätigung oder Ablehnung durch den Kunden. Die
 erforderlichen Auftrags- und Lieferdaten stammen aus \texttt{Order} und
 \texttt{ConfirmationRequest}. Zusätzlich wird für alle drei
 Nachrichtenvarianten aus der konfigurierten Frontend-Adresse und dem Token der
-Rückbestätigungsanfrage eine individuelle URL erzeugt. Nachrichtendarstellung
+Bestätigungsanfrage eine individuelle URL erzeugt. Nachrichtendarstellung
 und SMTP-Transport werden damit als getrennte technische Verantwortlichkeiten
 behandelt.
 
 Abbildung~\ref{fig:rueckbestaetigungs-email} zeigt das Ergebnis dieser
 HTML-Aufbereitung anhand einer mit anonymisierten Testdaten erzeugten
-Rückbestätigungs-E-Mail.
+E-Mail mit Bestätigungsanfrage.
 
 \begin{figure}[htbp]
   \centering
@@ -902,10 +1022,9 @@ Rückbestätigungs-E-Mail.
     keepaspectratio
   ]{figures/rueckbestaetigungs-email.png}
   \caption{Beispiel einer durch den Avisierungsservice erzeugten
-  Rückbestätigungs-E-Mail}
+  E-Mail mit Bestätigungsanfrage}
   \label{fig:rueckbestaetigungs-email}
   \par\smallskip
-  {\footnotesize\textit{Quelle: Eigene Darstellung.}}
 \end{figure}
 
 Da SMTP-Infrastruktur und Absenderidentität mandantenbezogen konfigurierbar
@@ -963,9 +1082,9 @@ Verbindung zum SMTP-System hergestellt werden kann.
 
 Der Testversand führt mit derselben Transportkonfiguration eine tatsächliche
 SMTP-Sendeoperation aus und sendet eine einfache Testnachricht an die
-konfigurierte Absenderadresse. Die fachliche Erzeugung einer
-Rückbestätigungs-E-Mail mit Thymeleaf-Template, Auftragsdaten und
-Bestätigungslink ist davon nicht umfasst. Ein erfolgreicher Testversand zeigt
+konfigurierte Absenderadresse. Die fachliche Erzeugung einer E-Mail mit Bestätigungsanfrage unter Verwendung
+eines Thymeleaf-Templates sowie der Auftragsdaten und des Bestätigungslinks
+ist davon nicht umfasst. Ein erfolgreicher Testversand zeigt
 daher lediglich, dass der SMTP-Server bei der Übertragung keinen Fehler
 gemeldet hat; eine endgültige Zustellung in das Postfach des Empfängers wird
 damit nicht nachgewiesen.
@@ -1020,7 +1139,7 @@ Tabelle~\ref{tab:schutzbereiche} zusammengefasst.
       & Browserzugriff an einen authentifizierten Mandantenkontext binden
       & \ref{sec:dashboard-zugriff} \\
     Kundenzugriff
-      & Zugriff auf eine konkrete Rückbestätigungsanfrage begrenzen
+      & Zugriff auf eine konkrete Bestätigungsanfrage begrenzen
       & \ref{sec:kundenzugriff-token} \\
     Mandantenspezifische Konfigurationsgeheimnisse
       & sensible technische Konfigurationsdaten vertraulich speichern
@@ -1069,7 +1188,7 @@ innerhalb eines Mandanten eindeutig bleibt.
 Auch Dashboard-Abfragen werden auf die im \texttt{CompanyContext} enthaltene
 \texttt{companyId} eingeschränkt. Die Detailansicht bestimmt zunächst den
 Auftrag im Kontext des Mandanten und lädt anschließend die zugehörigen
-Rückbestätigungsanfragen und Kundenreaktionen. Mandantenspezifische technische
+Bestätigungsanfragen und Kundenreaktionen. Mandantenspezifische technische
 Konfigurationen folgen demselben Prinzip; beispielsweise werden die in
 Abschnitt~\ref{sec:emailversand} beschriebenen SMTP-Einstellungen über die
 zugehörige \texttt{Company} bestimmt.
@@ -1087,7 +1206,7 @@ Nicht alle Verarbeitungspfade verwenden den \texttt{CompanyContext}. Interne
 Workflow-Schritte arbeiten mit bereits persistierten technischen
 Objektidentifikatoren und den darüber erreichbaren fachlichen Beziehungen. Der
 Kundenzugriff verwendet dagegen einen begrenzten tokenbasierten Zugriff auf
-eine konkrete Rückbestätigungsanfrage, der in
+eine konkrete Bestätigungsanfrage, der in
 Abschnitt~\ref{sec:kundenzugriff-token} behandelt wird.
 
 Eine zusätzliche datenbankseitige Zugriffskontrolle durch Row-Level Security
@@ -1359,7 +1478,7 @@ Bei der Neuanlage einer \texttt{ConfirmationRequest} wird ein neuer Token
 erzeugt. Hierzu werden mit \texttt{SecureRandom} 32 zufällige Bytes generiert
 und URL-kompatibel über \texttt{Base64} kodiert. Der daraus resultierende
 Zufallswert besitzt 256 Bit Entropie und erschwert das Erraten gültiger Tokens.
-Werden für einen Auftrag nacheinander mehrere Rückbestätigungsanfragen erzeugt,
+Werden für einen Auftrag nacheinander mehrere Bestätigungsanfragen erzeugt,
 erhält jede neu angelegte Anfrage einen eigenen Token.
 
 Der Token wird Bestandteil des individuellen Bestätigungslinks und über die in
@@ -1375,7 +1494,7 @@ Spring-Security-Konfiguration von der CSRF-Prüfung ausgenommen.
 Für die Auflösung eines Tokens reicht dessen Existenz in der Datenbank nicht
 aus. Er muss zusätzlich zur neuesten \texttt{ConfirmationRequest} des
 jeweiligen Auftrags gehören. Technisch wird dafür geprüft, ob die zugehörige
-Anfrage den höchsten Datenbankidentifikator unter den Rückbestätigungsanfragen
+Anfrage den höchsten Datenbankidentifikator unter den Bestätigungsanfragen
 desselben Auftrags besitzt. Wird nach einer Anfrage A eine neuere Anfrage B
 erzeugt, bleibt Token A zwar historisch gespeichert, kann über die
 Kundenschnittstelle jedoch nicht mehr aufgelöst werden. Dadurch verlieren
@@ -1385,7 +1504,7 @@ Anfragen gelöscht werden müssen.
 Welche Funktion nach erfolgreicher Tokenauflösung genutzt werden kann, hängt
 zusätzlich vom Zustand des Vorgangs ab. Die Bestätigungsseite bleibt auch
 nach Ablauf der Antwortfrist verfügbar, solange keine neuere
-Rückbestätigungsanfrage angelegt wurde. Dies ist bewusst vorgesehen, damit der
+Bestätigungsanfrage angelegt wurde. Dies ist bewusst vorgesehen, damit der
 Kunde den Liefertermin später erneut einsehen und denselben Link am Liefertag
 für die Funktionen der Lieferverfolgung verwenden kann. Eine nachträgliche
 Bestätigung oder Ablehnung ist dagegen nicht möglich, da hierfür zusätzlich
@@ -1395,7 +1514,7 @@ ist.
 Auch die Funktionen der Lieferverfolgung verwenden dieselbe Tokenauflösung.
 Informationen zur Lieferverfolgung werden nur an dem im
 \texttt{DeliverySlot} hinterlegten Lieferdatum als verfügbar ausgewiesen. Eine
-Fahrerposition wird zusätzlich nur dann bereitgestellt, wenn entsprechende
+Fahrzeugposition wird zusätzlich nur dann bereitgestellt, wenn entsprechende
 Positionsdaten vorliegen. Die funktionale Ermittlung dieser Daten wird in
 Abschnitt~\ref{sec:lieferverfolgung} behandelt.
 
@@ -1421,7 +1540,7 @@ protokollierten URL \parencite{owaspInformationExposureUrls}.
 
 Das Verfahren ermöglicht damit einen einfachen Kundenzugriff ohne zusätzliche
 Benutzerverwaltung. Die zufällige Token-Erzeugung und die Prüfung auf die
-jeweils neueste Rückbestätigungsanfrage erschweren das Erraten gültiger Tokens
+jeweils neueste Bestätigungsanfrage erschweren das Erraten gültiger Tokens
 und schließen veraltete Links aus. Der Schutz des aktuell gültigen Tokens
 bleibt jedoch eine zentrale Voraussetzung des Zugriffsmodells.
 
@@ -1481,8 +1600,8 @@ gespeicherte Kennwörter nicht mehr entschlüsselt werden können.
 \subsection{Abfragemodell für das Avisierungsdashboard}
 \label{sec:abfragemodell}
 
-Die in den vorhergehenden Abschnitten erzeugten Auftrags-, Avisierungs- und
-Rückbestätigungsdaten müssen der Disposition für die operative Bearbeitung
+Die in den vorhergehenden Abschnitten erzeugten Auftrags- und
+Avisierungsdaten müssen der Disposition für die operative Bearbeitung
 bereitgestellt werden. Dazu bereitet der Avisierungsservice die gespeicherten
 Fach- und Prozessdaten entsprechend dem jeweiligen Informationsbedarf auf.
 
@@ -1520,7 +1639,7 @@ auf die zugehörigen Aufträge.
 
 Da zu einem \texttt{Order} mehrere \texttt{ConfirmationRequest}-Objekte
 existieren können, berücksichtigt die Übersicht je Auftrag ausschließlich die
-Anfrage mit der höchsten internen ID. Frühere Rückbestätigungsanfragen bleiben
+Anfrage mit der höchsten internen ID. Frühere Bestätigungsanfragen bleiben
 für die Avisierungshistorie erhalten, werden jedoch nicht zusätzlich in der
 aktuellen Tourübersicht dargestellt.
 
@@ -1529,7 +1648,7 @@ eingeschränkt. Zusätzlich können Tournummern, fachliche
 \texttt{ConfirmationStatus}, ein Datumsbereich und eine Freitextsuche
 miteinander kombiniert werden. Der Statusfilter bezieht sich auf den
 fachlichen Bearbeitungsstand des Auftrags und nicht auf den technischen
-Versandstatus einer einzelnen Rückbestätigungsanfrage. Wird kein Startdatum
+Versandstatus einer einzelnen Bestätigungsanfrage. Wird kein Startdatum
 angegeben, dient das aktuelle Datum als Untergrenze; ungültige Datumsbereiche
 werden zurückgewiesen. Die Freitextsuche berücksichtigt ohne Unterscheidung
 von Groß- und Kleinschreibung Tournummer, Fahrzeugkennzeichen, externe
@@ -1540,7 +1659,7 @@ eingesetzt. Die Bibliothek ermöglicht den typisierten Aufbau und die
 schrittweise Zusammensetzung von Abfragebedingungen
 \parencite{querydslUnifiedQueries}. Dadurch können nur die tatsächlich gesetzten
 Filter berücksichtigt und mit der Auswahl der jeweils neuesten
-Rückbestätigungsanfrage, Gruppierung, Sortierung und Paginierung kombiniert
+Bestätigungsanfrage, Gruppierung, Sortierung und Paginierung kombiniert
 werden. Separate statische Abfragen für jede mögliche Filterkombination sind
 dadurch nicht erforderlich.
 
@@ -1588,11 +1707,11 @@ Erzeugungszeitpunkt gespeichert wird. Die Anfrage mit der höchsten ID wird als
 \texttt{currentRequest} ausgewiesen; die übrigen bilden in absteigender
 ID-Reihenfolge die \texttt{previousRequests}. \texttt{currentRequest} bedeutet
 dabei nicht, dass die Anfrage noch aktiv ist. Liegt keine
-Rückbestätigungsanfrage vor, bleibt dieser Bestandteil leer. Eine separate
+Bestätigungsanfrage vor, bleibt dieser Bestandteil leer. Eine separate
 Paginierung der Historie ist im Prototyp nicht vorgesehen.
 
 Der auftragsbezogene \texttt{ConfirmationStatus} ist vom Darstellungsstatus
-einer einzelnen Rückbestätigungsanfrage zu unterscheiden. Für diese werden die
+einer einzelnen Bestätigungsanfrage zu unterscheiden. Für diese werden die
 in Abschnitt~\ref{sec:domaenenmodell} getrennt beschriebenen Merkmale
 \texttt{deliveryStatus}, \texttt{active} und eine gegebenenfalls vorhandene
 Kundenreaktion zu einem ansichtsspezifischen Status verdichtet.
@@ -1601,13 +1720,13 @@ Kundenreaktion zu einem ansichtsspezifischen Status verdichtet.
   \centering
   \small
   \renewcommand{\arraystretch}{1.15}
-  \caption{Darstellungsstatus einzelner Rückbestätigungsanfragen}
+  \caption{Darstellungsstatus einzelner Bestätigungsanfragen}
   \label{tab:anfrage-darstellungsstatus}
   \begin{tabularx}{\textwidth}{@{}
     >{\raggedright\arraybackslash}X
     >{\raggedright\arraybackslash}p{0.19\textwidth}@{}}
     \toprule
-    \textbf{Zustand der Rückbestätigungsanfrage}
+    \textbf{Zustand der Bestätigungsanfrage}
       & \textbf{Darstellungsstatus} \\
     \midrule
     \texttt{deliveryStatus = PENDING}
@@ -1650,7 +1769,7 @@ einer Änderung nicht rekonstruiert werden.
 \label{sec:lieferverfolgung}
 % TODO: Einführung in Lieferverfolgung und Geocoding ergänzen.
 
-\subsubsection{Daten zur Lieferverfolgung und Fahrerposition}
+\subsubsection{Daten zur Lieferverfolgung und Fahrzeugposition}
 % TODO: Inhalt ergänzen.
 \contentplaceholder
 
